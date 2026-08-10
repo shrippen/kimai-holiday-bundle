@@ -1,0 +1,32 @@
+{{ form_start(form) }}
+    <div class="mb-3">
+        {{ form_label(form.type) }}
+        <div class="mt-1">
+            {% for child in form.type %}
+                <div class="form-check">
+                    <input
+                        type="radio"
+                        id="{{ child.vars.id }}"
+                        name="{{ child.vars.full_name }}"
+                        class="form-check-input"
+                        value="{{ child.vars.value }}"
+                        {% if child.vars.checked %}checked="checked"{% endif %}
+                        {% if child.vars.required %}required="required"{% endif %}
+                    >
+                    <label class="form-check-label" for="{{ child.vars.id }}">
+                        <i class="{{ child.vars.attr['data-icon']|default('dot')|icon }} me-1"></i>{{ child.vars.label|trans }}
+                    </label>
+                </div>
+                {% do child.setRendered() %}
+            {% endfor %}
+        </div>
+        {{ form_errors(form.type) }}
+        {% do form.type.setRendered() %}
+    </div>
+    {{ form_row(form.startDate) }}
+    {{ form_row(form.endDate) }}
+    {{ form_row(form.halfDay) }}
+    {{ form_row(form.duration) }}
+    {{ form_row(form.comment) }}
+    <button class="btn btn-primary" type="submit">{{ submit_label|trans }}</button>
+{{ form_end(form) }}

@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2>{{ 'menu.absence'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
+            <p>
+                <a href="{{ path('holiday_absence', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
+                <a href="{{ path('holiday_absence', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
+                <a href="{{ path('holiday_absence_export', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }}</a>
+            </p>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    {{ 'summary.vacation'|trans }}:
+                    <strong>{{ vacationBalance|number_format(1) }}</strong>
+                    ({{ vacationUsed|number_format(1) }} / {{ vacationEntitlement|number_format(1) }})
+                    {% if is_granted('contract_other_profile') or target_user == app.user %}
+                        <div class="small text-muted mt-1">
+                            {{ 'absence.vacation_from_contract'|trans }}
+                            <a href="{{ path('user_profile_contract', {username: target_user.userIdentifier}) }}">{{ 'contract.edit'|trans }}</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if ics_url %}
+        <div class="card mb-3">
+            <div class="card-header">{{ 'absence.ics.title'|trans }}</div>
+            <div class="card-body">
+                <p class="text-muted mb-2">{{ 'absence.ics.help'|trans }}</p>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" readonly value="{{ ics_url }}" id="holiday-ics-url" onclick="this.select()">
+                    <a class="btn btn-outline-secondary" href="{{ ics_url }}" target="_blank" rel="noopener">{{ 'absence.ics.open'|trans }}</a>
+                </div>
+                <form method="post" action="{{ path('holiday_absence_ics_regenerate', {user: target_user.id, year: year}) }}" onsubmit="return confirm('{{ 'absence.ics.regenerate_confirm'|trans|e('js') }}');">
+                    <button type="submit" class="btn btn-sm btn-outline-warning">{{ 'absence.ics.regenerate'|trans }}</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card mb-3">
+        <div class="card-header">{{ 'absence.create'|trans }}</div>
+        <div class="card-body">
+            {% include '@Holiday/absence/_form.html.twig' with {form: form, submit_label: 'action.save'} %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">{{ 'absence.list'|trans }}</div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ 'absence.type'|trans }}</th>
+                        <th>{{ 'absence.status'|trans }}</th>
+                        <th>{{ 'absence.start'|trans }}</th>
+                        <th>{{ 'absence.end'|trans }}</th>
+                        <th class="text-end" title="{{ 'absence.days_help'|trans }}">{{ 'absence.days'|trans }}</th>
+                        <th>{{ 'absence.half_day'|trans }}</th>
+                        <th>{{ 'absence.comment'|trans }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in absences %}
+                        <tr>
+                            <td>
+                                <i class="{{ a.type.icon|icon }} me-1" title="{{ a.type.label|trans }}"></i>
+                                {{ a.type.label|trans }}
+                            </td>
+                            <td>{{ a.status.label|trans }}</td>
+                            <td>{{ a.startDate|date('Y-m-d') }}</td>
+                            <td>{{ a.endDate|date('Y-m-d') }}</td>
+                            <td class="text-end">{{ absence_days[a.id]|default(0)|number_format(1) }}</td>
+                            <td>{{ a.halfDay ? ('yes'|trans) : ('no'|trans) }}</td>
+                            <td>{{ a.comment }}</td>
+                            <td class="text-end text-nowrap">
+                                {% if (a.user == app.user and is_granted('edit_own_absence')) or (a.user != app.user and is_granted('edit_other_absence')) %}
+                                    <a class="btn btn-xs btn-outline-primary" href="{{ path('holiday_absence_edit', {id: a.id}) }}">{{ 'action.edit'|trans }}</a>
+                                {% endif %}
+                                {% if a.status.value == 'requested' %}
+                                    {% if (a.user == app.user and is_granted('approve_own_absence')) or (a.user != app.user and is_granted('approve_other_absence')) %}
+                                        <form class="d-inline" method="post" action="{{ path('holiday_absence_approve', {id: a.id}) }}">
+                                            <button class="btn btn-xs btn-success" type="submit">{{ 'action.approve'|trans }}</button>
+                                        </form>
+                                        <form class="d-inline" method="post" action="{{ path('holiday_absence_reject', {id: a.id}) }}">
+                                            <button class="btn btn-xs btn-danger" type="submit">{{ 'action.reject'|trans }}</button>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                                {% if (a.user == app.user and is_granted('delete_own_absence')) or (a.user != app.user and is_granted('delete_other_absence')) %}
+                                    <form class="d-inline" method="post" action="{{ path('holiday_absence_delete', {id: a.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
+                                        <button class="btn btn-xs btn-outline-danger" type="submit">{{ 'action.delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="8" class="text-muted">{{ 'absence.empty'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

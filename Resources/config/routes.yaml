@@ -1,0 +1,18 @@
+controllers:
+    resource: '@HolidayBundle/Controller/'
+    type: attribute
+    prefix: /{_locale}
+    requirements:
+        _locale: '%app_locales%'
+    defaults:
+        _locale: '%locale%'
+
+holiday.api:
+    resource: '@HolidayBundle/API/'
+    type: attribute
+    prefix: /api
+
+# Public ICS subscription URLs (token auth, no locale, no session)
+holiday.ics:
+    resource: '@HolidayBundle/Ics/'
+    type: attribute

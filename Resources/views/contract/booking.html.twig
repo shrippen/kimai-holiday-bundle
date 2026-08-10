@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <h2>{{ 'booking.create'|trans }} — {{ target_user.displayName }}</h2>
+    <p class="text-muted">{{ 'booking.immutable_hint'|trans }}</p>
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button class="btn btn-primary" type="submit">{{ 'action.save'|trans }}</button>
+        <a class="btn btn-link" href="{{ path('user_contract', {user: target_user.id}) }}">{{ 'action.close'|trans }}</a>
+    {{ form_end(form) }}
+{% endblock %}

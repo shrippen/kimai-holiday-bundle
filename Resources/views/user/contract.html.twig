@@ -1,0 +1,64 @@
+{#
+  Override of Kimai's user/contract.html.twig to reliably render HolidayBundle fields
+  (Urlaubstage, Feiertagsgruppe, Vertrag Start/Ende) below the core expected-hours block.
+#}
+{% extends 'user/form.html.twig' %}
+
+{% block form_content %}
+
+    <script>
+        function toggleWorkingContractModeForm(value)
+        {
+            document.querySelectorAll('.work_contract_mode').forEach(function (element) {
+                element.classList.add('d-none');
+            });
+
+            var elementToShow = document.querySelector('.work_contract_mode_' + value);
+            if (elementToShow) {
+                elementToShow.classList.remove('d-none');
+            }
+        }
+    </script>
+
+    {% form_theme form 'form/horizontal.html.twig' %}
+
+    {{ form_row(form._token) }}
+
+    {% if form.workContractMode is defined %}
+        <fieldset class="form-fieldset form-fieldset-light border-0 pb-0">
+            <legend>{{ 'work_times_should'|trans }}</legend>
+            {{ form_row(form.workContractMode, {attr:{'onchange': 'toggleWorkingContractModeForm(this.value)'}}) }}
+        </fieldset>
+    {% endif %}
+
+    {% for mode in form.vars.workContractModes %}
+        <fieldset class="form-fieldset form-fieldset-light border-0 work_contract_mode work_contract_mode_{{ mode.getId() }} {% if user.getWorkContractMode() != mode.getId() %}d-none{% endif %}">
+            {% for field in mode.getFormFields() %}
+                {{ form_row(form.children[field]) }}
+            {% endfor %}
+        </fieldset>
+    {% endfor %}
+
+    {% if form.holidaysPerYear is defined or form.publicHolidayGroup is defined or form.workStartingDay is defined or form.lastWorkingDay is defined %}
+        <fieldset class="form-fieldset form-fieldset-light">
+            <legend>{{ 'contract.holiday_section'|trans({}, 'messages') }}</legend>
+            {% if form.holidaysPerYear is defined %}
+                {{ form_row(form.holidaysPerYear) }}
+            {% endif %}
+            {% if form.publicHolidayGroup is defined %}
+                {{ form_row(form.publicHolidayGroup) }}
+            {% endif %}
+            {% if form.workStartingDay is defined %}
+                {{ form_row(form.workStartingDay) }}
+            {% endif %}
+            {% if form.lastWorkingDay is defined %}
+                {{ form_row(form.lastWorkingDay) }}
+            {% endif %}
+        </fieldset>
+    {% endif %}
+
+    <fieldset class="form-fieldset form-fieldset-light">
+        {{- form_rest(form) -}}
+    </fieldset>
+
+{% endblock %}

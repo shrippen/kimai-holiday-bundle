@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="de" datatype="plaintext" original="HolidayBundle">
+    <body>
+      <trans-unit id="h000" resname="menu.employment_contract">
+        <source>menu.employment_contract</source>
+        <target>Arbeitsvertrag</target>
+      </trans-unit>
+      <trans-unit id="h001" resname="menu.working_times">
+        <source>menu.working_times</source>
+        <target>Arbeitszeiten</target>
+      </trans-unit>
+      <trans-unit id="h002" resname="menu.absence">
+        <source>menu.absence</source>
+        <target>Abwesenheit</target>
+      </trans-unit>
+      <trans-unit id="h003" resname="menu.absence_calendar">
+        <source>menu.absence_calendar</source>
+        <target>Abwesenheitskalender</target>
+      </trans-unit>
+      <trans-unit id="h004" resname="menu.public_holidays">
+        <source>menu.public_holidays</source>
+        <target>Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h005" resname="contract.edit">
+        <source>contract.edit</source>
+        <target>Vertrag bearbeiten</target>
+      </trans-unit>
+      <trans-unit id="h006" resname="contract.monday">
+        <source>contract.monday</source>
+        <target>Montag</target>
+      </trans-unit>
+      <trans-unit id="h007" resname="contract.tuesday">
+        <source>contract.tuesday</source>
+        <target>Dienstag</target>
+      </trans-unit>
+      <trans-unit id="h008" resname="contract.wednesday">
+        <source>contract.wednesday</source>
+        <target>Mittwoch</target>
+      </trans-unit>
+      <trans-unit id="h009" resname="contract.thursday">
+        <source>contract.thursday</source>
+        <target>Donnerstag</target>
+      </trans-unit>
+      <trans-unit id="h010" resname="contract.friday">
+        <source>contract.friday</source>
+        <target>Freitag</target>
+      </trans-unit>
+      <trans-unit id="h011" resname="contract.saturday">
+        <source>contract.saturday</source>
+        <target>Samstag</target>
+      </trans-unit>
+      <trans-unit id="h012" resname="contract.sunday">
+        <source>contract.sunday</source>
+        <target>Sonntag</target>
+      </trans-unit>
+      <trans-unit id="h013" resname="contract.vacation_days">
+        <source>contract.vacation_days</source>
+        <target>Urlaubstage pro Jahr</target>
+      </trans-unit>
+      <trans-unit id="h013a" resname="contract.vacation_days_help">
+        <source>contract.vacation_days_help</source>
+        <target>Jährlicher Urlaubsanspruch (Urlaubskonto) für diesen Benutzer.</target>
+      </trans-unit>
+      <trans-unit id="h013b" resname="contract.edit_intro">
+        <source>contract.edit_intro</source>
+        <target>Wird unter Profil → Arbeitsvertrag konfiguriert.</target>
+      </trans-unit>
+      <trans-unit id="h013c" resname="contract.working_hours">
+        <source>contract.working_hours</source>
+        <target>Sollstunden pro Wochentag</target>
+      </trans-unit>
+      <trans-unit id="h013d" resname="contract.public_holiday_group_help">
+        <source>contract.public_holiday_group_help</source>
+        <target>Feiertage dieser Gruppe fließen in die Arbeitszeitberechnung ein. Gruppen unter Administration → Feiertage anlegen.</target>
+      </trans-unit>
+      <trans-unit id="h013e" resname="contract.holiday_section">
+        <source>contract.holiday_section</source>
+        <target>Urlaub &amp; Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h014" resname="contract.start_date">
+        <source>contract.start_date</source>
+        <target>Vertragsbeginn</target>
+      </trans-unit>
+      <trans-unit id="h015" resname="contract.end_date">
+        <source>contract.end_date</source>
+        <target>Vertragsende</target>
+      </trans-unit>
+      <trans-unit id="h016" resname="contract.public_holiday_group">
+        <source>contract.public_holiday_group</source>
+        <target>Feiertagsgruppe</target>
+      </trans-unit>
+      <trans-unit id="h017" resname="contract.active">
+        <source>contract.active</source>
+        <target>Aktiv</target>
+      </trans-unit>
+      <trans-unit id="h018" resname="contract.seconds_help">
+        <source>contract.seconds_help</source>
+        <target>Erwartete Arbeitszeit in Sekunden</target>
+      </trans-unit>
+      <trans-unit id="h018a" resname="contract.hours_help">
+        <source>contract.hours_help</source>
+        <target>Erwartete Arbeitszeit in Stunden (z. B. 8 für einen vollen Tag).</target>
+      </trans-unit>
+      <trans-unit id="h019" resname="summary.expected">
+        <source>summary.expected</source>
+        <target>Soll</target>
+      </trans-unit>
+      <trans-unit id="h020" resname="summary.actual">
+        <source>summary.actual</source>
+        <target>Ist</target>
+      </trans-unit>
+      <trans-unit id="h021" resname="summary.delta">
+        <source>summary.delta</source>
+        <target>Differenz</target>
+      </trans-unit>
+      <trans-unit id="h022" resname="summary.vacation">
+        <source>summary.vacation</source>
+        <target>Urlaubskonto</target>
+      </trans-unit>
+      <trans-unit id="h022a" resname="summary.vacation_remaining">
+        <source>summary.vacation_remaining</source>
+        <target>Tage übrig</target>
+      </trans-unit>
+      <trans-unit id="h023" resname="absence.create">
+        <source>absence.create</source>
+        <target>Abwesenheit erstellen</target>
+      </trans-unit>
+      <trans-unit id="h023a" resname="absence.edit">
+        <source>absence.edit</source>
+        <target>Abwesenheit bearbeiten</target>
+      </trans-unit>
+      <trans-unit id="h023b" resname="absence.edit.help">
+        <source>absence.edit.help</source>
+        <target>Speichern setzt die Freigabe zurück. Typen mit Genehmigungspflicht müssen erneut freigegeben werden.</target>
+      </trans-unit>
+      <trans-unit id="h023c" resname="absence.ics.title">
+        <source>absence.ics.title</source>
+        <target>Persönlicher Kalender (ICS)</target>
+      </trans-unit>
+      <trans-unit id="h023d" resname="absence.ics.help">
+        <source>absence.ics.help</source>
+        <target>In Outlook, Google Kalender oder Apple Kalender abonnieren. Enthalten sind: Feiertage, genehmigter Urlaub, Kranktage (inkl. Angehörige), Freizeitausgleich und sonstige genehmigte Abwesenheiten. Wochenenden sind ausgenommen.</target>
+      </trans-unit>
+      <trans-unit id="h023e" resname="absence.ics.open">
+        <source>absence.ics.open</source>
+        <target>Öffnen</target>
+      </trans-unit>
+      <trans-unit id="h023f" resname="absence.ics.regenerate">
+        <source>absence.ics.regenerate</source>
+        <target>Link neu erzeugen</target>
+      </trans-unit>
+      <trans-unit id="h023g" resname="absence.ics.regenerate_confirm">
+        <source>absence.ics.regenerate_confirm</source>
+        <target>Aktuellen Kalender-Link ungültig machen und einen neuen erzeugen? Bestehende Abonnements funktionieren dann nicht mehr.</target>
+      </trans-unit>
+      <trans-unit id="h023h" resname="absence.ics.calendar_name">
+        <source>absence.ics.calendar_name</source>
+        <target>Abwesenheiten &amp; Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h024" resname="absence.list">
+        <source>absence.list</source>
+        <target>Abwesenheiten</target>
+      </trans-unit>
+      <trans-unit id="h025" resname="absence.empty">
+        <source>absence.empty</source>
+        <target>Keine Abwesenheiten</target>
+      </trans-unit>
+      <trans-unit id="h026" resname="absence.type">
+        <source>absence.type</source>
+        <target>Typ</target>
+      </trans-unit>
+      <trans-unit id="h027" resname="absence.status">
+        <source>absence.status</source>
+        <target>Status</target>
+      </trans-unit>
+      <trans-unit id="h028" resname="absence.start">
+        <source>absence.start</source>
+        <target>Beginn</target>
+      </trans-unit>
+      <trans-unit id="h029" resname="absence.end">
+        <source>absence.end</source>
+        <target>Ende</target>
+      </trans-unit>
+      <trans-unit id="h030" resname="absence.half_day">
+        <source>absence.half_day</source>
+        <target>Halber Tag</target>
+      </trans-unit>
+      <trans-unit id="h030a" resname="absence.days">
+        <source>absence.days</source>
+        <target>Tage</target>
+      </trans-unit>
+      <trans-unit id="h030b" resname="absence.days_help">
+        <source>absence.days_help</source>
+        <target>Nur Arbeitstage (Wochenenden zählen nicht). Bei Urlaub wird dies vom Urlaubskonto abgezogen.</target>
+      </trans-unit>
+      <trans-unit id="h031" resname="absence.duration">
+        <source>absence.duration</source>
+        <target>Dauer (Stunden)</target>
+      </trans-unit>
+      <trans-unit id="h032" resname="absence.duration_help">
+        <source>absence.duration_help</source>
+        <target>Optional. Stunden für „Sonstige“ Abwesenheiten (z. B. 4 für einen halben Tag). Leer lassen = vertragliche Tageslänge.</target>
+      </trans-unit>
+      <trans-unit id="h032a" resname="absence.vacation_from_contract">
+        <source>absence.vacation_from_contract</source>
+        <target>Anspruch unter Profil → Arbeitsvertrag festlegen:</target>
+      </trans-unit>
+      <trans-unit id="h033" resname="absence.comment">
+        <source>absence.comment</source>
+        <target>Kommentar</target>
+      </trans-unit>
+      <trans-unit id="h034" resname="absence.type.vacation">
+        <source>absence.type.vacation</source>
+        <target>Urlaub</target>
+      </trans-unit>
+      <trans-unit id="h035" resname="absence.type.sickness">
+        <source>absence.type.sickness</source>
+        <target>Krankheit</target>
+      </trans-unit>
+      <trans-unit id="h036" resname="absence.type.sickness_relative">
+        <source>absence.type.sickness_relative</source>
+        <target>Krankheit eines Angehörigen</target>
+      </trans-unit>
+      <trans-unit id="h037" resname="absence.type.time_off">
+        <source>absence.type.time_off</source>
+        <target>Freizeitausgleich</target>
+      </trans-unit>
+      <trans-unit id="h038" resname="absence.type.other">
+        <source>absence.type.other</source>
+        <target>Sonstiges</target>
+      </trans-unit>
+      <trans-unit id="h039" resname="absence.status.new">
+        <source>absence.status.new</source>
+        <target>Neu</target>
+      </trans-unit>
+      <trans-unit id="h040" resname="absence.status.requested">
+        <source>absence.status.requested</source>
+        <target>Beantragt</target>
+      </trans-unit>
+      <trans-unit id="h041" resname="absence.status.approved">
+        <source>absence.status.approved</source>
+        <target>Genehmigt</target>
+      </trans-unit>
+      <trans-unit id="h042" resname="absence.status.rejected">
+        <source>absence.status.rejected</source>
+        <target>Abgelehnt</target>
+      </trans-unit>
+      <trans-unit id="h043" resname="booking.create">
+        <source>booking.create</source>
+        <target>Manuelle Buchung</target>
+      </trans-unit>
+      <trans-unit id="h044" resname="booking.list">
+        <source>booking.list</source>
+        <target>Manuelle Buchungen</target>
+      </trans-unit>
+      <trans-unit id="h045" resname="booking.kind">
+        <source>booking.kind</source>
+        <target>Art</target>
+      </trans-unit>
+      <trans-unit id="h046" resname="booking.kind.time">
+        <source>booking.kind.time</source>
+        <target>Arbeitszeit</target>
+      </trans-unit>
+      <trans-unit id="h047" resname="booking.kind.holiday">
+        <source>booking.kind.holiday</source>
+        <target>Urlaubstage</target>
+      </trans-unit>
+      <trans-unit id="h048" resname="booking.amount">
+        <source>booking.amount</source>
+        <target>Betrag</target>
+      </trans-unit>
+      <trans-unit id="h049" resname="booking.amount_help">
+        <source>booking.amount_help</source>
+        <target>Stunden (für Arbeitszeit) oder Tage (für Urlaub). Negative Werte zum Abziehen verwenden.</target>
+      </trans-unit>
+      <trans-unit id="h050" resname="booking.date">
+        <source>booking.date</source>
+        <target>Datum</target>
+      </trans-unit>
+      <trans-unit id="h051" resname="booking.comment">
+        <source>booking.comment</source>
+        <target>Kommentar</target>
+      </trans-unit>
+      <trans-unit id="h052" resname="booking.immutable_hint">
+        <source>booking.immutable_hint</source>
+        <target>Manuelle Buchungen können nicht bearbeitet oder gelöscht werden. Erstellen Sie eine Gegenbuchung zur Korrektur.</target>
+      </trans-unit>
+      <trans-unit id="h053" resname="public_holiday.groups">
+        <source>public_holiday.groups</source>
+        <target>Gruppen</target>
+      </trans-unit>
+      <trans-unit id="h054" resname="public_holiday.no_groups">
+        <source>public_holiday.no_groups</source>
+        <target>Noch keine Gruppen</target>
+      </trans-unit>
+      <trans-unit id="h055" resname="public_holiday.create_group">
+        <source>public_holiday.create_group</source>
+        <target>Gruppe erstellen</target>
+      </trans-unit>
+      <trans-unit id="h056" resname="public_holiday.create_group_first">
+        <source>public_holiday.create_group_first</source>
+        <target>Bitte zuerst eine Feiertagsgruppe erstellen.</target>
+      </trans-unit>
+      <trans-unit id="h057" resname="public_holiday.group_name">
+        <source>public_holiday.group_name</source>
+        <target>Gruppenname</target>
+      </trans-unit>
+      <trans-unit id="h058" resname="public_holiday.country">
+        <source>public_holiday.country</source>
+        <target>Land</target>
+      </trans-unit>
+      <trans-unit id="h059" resname="public_holiday.region">
+        <source>public_holiday.region</source>
+        <target>Region</target>
+      </trans-unit>
+      <trans-unit id="h060" resname="public_holiday.region_help">
+        <source>public_holiday.region_help</source>
+        <target>Optionale Untergliederung, z. B. BY für Bayern (als DE-BY). Leer lassen für nur bundesweite Feiertage.</target>
+      </trans-unit>
+      <trans-unit id="h061" resname="public_holiday.year">
+        <source>public_holiday.year</source>
+        <target>Ab Jahr</target>
+      </trans-unit>
+      <trans-unit id="h061a" resname="public_holiday.year_help">
+        <source>public_holiday.year_help</source>
+        <target>Importiert alle Feiertage ab dem 1. Januar dieses Jahres, einschließlich bereits im ICS enthaltenen Zukunftsjahren. Die Feed-URL wird an der Gruppe gespeichert; später per Sync (oder Konsolenbefehl) neu veröffentlichte Jahre nachziehen, ohne neu zu konfigurieren.</target>
+      </trans-unit>
+      <trans-unit id="h062" resname="public_holiday.import">
+        <source>public_holiday.import</source>
+        <target>Feiertage importieren</target>
+      </trans-unit>
+      <trans-unit id="h063" resname="public_holiday.create">
+        <source>public_holiday.create</source>
+        <target>Feiertag hinzufügen</target>
+      </trans-unit>
+      <trans-unit id="h064" resname="public_holiday.list">
+        <source>public_holiday.list</source>
+        <target>Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h065" resname="public_holiday.empty">
+        <source>public_holiday.empty</source>
+        <target>Keine Feiertage für dieses Jahr</target>
+      </trans-unit>
+      <trans-unit id="h066" resname="public_holiday.date">
+        <source>public_holiday.date</source>
+        <target>Datum</target>
+      </trans-unit>
+      <trans-unit id="h067" resname="public_holiday.name">
+        <source>public_holiday.name</source>
+        <target>Name</target>
+      </trans-unit>
+      <trans-unit id="h068" resname="public_holiday.half_day">
+        <source>public_holiday.half_day</source>
+        <target>Halber Tag</target>
+      </trans-unit>
+      <trans-unit id="h069" resname="action.lock">
+        <source>action.lock</source>
+        <target>Sperren</target>
+      </trans-unit>
+      <trans-unit id="h070" resname="action.unlock">
+        <source>action.unlock</source>
+        <target>Entsperren</target>
+      </trans-unit>
+      <trans-unit id="h071" resname="action.approve">
+        <source>action.approve</source>
+        <target>Genehmigen</target>
+      </trans-unit>
+      <trans-unit id="h072" resname="action.reject">
+        <source>action.reject</source>
+        <target>Ablehnen</target>
+      </trans-unit>
+      <trans-unit id="h073" resname="action.import">
+        <source>action.import</source>
+        <target>Importieren</target>
+      </trans-unit>
+      <trans-unit id="h074" resname="action.export">
+        <source>action.export</source>
+        <target>Exportieren</target>
+      </trans-unit>
+      <trans-unit id="h075" resname="action.save">
+        <source>action.save</source>
+        <target>Speichern</target>
+      </trans-unit>
+      <trans-unit id="h076" resname="action.close">
+        <source>action.close</source>
+        <target>Schließen</target>
+      </trans-unit>
+      <trans-unit id="h077" resname="action.delete">
+        <source>action.delete</source>
+        <target>Löschen</target>
+      </trans-unit>
+      <trans-unit id="h078" resname="holiday.month_open">
+        <source>holiday.month_open</source>
+        <target>Offen</target>
+      </trans-unit>
+      <trans-unit id="h079" resname="holiday.pdf">
+        <source>holiday.pdf</source>
+        <target>PDF</target>
+      </trans-unit>
+      <trans-unit id="h080" resname="holiday.import_success">
+        <source>holiday.import_success</source>
+        <target>%count% Feiertage importiert.</target>
+      </trans-unit>
+      <trans-unit id="h080a" resname="holiday.sync_success">
+        <source>holiday.sync_success</source>
+        <target>%count% neue Feiertage per ICS-Sync hinzugefügt.</target>
+      </trans-unit>
+      <trans-unit id="h080b" resname="public_holiday.sync">
+        <source>public_holiday.sync</source>
+        <target>ICS synchronisieren</target>
+      </trans-unit>
+      <trans-unit id="h080c" resname="public_holiday.sync_help">
+        <source>public_holiday.sync_help</source>
+        <target>Diese Gruppe ist mit einem ICS-Feed verknüpft. Sync lädt ihn erneut und fügt neue Daten hinzu (bestehende Feiertage bleiben unverändert).</target>
+      </trans-unit>
+      <trans-unit id="h081" resname="holiday.settings_section">
+        <source>holiday.settings_section</source>
+        <target>Arbeitszeiten &amp; Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h081a" resname="holiday.calculation_modes_section">
+        <source>holiday.calculation_modes_section</source>
+        <target>Berechnungsmodus (Sollzeit)</target>
+      </trans-unit>
+      <trans-unit id="h081b" resname="holiday.calculation_modes_help">
+        <source>holiday.calculation_modes_help</source>
+        <target>Sollzeit ausgleichen: Die Abwesenheit zählt als Ist-Zeit, das Stundenkonto bleibt ausgeglichen (optional mit automatischen Zeiteinträgen, wenn Projekt/Tätigkeit gesetzt sind). Sollzeit reduzieren: Die Sollstunden des Tages werden gesenkt — kein Ausgleichseintrag, die Abwesenheit verbessert das Stundenkonto nicht.</target>
+      </trans-unit>
+      <trans-unit id="h082" resname="holiday.permission_section">
+        <source>holiday.permission_section</source>
+        <target>Arbeitszeiten &amp; Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h083" resname="holiday.absence_comment_required">
+        <source>holiday.absence_comment_required</source>
+        <target>Abwesenheit: Kommentar ist Pflichtfeld</target>
+      </trans-unit>
+      <trans-unit id="h084" resname="holiday.allow_half_day_vacation">
+        <source>holiday.allow_half_day_vacation</source>
+        <target>Halbe Urlaubstage erlauben</target>
+      </trans-unit>
+      <trans-unit id="h085" resname="holiday.restrict_timesheets_to_workdays">
+        <source>holiday.restrict_timesheets_to_workdays</source>
+        <target>Zeiterfassung auf Arbeitstage beschränken</target>
+      </trans-unit>
+      <trans-unit id="h086" resname="holiday.absence_project_id">
+        <source>holiday.absence_project_id</source>
+        <target>Projekt-ID für automatische Abwesenheits-Zeiten</target>
+      </trans-unit>
+      <trans-unit id="h087" resname="holiday.absence_activity_id">
+        <source>holiday.absence_activity_id</source>
+        <target>Tätigkeits-ID für automatische Abwesenheits-Zeiten</target>
+      </trans-unit>
+      <trans-unit id="h088" resname="holiday.calculation_mode_vacation">
+        <source>holiday.calculation_mode_vacation</source>
+        <target>Berechnungsmodus: Urlaub</target>
+      </trans-unit>
+      <trans-unit id="h089" resname="holiday.calculation_mode_sickness">
+        <source>holiday.calculation_mode_sickness</source>
+        <target>Berechnungsmodus: Krankheit</target>
+      </trans-unit>
+      <trans-unit id="h090" resname="holiday.calculation_mode_sickness_relative">
+        <source>holiday.calculation_mode_sickness_relative</source>
+        <target>Berechnungsmodus: Krankheit eines Angehörigen</target>
+      </trans-unit>
+      <trans-unit id="h091" resname="holiday.calculation_mode_other">
+        <source>holiday.calculation_mode_other</source>
+        <target>Berechnungsmodus: Sonstiges</target>
+      </trans-unit>
+      <trans-unit id="h092" resname="holiday.calculation_mode_public_holiday">
+        <source>holiday.calculation_mode_public_holiday</source>
+        <target>Berechnungsmodus: Feiertag</target>
+      </trans-unit>
+      <trans-unit id="h093" resname="holiday.calc_mode.compensate">
+        <source>holiday.calc_mode.compensate</source>
+        <target>Sollzeit ausgleichen</target>
+      </trans-unit>
+      <trans-unit id="h094" resname="holiday.calc_mode.reduce">
+        <source>holiday.calc_mode.reduce</source>
+        <target>Sollzeit reduzieren</target>
+      </trans-unit>
+      <trans-unit id="h095" resname="holiday.mail.requested.subject">
+        <source>holiday.mail.requested.subject</source>
+        <target>Abwesenheit beantragt</target>
+      </trans-unit>
+      <trans-unit id="h096" resname="holiday.mail.requested.body">
+        <source>holiday.mail.requested.body</source>
+        <target>Benutzer: %user%
+Typ: %type%
+Von: %start%
+Bis: %end%
+Kommentar: %comment%
+Aktion: beantragt</target>
+      </trans-unit>
+      <trans-unit id="h097" resname="holiday.mail.approved.subject">
+        <source>holiday.mail.approved.subject</source>
+        <target>Abwesenheit genehmigt</target>
+      </trans-unit>
+      <trans-unit id="h098" resname="holiday.mail.approved.body">
+        <source>holiday.mail.approved.body</source>
+        <target>Ihre Abwesenheit (%type%) vom %start% bis %end% wurde genehmigt.</target>
+      </trans-unit>
+      <trans-unit id="h099" resname="holiday.mail.rejected.subject">
+        <source>holiday.mail.rejected.subject</source>
+        <target>Abwesenheit abgelehnt</target>
+      </trans-unit>
+      <trans-unit id="h100" resname="holiday.mail.rejected.body">
+        <source>holiday.mail.rejected.body</source>
+        <target>Ihre Abwesenheit (%type%) vom %start% bis %end% wurde abgelehnt.</target>
+      </trans-unit>
+      <trans-unit id="h101" resname="confirm.delete">
+        <source>confirm.delete</source>
+        <target>Löschen?</target>
+      </trans-unit>
+      <trans-unit id="h102" resname="confirm.delete_group">
+        <source>confirm.delete_group</source>
+        <target>Gruppe löschen?</target>
+      </trans-unit>
+      <trans-unit id="h103" resname="yes">
+        <source>yes</source>
+        <target>ja</target>
+      </trans-unit>
+      <trans-unit id="h104" resname="no">
+        <source>no</source>
+        <target>nein</target>
+      </trans-unit>
+      <trans-unit id="h105" resname="label.date">
+        <source>label.date</source>
+        <target>Datum</target>
+      </trans-unit>
+      <trans-unit id="h106" resname="label.team">
+        <source>label.team</source>
+        <target>Team</target>
+      </trans-unit>
+      <trans-unit id="h107" resname="label.user">
+        <source>label.user</source>
+        <target>Benutzer</target>
+      </trans-unit>
+      <trans-unit id="h108" resname="public_holiday.country_help">
+        <source>public_holiday.country_help</source>
+        <target>ISO-Ländercode bevorzugt, z. B. DE (max. 64 Zeichen).</target>
+      </trans-unit>
+      <trans-unit id="h109" resname="public_holiday.ics_source">
+        <source>public_holiday.ics_source</source>
+        <target>Feiertagskalender</target>
+      </trans-unit>
+      <trans-unit id="h110" resname="public_holiday.ics_source_help">
+        <source>public_holiday.ics_source_help</source>
+        <target>Deutschland: bundesweit oder je Bundesland (ics.tools). Andere Länder: Google-Feiertagskalender. Oder eigene ICS-URL wählen.</target>
+      </trans-unit>
+      <trans-unit id="h111" resname="public_holiday.ics_url">
+        <source>public_holiday.ics_url</source>
+        <target>Eigene ICS-URL</target>
+      </trans-unit>
+      <trans-unit id="h112" resname="public_holiday.ics_url_help">
+        <source>public_holiday.ics_url_help</source>
+        <target>HTTPS-Link zu einer .ics-Datei (bei Auswahl „Eigene ICS-URL“). Die URL wird für spätere Syncs gespeichert.</target>
+      </trans-unit>
+      <trans-unit id="h113" resname="public_holiday.ics.custom">
+        <source>public_holiday.ics.custom</source>
+        <target>Eigene ICS-URL</target>
+      </trans-unit>
+      <trans-unit id="h114" resname="public_holiday.ics.de_bundesweit">
+        <source>public_holiday.ics.de_bundesweit</source>
+        <target>Deutschland — nur bundesweit</target>
+      </trans-unit>
+      <trans-unit id="h115" resname="public_holiday.ics.de_alle">
+        <source>public_holiday.ics.de_alle</source>
+        <target>Deutschland — alle Regionen kombiniert</target>
+      </trans-unit>
+      <trans-unit id="h115a" resname="public_holiday.ics.de_bw">
+        <source>public_holiday.ics.de_bw</source>
+        <target>Deutschland — Baden-Württemberg</target>
+      </trans-unit>
+      <trans-unit id="h115b" resname="public_holiday.ics.de_by">
+        <source>public_holiday.ics.de_by</source>
+        <target>Deutschland — Bayern</target>
+      </trans-unit>
+      <trans-unit id="h115c" resname="public_holiday.ics.de_be">
+        <source>public_holiday.ics.de_be</source>
+        <target>Deutschland — Berlin</target>
+      </trans-unit>
+      <trans-unit id="h115d" resname="public_holiday.ics.de_bb">
+        <source>public_holiday.ics.de_bb</source>
+        <target>Deutschland — Brandenburg</target>
+      </trans-unit>
+      <trans-unit id="h115e" resname="public_holiday.ics.de_hb">
+        <source>public_holiday.ics.de_hb</source>
+        <target>Deutschland — Bremen</target>
+      </trans-unit>
+      <trans-unit id="h115f" resname="public_holiday.ics.de_hh">
+        <source>public_holiday.ics.de_hh</source>
+        <target>Deutschland — Hamburg</target>
+      </trans-unit>
+      <trans-unit id="h115g" resname="public_holiday.ics.de_he">
+        <source>public_holiday.ics.de_he</source>
+        <target>Deutschland — Hessen</target>
+      </trans-unit>
+      <trans-unit id="h115h" resname="public_holiday.ics.de_mv">
+        <source>public_holiday.ics.de_mv</source>
+        <target>Deutschland — Mecklenburg-Vorpommern</target>
+      </trans-unit>
+      <trans-unit id="h115i" resname="public_holiday.ics.de_ni">
+        <source>public_holiday.ics.de_ni</source>
+        <target>Deutschland — Niedersachsen</target>
+      </trans-unit>
+      <trans-unit id="h115j" resname="public_holiday.ics.de_nw">
+        <source>public_holiday.ics.de_nw</source>
+        <target>Deutschland — Nordrhein-Westfalen</target>
+      </trans-unit>
+      <trans-unit id="h115k" resname="public_holiday.ics.de_rp">
+        <source>public_holiday.ics.de_rp</source>
+        <target>Deutschland — Rheinland-Pfalz</target>
+      </trans-unit>
+      <trans-unit id="h115l" resname="public_holiday.ics.de_sl">
+        <source>public_holiday.ics.de_sl</source>
+        <target>Deutschland — Saarland</target>
+      </trans-unit>
+      <trans-unit id="h115m" resname="public_holiday.ics.de_sn">
+        <source>public_holiday.ics.de_sn</source>
+        <target>Deutschland — Sachsen</target>
+      </trans-unit>
+      <trans-unit id="h115n" resname="public_holiday.ics.de_st">
+        <source>public_holiday.ics.de_st</source>
+        <target>Deutschland — Sachsen-Anhalt</target>
+      </trans-unit>
+      <trans-unit id="h115o" resname="public_holiday.ics.de_sh">
+        <source>public_holiday.ics.de_sh</source>
+        <target>Deutschland — Schleswig-Holstein</target>
+      </trans-unit>
+      <trans-unit id="h115p" resname="public_holiday.ics.de_th">
+        <source>public_holiday.ics.de_th</source>
+        <target>Deutschland — Thüringen</target>
+      </trans-unit>
+      <trans-unit id="h116" resname="public_holiday.ics.at">
+        <source>public_holiday.ics.at</source>
+        <target>Österreich (englische Namen)</target>
+      </trans-unit>
+      <trans-unit id="h117" resname="public_holiday.ics.at_de">
+        <source>public_holiday.ics.at_de</source>
+        <target>Österreich (deutsche Namen)</target>
+      </trans-unit>
+      <trans-unit id="h118" resname="public_holiday.ics.ch">
+        <source>public_holiday.ics.ch</source>
+        <target>Schweiz (englische Namen)</target>
+      </trans-unit>
+      <trans-unit id="h119" resname="public_holiday.ics.ch_de">
+        <source>public_holiday.ics.ch_de</source>
+        <target>Schweiz (deutsche Namen)</target>
+      </trans-unit>
+      <trans-unit id="h120" resname="public_holiday.ics.fr">
+        <source>public_holiday.ics.fr</source>
+        <target>Frankreich</target>
+      </trans-unit>
+      <trans-unit id="h121" resname="public_holiday.ics.nl">
+        <source>public_holiday.ics.nl</source>
+        <target>Niederlande</target>
+      </trans-unit>
+      <trans-unit id="h122" resname="public_holiday.ics.be">
+        <source>public_holiday.ics.be</source>
+        <target>Belgien</target>
+      </trans-unit>
+      <trans-unit id="h123" resname="public_holiday.ics.lu">
+        <source>public_holiday.ics.lu</source>
+        <target>Luxemburg</target>
+      </trans-unit>
+      <trans-unit id="h124" resname="public_holiday.ics.gb">
+        <source>public_holiday.ics.gb</source>
+        <target>Vereinigtes Königreich</target>
+      </trans-unit>
+      <trans-unit id="h125" resname="public_holiday.ics.ie">
+        <source>public_holiday.ics.ie</source>
+        <target>Irland</target>
+      </trans-unit>
+      <trans-unit id="h126" resname="public_holiday.ics.it">
+        <source>public_holiday.ics.it</source>
+        <target>Italien</target>
+      </trans-unit>
+      <trans-unit id="h127" resname="public_holiday.ics.es">
+        <source>public_holiday.ics.es</source>
+        <target>Spanien</target>
+      </trans-unit>
+      <trans-unit id="h128" resname="public_holiday.ics.pt">
+        <source>public_holiday.ics.pt</source>
+        <target>Portugal</target>
+      </trans-unit>
+      <trans-unit id="h129" resname="public_holiday.ics.pl">
+        <source>public_holiday.ics.pl</source>
+        <target>Polen</target>
+      </trans-unit>
+      <trans-unit id="h130" resname="public_holiday.ics.cz">
+        <source>public_holiday.ics.cz</source>
+        <target>Tschechien</target>
+      </trans-unit>
+      <trans-unit id="h131" resname="public_holiday.ics.hu">
+        <source>public_holiday.ics.hu</source>
+        <target>Ungarn</target>
+      </trans-unit>
+      <trans-unit id="h132" resname="public_holiday.ics.ro">
+        <source>public_holiday.ics.ro</source>
+        <target>Rumänien</target>
+      </trans-unit>
+      <trans-unit id="h133" resname="public_holiday.ics.gr">
+        <source>public_holiday.ics.gr</source>
+        <target>Griechenland</target>
+      </trans-unit>
+      <trans-unit id="h134" resname="public_holiday.ics.tr">
+        <source>public_holiday.ics.tr</source>
+        <target>Türkei</target>
+      </trans-unit>
+      <trans-unit id="h135" resname="public_holiday.ics.se">
+        <source>public_holiday.ics.se</source>
+        <target>Schweden</target>
+      </trans-unit>
+      <trans-unit id="h136" resname="public_holiday.ics.no">
+        <source>public_holiday.ics.no</source>
+        <target>Norwegen</target>
+      </trans-unit>
+      <trans-unit id="h137" resname="public_holiday.ics.dk">
+        <source>public_holiday.ics.dk</source>
+        <target>Dänemark</target>
+      </trans-unit>
+      <trans-unit id="h138" resname="public_holiday.ics.fi">
+        <source>public_holiday.ics.fi</source>
+        <target>Finnland</target>
+      </trans-unit>
+      <trans-unit id="h139" resname="public_holiday.ics.us">
+        <source>public_holiday.ics.us</source>
+        <target>USA</target>
+      </trans-unit>
+      <trans-unit id="h140" resname="public_holiday.ics.ca">
+        <source>public_holiday.ics.ca</source>
+        <target>Kanada</target>
+      </trans-unit>
+      <trans-unit id="h141" resname="public_holiday.ics.mx">
+        <source>public_holiday.ics.mx</source>
+        <target>Mexiko</target>
+      </trans-unit>
+      <trans-unit id="h142" resname="public_holiday.ics.br">
+        <source>public_holiday.ics.br</source>
+        <target>Brasilien</target>
+      </trans-unit>
+      <trans-unit id="h143" resname="public_holiday.ics.au">
+        <source>public_holiday.ics.au</source>
+        <target>Australien</target>
+      </trans-unit>
+      <trans-unit id="h144" resname="public_holiday.ics.nz">
+        <source>public_holiday.ics.nz</source>
+        <target>Neuseeland</target>
+      </trans-unit>
+      <trans-unit id="h145" resname="public_holiday.ics.jp">
+        <source>public_holiday.ics.jp</source>
+        <target>Japan</target>
+      </trans-unit>
+      <trans-unit id="h146" resname="public_holiday.ics.kr">
+        <source>public_holiday.ics.kr</source>
+        <target>Südkorea</target>
+      </trans-unit>
+      <trans-unit id="h147" resname="public_holiday.ics.cn">
+        <source>public_holiday.ics.cn</source>
+        <target>China</target>
+      </trans-unit>
+      <trans-unit id="h148" resname="public_holiday.ics.in">
+        <source>public_holiday.ics.in</source>
+        <target>Indien</target>
+      </trans-unit>
+      <trans-unit id="h149" resname="public_holiday.ics.il">
+        <source>public_holiday.ics.il</source>
+        <target>Jüdische Feiertage</target>
+      </trans-unit>
+      <trans-unit id="h150" resname="public_holiday.ics.za">
+        <source>public_holiday.ics.za</source>
+        <target>Südafrika</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

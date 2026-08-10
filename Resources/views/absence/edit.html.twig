@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <h2>{{ 'absence.edit'|trans }} — {{ target_user.displayName }}</h2>
+    <p class="text-muted">{{ 'absence.edit.help'|trans }}</p>
+    <p>
+        <a href="{{ path('holiday_absence', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'absence.list'|trans }}</a>
+    </p>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            {% include '@Holiday/absence/_form.html.twig' with {form: form, submit_label: 'action.save'} %}
+        </div>
+    </div>
+{% endblock %}

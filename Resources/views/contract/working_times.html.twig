@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2>{{ 'menu.working_times'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
+            <p>
+                <a href="{{ path('holiday_working_times', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
+                <a href="{{ path('holiday_working_times', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
+                {% if is_granted('contract_other_profile') or target_user == app.user %}
+                    <a href="{{ path('user_profile_contract', {username: target_user.userIdentifier}) }}" class="btn btn-sm btn-primary">{{ 'contract.edit'|trans }}</a>
+                {% endif %}
+                {% if is_granted('create_booking_contract') %}
+                    <a href="{{ path('holiday_booking_create', {user: target_user.id}) }}" class="btn btn-sm btn-secondary">{{ 'booking.create'|trans }}</a>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div>{{ 'summary.expected'|trans }}: <strong>{{ (yearData.expected / 3600)|number_format(2) }} h</strong></div>
+                    <div>{{ 'summary.actual'|trans }}: <strong>{{ (yearData.actual / 3600)|number_format(2) }} h</strong></div>
+                    <div>{{ 'summary.delta'|trans }}: <strong>{{ (yearData.delta / 3600)|number_format(2) }} h</strong></div>
+                    <div>{{ 'summary.vacation'|trans }}: <strong>{{ yearData.vacationBalance|number_format(1) }} / {{ yearData.vacationEntitlement|number_format(1) }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for month, monthData in yearData.months %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    {% if locks[month] %}
+                        <i class="fas fa-lock" title="{{ 'action.lock'|trans }}"></i>
+                    {% else %}
+                        <i class="fas fa-lock-open text-warning" title="{{ 'holiday.month_open'|trans }}"></i>
+                    {% endif %}
+                    {{ year }}-{{ '%02d'|format(month) }}
+                    — {{ (monthData.expected / 3600)|number_format(2) }} / {{ (monthData.actual / 3600)|number_format(2) }} h
+                    (Δ {{ (monthData.delta / 3600)|number_format(2) }})
+                </span>
+                <span>
+                    {% if is_granted('view_booking_contract') %}
+                        <a class="btn btn-xs btn-outline-primary" href="{{ path('holiday_month_pdf', {year: year, month: month, user: target_user.id}) }}" target="_blank">{{ 'holiday.pdf'|trans }}</a>
+                    {% endif %}
+                    {% if is_granted('approve_times_contract') and not locks[month] %}
+                        <form class="d-inline" method="post" action="{{ path('holiday_month_lock', {year: year, month: month, user: target_user.id}) }}">
+                            <button class="btn btn-xs btn-success" type="submit">{{ 'action.lock'|trans }}</button>
+                        </form>
+                    {% endif %}
+                    {% if is_granted('unlock_times_contract') and locks[month] %}
+                        <form class="d-inline" method="post" action="{{ path('holiday_month_unlock', {year: year, month: month, user: target_user.id}) }}">
+                            <button class="btn btn-xs btn-warning" type="submit">{{ 'action.unlock'|trans }}</button>
+                        </form>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'label.date'|trans }}</th>
+                            <th class="text-end">{{ 'summary.expected'|trans }}</th>
+                            <th class="text-end">{{ 'summary.actual'|trans }}</th>
+                            <th class="text-end">{{ 'summary.delta'|trans }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in monthData.days %}
+                            <tr>
+                                <td>{{ day.date }}{% if day.marker %} <span class="badge bg-info">•</span>{% endif %}</td>
+                                <td class="text-end">{{ (day.expected / 3600)|number_format(2) }}</td>
+                                <td class="text-end">{{ (day.actual / 3600)|number_format(2) }}</td>
+                                <td class="text-end">{{ (day.delta / 3600)|number_format(2) }}</td>
+                                <td>
+                                    {% if day.publicHolidayName %}{{ day.publicHolidayName }}{% endif %}
+                                    {% for a in day.absences %}{{ (('absence.type.' ~ a.type)|trans) }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% if bookings is not empty %}
+        <div class="card">
+            <div class="card-header">{{ 'booking.list'|trans }}</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'label.date'|trans }}</th>
+                            <th>{{ 'booking.kind'|trans }}</th>
+                            <th>{{ 'booking.amount'|trans }}</th>
+                            <th>{{ 'booking.comment'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bookings %}
+                            <tr>
+                                <td>{{ b.bookingDate|date('Y-m-d') }}</td>
+                                <td>{{ b.kind.label|trans }}</td>
+                                <td>
+                                    {% if b.kind.value == 'time' %}
+                                        {{ (b.amountSeconds / 3600)|number_format(2) }} h
+                                    {% else %}
+                                        {{ b.amountDays|number_format(1) }} d
+                                    {% endif %}
+                                </td>
+                                <td>{{ b.comment }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

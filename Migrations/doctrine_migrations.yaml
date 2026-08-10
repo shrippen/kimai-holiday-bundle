@@ -1,0 +1,10 @@
+# Generate a new migration with:
+# bin/console doctrine:migrations:diff --em=default --configuration=var/plugins/HolidayBundle/Migrations/doctrine_migrations.yaml
+#
+# Execute all migrations with:
+# bin/console kimai:bundle:holiday:install
+
+table_storage:
+    table_name: 'bundle_migration_holiday'
+migrations_paths:
+    'HolidayBundle\Migrations': 'var/plugins/HolidayBundle/Migrations'

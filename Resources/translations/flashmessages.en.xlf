@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="en" datatype="plaintext" original="HolidayBundleFlash">
+    <body>
+      <trans-unit id="h000" resname="holiday.error.comment_required">
+        <source>holiday.error.comment_required</source>
+        <target>A comment is required for absences.</target>
+      </trans-unit>
+      <trans-unit id="h001" resname="holiday.error.month_locked">
+        <source>holiday.error.month_locked</source>
+        <target>This month is locked and cannot be modified.</target>
+      </trans-unit>
+      <trans-unit id="h002" resname="holiday.error.timesheet_non_workday">
+        <source>holiday.error.timesheet_non_workday</source>
+        <target>Timesheets are restricted to contractual working days.</target>
+      </trans-unit>
+      <trans-unit id="h003" resname="action.update.success">
+        <source>action.update.success</source>
+        <target>Saved successfully</target>
+      </trans-unit>
+      <trans-unit id="h004" resname="action.delete.success">
+        <source>action.delete.success</source>
+        <target>Deleted successfully</target>
+      </trans-unit>
+      <trans-unit id="h005" resname="holiday.error.ics_unknown_catalog">
+        <source>holiday.error.ics_unknown_catalog</source>
+        <target>Unknown holiday calendar.</target>
+      </trans-unit>
+      <trans-unit id="h006" resname="holiday.error.ics_invalid_url">
+        <source>holiday.error.ics_invalid_url</source>
+        <target>ICS URL must start with http:// or https://.</target>
+      </trans-unit>
+      <trans-unit id="h007" resname="holiday.error.ics_source_required">
+        <source>holiday.error.ics_source_required</source>
+        <target>Please select a holiday calendar or provide a custom ICS URL.</target>
+      </trans-unit>
+      <trans-unit id="h008" resname="holiday.error.ics_fetch_failed">
+        <source>holiday.error.ics_fetch_failed</source>
+        <target>Could not download or parse the ICS calendar.</target>
+      </trans-unit>
+      <trans-unit id="h009" resname="holiday.error.ics_url_required">
+        <source>holiday.error.ics_url_required</source>
+        <target>Please enter a custom ICS URL.</target>
+      </trans-unit>
+      <trans-unit id="h010" resname="holiday.error.ics_no_subscription">
+        <source>holiday.error.ics_no_subscription</source>
+        <target>This holiday group has no ICS subscription. Import from a calendar first.</target>
+      </trans-unit>
+      <trans-unit id="h011" resname="absence.edit.reapproval">
+        <source>absence.edit.reapproval</source>
+        <target>Absence updated. It must be approved again before it counts.</target>
+      </trans-unit>
+      <trans-unit id="h012" resname="absence.ics.regenerated">
+        <source>absence.ics.regenerated</source>
+        <target>Calendar link regenerated. Update any subscriptions with the new URL.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

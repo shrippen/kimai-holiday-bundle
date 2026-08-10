@@ -4,6 +4,8 @@ Open-source Kimai plugin for working hours, overtime, absences, and public holid
 
 **Requires [Kimai](https://www.kimai.org/) ≥ 2.64.** Do **not** install alongside `WorkContractBundle`; remove the commercial plugin first. Permission names and UX intentionally overlap so existing docs and habits transfer.
 
+> **Status / caveat:** This plugin was entirely vibe-coded. Not all functionality is tested end-to-end — treat it as early / experimental. In particular, **permissions around the absence approval workflow** (own vs other users, team lead vs admin, approve / reject / edit / delete) have not been fully verified. Test roles carefully before using this in production.
+
 | | |
 |---|---|
 | **Kimai plugin id** | `HolidayBundle` |

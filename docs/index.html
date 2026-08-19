@@ -1,347 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Working Hours &amp; Holidays — Kimai Plugin</title>
-  <meta name="description" content="Open-source Kimai plugin for working hours, overtime, vacations, sickness, public holidays, and calendar integration.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Working Hours &amp; Holidays — Kimai Plugin</title>
+<meta name="description" content="Open-source Kimai plugin for working hours, overtime, vacations, sickness, public holidays, and calendar integration.">
+<meta property="og:title" content="Working Hours &amp; Holidays — Kimai Plugin">
+<meta property="og:description" content="Open-source alternative to Kimai's commercial WorkContractBundle. Absences, public holidays, overtime, and calendar integration.">
+<meta property="og:url" content="https://shrippen.github.io/kimai-holiday-bundle/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/*
+ * shrippen Design Default — landing page
+ * https://github.com/shrippen/DesignDefault
+ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-hard:#1d2021;--bg0:#282828;--bg1:#3c3836;--bg2:#504945;
+  --fg0:#fbf1c7;--fg1:#ebdbb2;--fg2:#d5c4a1;--fg3:#a89984;
+  --accent:#e8dcc4;
+  --blue:#83a598;--aqua:#8ec07c;--green:#b8bb26;
+  --yellow:#fabd2f;--orange:#fe8019;--red:#fb4934;--purple:#d3869b;
+  --radius:12px;--max-w:860px;
+  --font-heading:'Rajdhani',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
+  --font-mono:'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--fg1);font-family:var(--font-sans);line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
 
-    :root {
-      --bg:       #0f1117;
-      --bg-card:  #181b23;
-      --bg-code:  #1e2130;
-      --border:   #2a2d3a;
-      --text:     #e1e4ed;
-      --text-dim: #8b8fa3;
-      --accent:   #4f8ff7;
-      --accent2:  #38bdf8;
-      --green:    #34d399;
-      --orange:   #fb923c;
-      --pink:     #f472b6;
-      --radius:   12px;
-    }
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:5rem 1.5rem 3rem;max-width:var(--max-w);margin:0 auto}
+.hero-icon{font-size:72px;margin-bottom:1rem;filter:drop-shadow(0 0 24px rgba(232,220,196,.15))}
+.hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;
+  color:var(--fg0);letter-spacing:-.02em}
+.tagline{font-size:clamp(1rem,2.5vw,1.2rem);color:var(--fg2);max-width:38em;margin:.6rem auto 1.5rem}
 
-    html { scroll-behavior: smooth; }
+.badges{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:2rem}
+.badges img{height:22px}
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
+.install-card{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);
+  padding:1.4rem 1.6rem;width:100%;max-width:640px;text-align:left;margin-bottom:1.5rem}
+.install-card label{display:block;font-size:.85rem;color:var(--fg3);margin-bottom:.6rem;
+  text-transform:uppercase;letter-spacing:.06em}
+.cmd-row{display:flex;gap:.5rem;align-items:stretch}
+.cmd-box{flex:1;background:var(--bg-hard);border:1px solid var(--bg2);border-radius:8px;
+  padding:.65rem .9rem;font-family:var(--font-mono);font-size:.82rem;color:var(--blue);
+  word-break:break-all;line-height:1.45;display:flex;align-items:center}
+.copy-btn{background:var(--bg2);border:none;border-radius:8px;padding:.55rem .7rem;
+  color:var(--fg2);cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+  border:1px solid transparent;display:flex;align-items:center;justify-content:center}
+.copy-btn:hover{background:var(--bg1);color:var(--fg1)}
+.copy-btn.copied{border-color:var(--aqua);color:var(--aqua)}
+.install-note{font-size:.78rem;color:var(--fg3);margin-top:.7rem;line-height:1.5}
+.install-note code{color:var(--fg2);font-family:var(--font-mono);font-size:.76rem}
 
-    a { color: var(--accent); text-decoration: none; transition: color .15s; }
-    a:hover { color: var(--accent2); }
+.install-links{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin-bottom:1rem}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.3rem;border-radius:8px;
+  font-size:.9rem;font-weight:500;text-decoration:none;transition:background .15s,color .15s}
+.btn:hover{text-decoration:none}
+.btn svg{width:18px;height:18px;flex-shrink:0}
+.btn-primary{background:var(--blue);color:var(--bg-hard)}
+.btn-primary:hover{background:#6d9181}
+.btn-primary svg{fill:var(--bg-hard);stroke:var(--bg-hard)}
+.btn-ghost{background:var(--bg1);color:var(--fg2);border:1px solid var(--bg2)}
+.btn-ghost:hover{background:var(--bg2);color:var(--fg1)}
+.btn-ghost svg{fill:var(--fg2)}
 
-    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;
+  max-width:var(--max-w);margin:0 auto 3rem;padding:0 1.5rem}
+.feat{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);padding:1.3rem 1.4rem}
+.feat h3{font-family:var(--font-heading);font-size:1rem;font-weight:600;margin-bottom:.35rem;color:var(--fg0)}
+.feat p{font-size:.88rem;color:var(--fg2);line-height:1.55}
 
-    /* ── Hero ───────────────────────────────────────────── */
-    .hero {
-      padding: 100px 0 80px;
-      text-align: center;
-    }
-    .hero-badge {
-      display: inline-block;
-      font-size: .75rem;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      border-radius: 999px;
-      padding: 4px 14px;
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      font-size: clamp(2.2rem, 5vw, 3.6rem);
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -.02em;
-      margin-bottom: 20px;
-    }
-    .hero h1 span { color: var(--accent); }
-    .hero p {
-      font-size: 1.15rem;
-      color: var(--text-dim);
-      max-width: 640px;
-      margin: 0 auto 36px;
-    }
-    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: .95rem; font-weight: 600;
-      padding: 12px 28px; border-radius: 8px;
-      border: none; cursor: pointer; transition: all .15s;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #3a7be0; color: #fff; }
-    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.section{max-width:var(--max-w);margin:0 auto 2.5rem;padding:0 1.5rem}
+.section h2{font-family:var(--font-heading);font-size:1.3rem;font-weight:600;color:var(--fg0);margin-bottom:.8rem}
+.section ul{list-style:disc;padding-left:1.4rem}
+.section li{margin-bottom:.4rem;color:var(--fg2);font-size:.92rem}
+.section li strong{color:var(--fg1)}
+.section li code{color:var(--fg2);font-family:var(--font-mono);font-size:.82rem}
 
-    /* ── Caveat ─────────────────────────────────────────── */
-    .caveat {
-      max-width: 720px; margin: 0 auto 60px;
-      background: #1c1a12; border: 1px solid #3d3520; border-radius: var(--radius);
-      padding: 16px 20px; font-size: .9rem; color: var(--orange); text-align: center;
-    }
-    .caveat strong { color: #fbbf24; }
+.caveat{max-width:var(--max-w);margin:0 auto 2.5rem;padding:0 1.5rem}
+.caveat-box{background:var(--bg1);border:1px solid var(--bg2);border-left:3px solid var(--orange);
+  border-radius:var(--radius);padding:1rem 1.3rem;font-size:.88rem;color:var(--fg2)}
+.caveat-box strong{color:var(--orange)}
 
-    /* ── Section ────────────────────────────────────────── */
-    section { padding: 60px 0; }
-    .section-title {
-      font-size: 1.7rem; font-weight: 700; text-align: center;
-      margin-bottom: 12px; letter-spacing: -.01em;
-    }
-    .section-sub {
-      text-align: center; color: var(--text-dim); margin-bottom: 48px;
-      max-width: 600px; margin-left: auto; margin-right: auto;
-    }
+.table-wrap{max-width:var(--max-w);margin:0 auto 2.5rem;padding:0 1.5rem}
+.table-wrap h2{font-family:var(--font-heading);font-size:1.3rem;font-weight:600;color:var(--fg0);margin-bottom:.8rem}
+.tbl{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);overflow:hidden;width:100%}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;font-weight:600;padding:.7rem 1rem;border-bottom:1px solid var(--bg2);
+  color:var(--fg3);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+td{padding:.6rem 1rem;border-bottom:1px solid var(--bg2)}
+tr:last-child td{border-bottom:none}
+td code{background:var(--bg-hard);padding:2px 6px;border-radius:4px;font-size:.8rem;font-family:var(--font-mono)}
 
-    /* ── Features grid ──────────────────────────────────── */
-    .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-    .feature {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 28px;
-      transition: border-color .2s, transform .2s;
-    }
-    .feature:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .feature-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; margin-bottom: 16px;
-    }
-    .feature h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
-    .feature p  { font-size: .9rem; color: var(--text-dim); line-height: 1.55; }
+.api-card{max-width:640px;margin:0 auto 3rem;padding:0 1.5rem}
+.api-card h2{font-family:var(--font-heading);font-size:1.3rem;font-weight:600;color:var(--fg0);margin-bottom:.8rem;text-align:center}
+.api-box{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);padding:1.2rem 1.4rem}
+.api-box pre{background:var(--bg-hard);border:1px solid var(--bg2);border-radius:8px;
+  padding:1rem;overflow-x:auto;font-family:var(--font-mono);font-size:.82rem;
+  color:var(--fg2);line-height:1.6;margin:0}
 
-    .ic-blue   { background: rgba(79,143,247,.15);  color: var(--accent); }
-    .ic-green  { background: rgba(52,211,153,.15);   color: var(--green);  }
-    .ic-orange { background: rgba(251,146,60,.15);   color: var(--orange); }
-    .ic-pink   { background: rgba(244,114,182,.15);  color: var(--pink);   }
-    .ic-cyan   { background: rgba(56,189,248,.15);   color: var(--accent2);}
+footer{text-align:center;padding:2rem 1.5rem 3rem;font-size:.8rem;color:var(--fg3);border-top:1px solid var(--bg1)}
+footer a{color:var(--fg3)}
+footer a:hover{color:var(--fg1)}
 
-    /* ── Install ────────────────────────────────────────── */
-    .install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 680px) { .install-grid { grid-template-columns: 1fr; } }
-    .install-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 28px;
-    }
-    .install-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; }
-    pre {
-      background: var(--bg-code); border: 1px solid var(--border);
-      border-radius: 8px; padding: 16px; overflow-x: auto;
-      font-size: .85rem; line-height: 1.6; color: var(--text-dim);
-    }
-    code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; }
-
-    /* ── Permissions table ──────────────────────────────── */
-    .table-wrap {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden;
-    }
-    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    th { text-align: left; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
-    td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
-    tr:last-child td { border-bottom: none; }
-    td code { background: var(--bg-code); padding: 2px 6px; border-radius: 4px; font-size: .82rem; }
-
-    /* ── Footer ─────────────────────────────────────────── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 40px 0; text-align: center;
-      color: var(--text-dim); font-size: .85rem;
-    }
-    footer a { color: var(--text); font-weight: 500; }
-
-    /* ── Divider ────────────────────────────────────────── */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-  </style>
+@media(max-width:520px){
+  .hero{padding:3rem 1rem 2rem}
+  .cmd-box{font-size:.75rem}
+  .install-card{padding:1rem 1.1rem}
+}
+</style>
 </head>
 <body>
 
-  <!-- Hero -->
-  <header class="hero">
-    <div class="container">
-      <div class="hero-badge">Kimai Plugin &middot; GPL-3.0</div>
-      <h1>Working Hours <span>&amp;</span> Holidays</h1>
-      <p>Open-source alternative to Kimai's commercial WorkContractBundle. Working hours, overtime, vacations, sickness, public holidays, and calendar integration — all in one plugin.</p>
-      <div class="hero-buttons">
-        <a href="https://github.com/shrippen/kimai-holiday-bundle" class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
-          GitHub
-        </a>
-        <a href="https://github.com/shrippen/kimai-holiday-bundle/releases" class="btn btn-outline">
-          Download v1.0.0
-        </a>
-      </div>
-    </div>
-  </header>
+<section class="hero">
+  <div class="hero-icon">📅</div>
+  <h1>Working Hours &amp; Holidays</h1>
+  <p class="tagline">Open-source Kimai plugin for working hours, overtime, vacations, sickness, public holidays, and calendar integration — an alternative to the commercial WorkContractBundle.</p>
 
-  <div class="container">
-    <div class="caveat">
-      <strong>Experimental</strong> — This plugin was entirely vibe-coded. Not all functionality is fully tested, especially permissions around the absence approval workflow. Test carefully before production use.
-    </div>
+  <div class="badges">
+    <a href="https://github.com/shrippen/kimai-holiday-bundle/releases"><img alt="Version" src="https://img.shields.io/badge/version-1.0.0-e8dcc4?labelColor=1c1c20"></a>
+    <img alt="Kimai" src="https://img.shields.io/badge/Kimai-%E2%89%A5%202.64-83a598?labelColor=1c1c20">
+    <img alt="PHP" src="https://img.shields.io/badge/PHP-%E2%89%A5%208.1-83a598?labelColor=1c1c20">
+    <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0-a89984?labelColor=1c1c20">
   </div>
 
-  <hr class="divider">
-
-  <!-- Features -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">Features</h2>
-      <p class="section-sub">Everything you need for absence management and overtime tracking, built into Kimai's existing UI.</p>
-
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon ic-blue">&#128197;</div>
-          <h3>Working Times Integration</h3>
-          <p>Absences and public holidays appear directly in Kimai's built-in Arbeitszeiten table — including known future days. Distinctive icons per absence type.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon ic-green">&#127796;</div>
-          <h3>Vacation &amp; Absence Management</h3>
-          <p>Vacation (half-day), sickness (+ relatives), Freizeitausgleich, and custom absence types. Approval workflow with email notifications and edit-with-reapproval.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon ic-orange">&#127758;</div>
-          <h3>Public Holidays via ICS</h3>
-          <p>Import holidays from curated regional calendars (Germany, Austria, Switzerland, 30+ countries) or any custom ICS URL. Auto-sync with a cron command.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon ic-pink">&#128198;</div>
-          <h3>Per-User ICS Calendar</h3>
-          <p>Each user gets a personal calendar subscription URL with their public holidays and approved absences — locale-aware, for Outlook, Google, or Apple Calendar.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon ic-cyan">&#128202;</div>
-          <h3>Absence Calendar &amp; Reports</h3>
-          <p>Full-year absence calendar with team view, CSV export, and per-absence workday count. Weekends and non-working days are automatically excluded.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon ic-blue">&#128274;</div>
-          <h3>Month Locks &amp; Settings</h3>
-          <p>Lock months for approval. Configurable calculation modes (compensate vs reduce), comment requirements, and workday timesheet restrictions. REST API included.</p>
-        </div>
-      </div>
+  <div class="install-card">
+    <label>Install</label>
+    <div class="cmd-row">
+      <div class="cmd-box" id="cmd">cd var/plugins &amp;&amp; git clone https://github.com/shrippen/kimai-holiday-bundle.git HolidayBundle</div>
+      <button class="copy-btn" id="copyBtn" title="Copy to clipboard" onclick="copyCmd()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
     </div>
-  </section>
+    <p class="install-note">Then run <code>bin/console kimai:reload -n</code> and <code>bin/console kimai:bundle:holiday:install</code>.<br>
+    For Docker: prefix with <code>docker exec -it CONTAINER /opt/kimai/</code>.</p>
+  </div>
 
-  <hr class="divider">
+  <div class="install-links">
+    <a class="btn btn-primary" href="https://github.com/shrippen/kimai-holiday-bundle/releases">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download v1.0.0
+    </a>
+    <a class="btn btn-ghost" href="https://github.com/shrippen/kimai-holiday-bundle">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</section>
 
-  <!-- Compatibility -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">Compatibility</h2>
-      <p class="section-sub">Designed as a drop-in alternative to the commercial Controlling plugin.</p>
-      <div class="install-grid" style="max-width:700px;margin:0 auto;">
-        <div class="install-card" style="text-align:center;">
-          <h3 style="color:var(--green);">Requires</h3>
-          <p style="font-size:2rem;font-weight:700;margin:8px 0;">Kimai ≥ 2.64</p>
-          <p style="color:var(--text-dim);font-size:.85rem;">PHP ≥ 8.1</p>
-        </div>
-        <div class="install-card" style="text-align:center;">
-          <h3 style="color:var(--orange);">Replaces</h3>
-          <p style="font-size:1rem;font-weight:600;margin:8px 0;">WorkContractBundle</p>
-          <p style="color:var(--text-dim);font-size:.85rem;">Do <strong>not</strong> install both at the same time. Remove the commercial plugin first.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<div class="caveat">
+  <div class="caveat-box">
+    <strong>Experimental</strong> — This plugin was entirely vibe-coded. Not all functionality is fully tested, especially permissions around the absence approval workflow. Test roles carefully before production use.
+  </div>
+</div>
 
-  <hr class="divider">
+<section class="features">
+  <div class="feat">
+    <h3>Working Times Integration</h3>
+    <p>Absences and public holidays appear directly in Kimai's Arbeitszeiten table — including known future days. Distinctive icons per absence type.</p>
+  </div>
+  <div class="feat">
+    <h3>Vacation &amp; Absences</h3>
+    <p>Vacation (half-day), sickness (+ relatives), Freizeitausgleich, and custom types. Approval workflow with email notifications and edit-with-reapproval.</p>
+  </div>
+  <div class="feat">
+    <h3>Public Holidays via ICS</h3>
+    <p>Import holidays from curated regional calendars (Germany, Austria, Switzerland, 30+ countries) or any custom ICS URL. Auto-sync via cron.</p>
+  </div>
+  <div class="feat">
+    <h3>Per-User ICS Calendar</h3>
+    <p>Each user gets a personal calendar subscription URL with public holidays and approved absences — locale-aware, for Outlook, Google, or Apple Calendar.</p>
+  </div>
+  <div class="feat">
+    <h3>Absence Calendar &amp; Reports</h3>
+    <p>Full-year absence calendar with team view, CSV export, and per-absence workday count. Weekends and non-working days are automatically excluded.</p>
+  </div>
+  <div class="feat">
+    <h3>Month Locks &amp; Settings</h3>
+    <p>Lock months for approval. Configurable calculation modes (compensate vs reduce), comment requirements, and workday timesheet restrictions.</p>
+  </div>
+</section>
 
-  <!-- Installation -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">Installation</h2>
-      <p class="section-sub">Clone, reload, done.</p>
-      <div class="install-grid">
-        <div class="install-card">
-          <h3>Classic Install</h3>
-          <pre><code>cd var/plugins
-git clone https://github.com/shrippen/kimai-holiday-bundle.git HolidayBundle
+<section class="section">
+  <h2>Compatibility</h2>
+  <ul>
+    <li><strong>Requires Kimai ≥ 2.64</strong> (PHP ≥ 8.1)</li>
+    <li><strong>Replaces</strong> the commercial WorkContractBundle / Controlling — do not install both at the same time</li>
+    <li>Permission names and UX intentionally overlap so existing docs and habits transfer</li>
+  </ul>
+</section>
 
-bin/console kimai:reload -n
-bin/console kimai:bundle:holiday:install</code></pre>
-        </div>
-        <div class="install-card">
-          <h3>Docker</h3>
-          <pre><code>docker exec -it CONTAINER \
-  /opt/kimai/bin/console kimai:reload -n
+<div class="table-wrap">
+  <h2>Permissions</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Permission</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>hours_own_profile</code> / <code>hours_other_profile</code></td><td>Working times screen</td></tr>
+        <tr><td><code>contract_other_profile</code></td><td>Edit other users' contracts</td></tr>
+        <tr><td><code>view_booking_contract</code> / <code>create_booking_contract</code></td><td>PDF / manual bookings</td></tr>
+        <tr><td><code>approve_times_contract</code> / <code>unlock_times_contract</code></td><td>Month lock / unlock</td></tr>
+        <tr><td><code>absence</code>, <code>edit_*_absence</code>, <code>delete_*_absence</code></td><td>Absence UI</td></tr>
+        <tr><td><code>view_team_absence</code> / <code>view_other_absence</code></td><td>Team / other users in reports</td></tr>
+        <tr><td><code>approve_*_absence</code> / <code>approval_other_absence</code></td><td>Approval workflow</td></tr>
+        <tr><td><code>edit_public_holidays</code></td><td>Admin public holidays</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-docker exec -it CONTAINER \
-  /opt/kimai/bin/console kimai:bundle:holiday:install</code></pre>
-        </div>
-      </div>
-      <p style="text-align:center;margin-top:24px;color:var(--text-dim);font-size:.9rem;">
-        Then assign permissions under <strong>System → Roles</strong> (section <em>Working Hours &amp; Holidays</em>).
-      </p>
-    </div>
-  </section>
-
-  <hr class="divider">
-
-  <!-- Permissions -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">Permissions</h2>
-      <p class="section-sub">Fine-grained access control for every feature.</p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Permission</th><th>Purpose</th></tr></thead>
-          <tbody>
-            <tr><td><code>hours_own_profile</code> / <code>hours_other_profile</code></td><td>Working times screen</td></tr>
-            <tr><td><code>contract_other_profile</code></td><td>Edit other users' contracts</td></tr>
-            <tr><td><code>view_booking_contract</code> / <code>create_booking_contract</code></td><td>PDF / manual bookings</td></tr>
-            <tr><td><code>approve_times_contract</code> / <code>unlock_times_contract</code></td><td>Month lock / unlock</td></tr>
-            <tr><td><code>absence</code>, <code>edit_*_absence</code>, <code>delete_*_absence</code></td><td>Absence UI</td></tr>
-            <tr><td><code>view_team_absence</code> / <code>view_other_absence</code></td><td>Team / other users in reports</td></tr>
-            <tr><td><code>approve_*_absence</code> / <code>approval_other_absence</code></td><td>Approval workflow</td></tr>
-            <tr><td><code>edit_public_holidays</code></td><td>Admin public holidays</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <hr class="divider">
-
-  <!-- API -->
-  <section>
-    <div class="container">
-      <h2 class="section-title">REST API</h2>
-      <p class="section-sub">Programmatic access to absences and public holidays.</p>
-      <div class="install-card" style="max-width:640px;margin:0 auto;">
-        <pre><code>GET  /api/holiday/absences?year=2026
+<div class="api-card">
+  <h2>REST API</h2>
+  <div class="api-box">
+    <pre><code>GET  /api/holiday/absences?year=2026
 POST /api/holiday/absences
 POST /api/holiday/absences/{id}/approve
 POST /api/holiday/absences/{id}/reject
 GET  /api/holiday/absences/types
 GET  /api/holiday/public-holidays?year=2026
 GET  /api/holiday/public-holidays/calendar</code></pre>
-      </div>
-    </div>
-  </section>
+  </div>
+</div>
 
-  <hr class="divider">
+<footer>
+  <p>GPL-3.0-or-later · Made by <a href="https://github.com/shrippen">shrippen</a> · <a href="https://github.com/shrippen/kimai-holiday-bundle/issues">Issues</a> · <a href="https://github.com/shrippen/kimai-holiday-bundle/releases">Releases</a></p>
+</footer>
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p>
-        <a href="https://github.com/shrippen/kimai-holiday-bundle">GitHub</a> &middot;
-        <a href="https://github.com/shrippen/kimai-holiday-bundle/releases">Releases</a> &middot;
-        <a href="https://github.com/shrippen/kimai-holiday-bundle/issues">Issues</a>
-      </p>
-      <p style="margin-top:12px;">GPL-3.0-or-later &middot; Copyright &copy; 2026 Arian</p>
-    </div>
-  </footer>
-
+<script>
+function copyCmd(){
+  var t=document.getElementById('cmd').textContent;
+  navigator.clipboard.writeText(t).then(function(){
+    var b=document.getElementById('copyBtn');
+    b.classList.add('copied');
+    setTimeout(function(){b.classList.remove('copied')},1500);
+  });
+}
+</script>
 </body>
 </html>

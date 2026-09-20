@@ -1,12 +1,12 @@
 # Design Reference
 
-All visual design decisions for this project follow the shared [shrippen DesignDefault](https://github.com/shrippen/DesignDefault) design system.
+All visual design decisions for this project follow the shared [shrippen DesignDefault](https://github.com/shrippen/shrippen.github.io) design system.
 
 ## Quick Links
 
-- **Full spec**: <https://github.com/shrippen/DesignDefault>
-- **CSS tokens**: <https://github.com/shrippen/DesignDefault/blob/main/tokens/variables.css>
-- **Landing page template**: <https://github.com/shrippen/DesignDefault/blob/main/templates/landing.html>
+- **Full spec**: <https://github.com/shrippen/shrippen.github.io>
+- **CSS tokens**: <https://github.com/shrippen/shrippen.github.io/blob/main/tokens/variables.css>
+- **Landing page template**: <https://github.com/shrippen/shrippen.github.io/blob/main/templates/landing.html>
 
 ## Key Decisions
 

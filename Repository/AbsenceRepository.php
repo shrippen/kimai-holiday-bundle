@@ -83,6 +83,51 @@ class AbsenceRepository extends ServiceEntityRepository
     }
 
     /**
+     * Absences of the user (not rejected) that overlap the given date range.
+     *
+     * @return Absence[]
+     */
+    public function findOverlapping(User $user, \DateTimeInterface $from, \DateTimeInterface $to, ?int $excludeId = null): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->andWhere('a.user = :user')
+            ->andWhere('a.status != :rejected')
+            ->andWhere('a.startDate <= :to')
+            ->andWhere('a.endDate >= :from')
+            ->setParameter('user', $user)
+            ->setParameter('rejected', AbsenceStatus::REJECTED)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+
+        if ($excludeId !== null) {
+            $qb->andWhere('a.id != :id')->setParameter('id', $excludeId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Approved and requested absences of the user in the date range (calendar feed).
+     *
+     * @return Absence[]
+     */
+    public function findVisibleBetween(User $user, \DateTimeInterface $from, \DateTimeInterface $to): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.user = :user')
+            ->andWhere('a.status IN (:status)')
+            ->andWhere('a.startDate <= :to')
+            ->andWhere('a.endDate >= :from')
+            ->setParameter('user', $user)
+            ->setParameter('status', [AbsenceStatus::APPROVED->value, AbsenceStatus::REQUESTED->value])
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('a.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return Absence[]
      */
     public function findApprovedVacationsInYear(User $user, int $year): array

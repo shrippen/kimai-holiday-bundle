@@ -196,10 +196,10 @@ class Absence
             return false;
         }
 
-        $day = $date instanceof \DateTimeImmutable
-            ? $date->setTime(0, 0)
-            : \DateTimeImmutable::createFromInterface($date)->setTime(0, 0);
+        // Compare calendar days as strings: the given date may be in the user's timezone,
+        // while the DATE columns are hydrated in the server timezone.
+        $day = $date->format('Y-m-d');
 
-        return $day >= $this->startDate && $day <= $this->endDate;
+        return $day >= $this->startDate->format('Y-m-d') && $day <= $this->endDate->format('Y-m-d');
     }
 }

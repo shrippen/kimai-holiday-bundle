@@ -3,10 +3,10 @@
 Legende: ✅ = live reproduziert, 📖 = aus Code-Review
 
 ## P0
-- [ ] ✅ Doppelzählung: Abwesenheits-Timesheets nicht zusätzlich als Gutschrift zählen bzw. Gutschrift weglassen, wenn Auto-Timesheets aktiv (WorkingTimeCalculator.php:182/295, WorkingTimeYearSubscriber.php:195)
-- [ ] ✅ Abwesenheits-Timesheets per Meta-Feld (META_KEY) statt `LIKE '%(#N)%'` identifizieren (AbsenceTimesheetService.php:113)
-- [ ] ✅ Auto-Timesheets billable=false; exportierte nicht löschen
-- [ ] ✅ reject()/request() rufen removeAbsenceTimesheets() auf
+- [x] ✅ Doppelzählung: Abwesenheits-Timesheets nicht zusätzlich als Gutschrift zählen bzw. Gutschrift weglassen, wenn Auto-Timesheets aktiv (WorkingTimeCalculator.php:182/295, WorkingTimeYearSubscriber.php:195)
+- [x] ✅ Abwesenheits-Timesheets per Meta-Feld (META_KEY) statt `LIKE '%(#N)%'` identifizieren (AbsenceTimesheetService.php:113)
+- [x] ✅ Auto-Timesheets billable=false; exportierte nicht löschen
+- [x] ✅ reject()/request() rufen removeAbsenceTimesheets() auf
 
 ## P1
 - [ ] ✅ Teamlead-Scoping (isTeamleadOfUser) für view/approve/pdf/export/ICS, ?team=-Parameter im Kalender

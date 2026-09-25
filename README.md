@@ -81,7 +81,8 @@ users you may access). The tiles at the top show vacation taken, vacation reques
 - Click a row (or **… → Edit**) to change an absence. Saving an approved absence that needs approval sets it back to
   *Requested*.
 - Approvers select requested absences with the checkboxes and use **Approve** / **Reject** below the table, or the row menu.
-  Both run immediately; the notice offers **Undo**, which sets the absences back to *Requested*.
+  Both run immediately; the notice offers **Undo**, which sets the absences back to *Requested*. Undo works for
+  15 minutes, only for the approver who acted, in the same browser session, and only for absences nobody changed since.
 - **… → Delete** asks for confirmation. Timesheets created for the absence are removed, exported ones are kept.
 - **Export** downloads the year as CSV.
 

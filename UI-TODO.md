@@ -4,7 +4,13 @@ Grundlage: [kimai-plugin-ui GUIDELINES.md / CHECKLIST.md](https://github.com/shr
 und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 
 ## Alle Seiten
-- [x] Kit mit `bin/sync.sh` übernommen, Einbindung über `@Holiday/_kit/…`
+- [x] Kit mit `bin/sync.sh` übernommen, Einbindung über `@Holiday/_kit/…` (Kit 0.2.0)
+- [x] Sofort-Aktionen („…“ Genehmigen/Ablehnen, Feiertage „Synchronisieren“) über Kit-Attribute `data-kpu-post`/`-token`/`-ids`;
+      eigenes Klick-Skript (`data-holiday-post`) entfernt
+- [x] Modal-Formulare: `data-form-event: kpu.reload` statt eigenem Listener auf `kimai.holidayUpdate`;
+      `formSuccess()` = Kit-Muster `kpuFormSuccess` (URL behalten: Bearbeiten, Löschen, ICS; `redirectToRouteAfterCreate()`:
+      Abwesenheit anlegen → Jahr der Abwesenheit, Gruppe/Feiertag anlegen und Import → Gruppe/Jahr, Gruppe löschen → Übersicht)
+- [x] Plural-Texte decken 0 ab (`{0}…` bei genehmigt/abgelehnt ergänzt)
 - [x] Kein `<h2>` im Inhalt; Titel „Bereich · Zeitraum“ über `PageSetup`, Kontextzeile über `kit.context_line`
 - [x] `setActionName()` + `setHelp(<volle URL>)` auf jeder Seite; Aktionen nur über `PageActionsEvent`
 - [x] Inhalt in `{% block main %}` statt `page_content`
@@ -32,8 +38,10 @@ und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 - [x] Spalten auf 390 px: Auswahl, Art, Zeitraum, Status, „…“
 - [x] Zeilenmenü „…“: Bearbeiten (Modal), Genehmigen, Ablehnen, Löschen (Kimai-Modal)
 - [x] Checkbox-Auswahl + Sammelaktion „Genehmigen“/„Ablehnen“ für Genehmiger, sofort + Rückgängig-Toast (Undo = wieder „Beantragt“)
+- [x] Rückgängig-Fenster nach GUIDELINES 3.5: Session-Eintrag je Aktion (Benutzer, IDs, Zustand danach, Zeit), 15 min, nur
+      gleicher Benutzer/gleiche Sitzung, nur IDs der Aktion, nur unverändert; Genehmiger-Recht wird weiter geprüft (keine Ausnahme)
 - [x] Anlegen/Bearbeiten als Kimai-Modal (`modal-ajax-form`, `_form_modal`/`_form`), Fehler als Formularfehler
-- [x] Leerzustand über `kit.empty_state` mit Link „Abwesenheit anlegen“ (Link öffnet die Formularseite, nicht das Modal: `kit.empty_state` kennt keine Link-Klasse)
+- [x] Leerzustand über `kit.empty_state` mit Link „Abwesenheit anlegen“, öffnet das Kimai-Modal (`'modal-ajax-form'`, Kit 0.2)
 - [x] ICS-Link neu erzeugen mit Kimai-Modal, Ergebnis als Callout
 
 ## Abwesenheitskalender (`/holiday/absence-calendar/{year}[/{month}]`)
@@ -52,7 +60,7 @@ und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 - [x] Feiertagsliste mit Kimai-DataTable-Makros, Halbtag über `label_boolean`, „…“ mit Löschen (Kimai-Modal)
 - [x] Gruppe löschen über „…“ + Kimai-Modal statt `&times;` + `confirm()`
 - [x] Import-/Sync-Anzahl als Ergebnis-Callout, Fehler mit Übersetzungskey
-- [x] Leerzustände über `kit.empty_state` (keine Gruppe → „Gruppe anlegen“, keine Feiertage → „Importieren“)
+- [x] Leerzustände über `kit.empty_state` (keine Gruppe → „Gruppe anlegen“, keine Feiertage → „Importieren“), Links als Modal
 
 ## Manuelle Buchung (`/holiday/booking/create`)
 - [x] Kimai-`_form`-Karte (Seite, weil der Arbeitszeiten-Bildschirm des Cores nicht per Event neu lädt), Hinweis als Feldhilfe
@@ -72,6 +80,7 @@ und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 ## Sicherheit (Basis-Branch, nicht zurückdrehen)
 - [x] Team-Scoping (Teamlead nur eigene Teams) für Liste, Aktionen, Export, Kalender – live geprüft
 - [x] CSRF für alle POSTs inkl. neuer Sammel-/Undo-Routen – live geprüft (403 ohne Token)
+- [x] Sammelaktion prüft die Berechtigung für alle gewählten Abwesenheiten, bevor eine geändert wird (vorher: teilweise geändert, dann 403)
 - [x] ICS-Regeln (nur Besitzer/Admin), Validierung – unverändert
 
 ## Offen / bewusst nicht umgesetzt

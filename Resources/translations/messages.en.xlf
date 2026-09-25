@@ -637,11 +637,11 @@ Action: requested</target>
       </trans-unit>
       <trans-unit id="h157" resname="holiday.absence.bulk.approved">
         <source>holiday.absence.bulk.approved</source>
-        <target>{1}1 absence approved.|]1,Inf[%count% absences approved.</target>
+        <target>{0}No absence approved.|{1}1 absence approved.|]1,Inf[%count% absences approved.</target>
       </trans-unit>
       <trans-unit id="h158" resname="holiday.absence.bulk.rejected">
         <source>holiday.absence.bulk.rejected</source>
-        <target>{1}1 absence rejected.|]1,Inf[%count% absences rejected.</target>
+        <target>{0}No absence rejected.|{1}1 absence rejected.|]1,Inf[%count% absences rejected.</target>
       </trans-unit>
       <trans-unit id="h159" resname="holiday.absence.bulk.reopened">
         <source>holiday.absence.bulk.reopened</source>
@@ -654,10 +654,6 @@ Action: requested</target>
       <trans-unit id="h161" resname="holiday.absence.bulk.none">
         <source>holiday.absence.bulk.none</source>
         <target>Nothing changed. Only requested absences in open months can be approved or rejected.</target>
-      </trans-unit>
-      <trans-unit id="h162" resname="holiday.error.action_failed">
-        <source>holiday.error.action_failed</source>
-        <target>The action could not be completed.</target>
       </trans-unit>
       <trans-unit id="h163" resname="holiday.calendar.all_teams">
         <source>holiday.calendar.all_teams</source>
@@ -694,6 +690,18 @@ Action: requested</target>
       <trans-unit id="h171" resname="holiday.pdf_month">
         <source>holiday.pdf_month</source>
         <target>Month PDF %month%</target>
+      </trans-unit>
+      <trans-unit id="h172" resname="holiday.absence.undo.expired">
+        <source>holiday.absence.undo.expired</source>
+        <target>Undo is no longer possible: it only works for 15 minutes, in the same session and for your own action.</target>
+      </trans-unit>
+      <trans-unit id="h173" resname="holiday.absence.undo.changed">
+        <source>holiday.absence.undo.changed</source>
+        <target>Nothing reset: the absences were changed since or the month is locked.</target>
+      </trans-unit>
+      <trans-unit id="h174" resname="holiday.absence.undo.skipped">
+        <source>holiday.absence.undo.skipped</source>
+        <target>%count% not reset: changed since or month locked.</target>
       </trans-unit>
     </body>
   </file>

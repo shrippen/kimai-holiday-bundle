@@ -637,11 +637,11 @@ Aktion: beantragt</target>
       </trans-unit>
       <trans-unit id="h157" resname="holiday.absence.bulk.approved">
         <source>holiday.absence.bulk.approved</source>
-        <target>{1}1 Abwesenheit genehmigt.|]1,Inf[%count% Abwesenheiten genehmigt.</target>
+        <target>{0}Keine Abwesenheit genehmigt.|{1}1 Abwesenheit genehmigt.|]1,Inf[%count% Abwesenheiten genehmigt.</target>
       </trans-unit>
       <trans-unit id="h158" resname="holiday.absence.bulk.rejected">
         <source>holiday.absence.bulk.rejected</source>
-        <target>{1}1 Abwesenheit abgelehnt.|]1,Inf[%count% Abwesenheiten abgelehnt.</target>
+        <target>{0}Keine Abwesenheit abgelehnt.|{1}1 Abwesenheit abgelehnt.|]1,Inf[%count% Abwesenheiten abgelehnt.</target>
       </trans-unit>
       <trans-unit id="h159" resname="holiday.absence.bulk.reopened">
         <source>holiday.absence.bulk.reopened</source>
@@ -654,10 +654,6 @@ Aktion: beantragt</target>
       <trans-unit id="h161" resname="holiday.absence.bulk.none">
         <source>holiday.absence.bulk.none</source>
         <target>Nichts geändert. Nur beantragte Abwesenheiten in offenen Monaten können genehmigt oder abgelehnt werden.</target>
-      </trans-unit>
-      <trans-unit id="h162" resname="holiday.error.action_failed">
-        <source>holiday.error.action_failed</source>
-        <target>Die Aktion konnte nicht ausgeführt werden.</target>
       </trans-unit>
       <trans-unit id="h163" resname="holiday.calendar.all_teams">
         <source>holiday.calendar.all_teams</source>
@@ -694,6 +690,18 @@ Aktion: beantragt</target>
       <trans-unit id="h171" resname="holiday.pdf_month">
         <source>holiday.pdf_month</source>
         <target>Monats-PDF %month%</target>
+      </trans-unit>
+      <trans-unit id="h172" resname="holiday.absence.undo.expired">
+        <source>holiday.absence.undo.expired</source>
+        <target>Rückgängig ist nicht mehr möglich: Das geht nur 15 Minuten lang, in derselben Sitzung und nur für die eigene Aktion.</target>
+      </trans-unit>
+      <trans-unit id="h173" resname="holiday.absence.undo.changed">
+        <source>holiday.absence.undo.changed</source>
+        <target>Nichts zurückgesetzt: Die Abwesenheiten wurden seitdem geändert oder der Monat ist gesperrt.</target>
+      </trans-unit>
+      <trans-unit id="h174" resname="holiday.absence.undo.skipped">
+        <source>holiday.absence.undo.skipped</source>
+        <target>%count% nicht zurückgesetzt: seitdem geändert oder Monat gesperrt.</target>
       </trans-unit>
     </body>
   </file>

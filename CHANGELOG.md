@@ -6,11 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Changed (user interface)
 
-- All pages follow the kimai-plugin-ui guidelines and kit 0.1.0 (`Resources/views/_kit/`): Kimai page title with period and
+- All pages follow the kimai-plugin-ui guidelines and kit 0.2.0 (`Resources/views/_kit/`): Kimai page title with period and
   context line, actions in the page header, period navigator, help button, dark mode and 390 px layouts
 - Absences: Kimai data table with status badges and row menu; create/edit/delete and the personal ICS calendar in Kimai
   modals; bulk **Approve** / **Reject** with undo; vacation balance as KPI tiles (taken, requested, sick days, remaining);
-  user picker for approvers
+  user picker for approvers; "Create absence" in the empty state opens the modal; creating an absence, a public holiday,
+  a group or importing shows the year/group of the new entry
+- Undo of approve/reject follows the kit's undo window: 15 minutes, same user, same session, only the absences of that
+  action and only if unchanged since (otherwise a message instead of a silent reset)
 - Absence calendar: month view (`/holiday/absence-calendar/{year}/{month}` no longer redirects), month/year switch, team
   picker, requested absences shown faded, weekends shaded
 - Public holidays: year navigator in the right order, readable active group, add/import/create group in modals, deletes
@@ -26,14 +29,21 @@ All notable changes to this project will be documented in this file.
   overrides Kimai core keys (`action.save`, `action.close`, `action.delete`, `confirm.delete`, `yes`, `no`,
   `action.update.success`, `action.delete.success`). English: "Time-Off" → "Time off in lieu", menu "Absence" → "Absences"
 - New routes: `holiday_absence_create`, `holiday_absence_ics`, `holiday_absence_bulk_approve`, `holiday_absence_bulk_reject`,
-  `holiday_absence_reopen` (undo), `holiday_public_holiday_group_create`, `holiday_public_holiday_create`,
+  `holiday_absence_reopen` (undo, `POST /holiday/absence/reopen/{action}` with the action id from the undo notice), `holiday_public_holiday_group_create`, `holiday_public_holiday_create`,
   `holiday_public_holiday_import`; `holiday_absence` and `holiday_public_holidays` are GET only; delete routes show a
   confirmation on GET and delete on POST (same CSRF tokens as before)
 - Removed the template overrides `user/contract.html.twig` (Kimai renders the extra contract fields itself) and the unused
   `contract/working_times.html.twig`; `contract/status.html.twig` is still overridden (one condition, see file)
+- Immediate actions use the kit's `data-kpu-post` attributes and the modal forms fire `kpu.reload`
+  (`AbsenceController::UPDATE_EVENT`, formerly `kimai.holidayUpdate`); the plugin's own click script is gone
+- Translation keys `holiday.absence.undo.expired`, `.changed`, `.skipped` added, `holiday.error.action_failed` removed;
+  approve/reject counts cover 0
 - `AbsenceApprovalService::request()` has an optional `$notify` argument (undo does not mail approvers again)
 
 ### Fixed
+
+- Bulk approve/reject with one absence the user may not approve changed the others before failing with 403; now
+  nothing is changed
 
 - Absences with auto-created timesheets were credited twice in the working-time balance
 - Absence timesheets are identified by the meta field `holiday_absence_id` instead of `(#N)` anywhere in the description (unrelated timesheets could be deleted); legacy entries only match the exact generated description on the configured project/activity

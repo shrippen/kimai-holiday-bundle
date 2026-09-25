@@ -44,6 +44,9 @@ class AbsenceController extends AbstractController
      */
     public const UPDATE_EVENT = 'kpu.reload';
     public const CSRF_ACTION = 'holiday_absence_action';
+    /** Undo window of approve/reject (GUIDELINES 3.5): 15 minutes, same user, same session. */
+    private const UNDO_WINDOW = 900;
+    private const UNDO_SESSION_PREFIX = 'holiday.undo.';
 
     public function __construct(
         private readonly AbsenceRepository $absenceRepository,
@@ -298,34 +301,67 @@ class AbsenceController extends AbstractController
     }
 
     /**
-     * Undo of approve/reject: puts approved or rejected absences back to "requested".
+     * Undo of the current user's own approve/reject action (kimai-plugin-ui GUIDELINES 3.5 "Rückgängig-Fenster"):
+     * only the action stored in this session by bulkDecision(), only by the same user, only within UNDO_WINDOW
+     * seconds, only its absences and only if they were not changed since. The normal approval permission is
+     * still checked (no exception granted for this plugin).
      */
-    #[Route(path: '/absence/reopen', name: 'holiday_absence_reopen', methods: ['POST'])]
+    #[Route(path: '/absence/reopen/{action}', name: 'holiday_absence_reopen', methods: ['POST'], requirements: ['action' => '[a-f0-9]{16}'])]
     #[IsGranted('absence')]
-    public function reopen(Request $request): Response
+    public function reopen(Request $request, string $action): Response
     {
         $this->assertCsrf($request, self::CSRF_ACTION);
-        $absences = $this->loadSelected($request);
 
+        $session = $request->getSession();
+        $key = self::UNDO_SESSION_PREFIX . $action;
+        $entry = $session->get($key);
+        $session->remove($key);
+        $user = $this->getUser();
+
+        if (!\is_array($entry) || ($entry['user'] ?? null) !== $user?->getId() || (int) ($entry['at'] ?? 0) < time() - self::UNDO_WINDOW) {
+            return $this->actionResult($request, $this->translator->trans('holiday.absence.undo.expired'), null, 'holiday_absence', $this->listParameters(null), 409);
+        }
+
+        /** @var array<int, array{status: string, approved_at: string}> $before */
+        $before = $entry['absences'];
+        $requested = array_map('intval', $request->request->all('ids'));
+        if (array_diff($requested, array_keys($before)) !== []) {
+            throw $this->createAccessDeniedException('Undo is limited to the absences of the action');
+        }
+
+        $absences = $this->absenceRepository->findBy(['id' => array_keys($before)], ['startDate' => 'ASC']);
+        $this->assertCanApproveAll($absences);
         $done = 0;
+        $changed = 0;
         foreach ($absences as $absence) {
-            if (!$this->permissions->canApprove($absence)) {
-                throw $this->createAccessDeniedException();
-            }
-            if (!\in_array($absence->getStatus(), [AbsenceStatus::APPROVED, AbsenceStatus::REJECTED], true)) {
+            $state = $before[(int) $absence->getId()];
+            // changed since the action (someone else decided, edited or reopened it): leave it alone
+            if ($absence->getStatus()->value !== $state['status']
+                || $absence->getApprovedBy()?->getId() !== $user?->getId()
+                || $absence->getApprovedAt()?->format('Y-m-d H:i:s') !== $state['approved_at']) {
+                ++$changed;
                 continue;
             }
             try {
                 $this->approvalService->request($absence, false);
                 ++$done;
             } catch (\InvalidArgumentException|\RuntimeException) {
-                // locked month: leave unchanged
+                ++$changed; // locked month: leave unchanged
             }
+        }
+        $changed += \count($before) - \count($absences); // deleted in the meantime
+
+        $parameters = $this->listParameters($absences[0] ?? null);
+        if ($done === 0) {
+            return $this->actionResult($request, $this->translator->trans('holiday.absence.undo.changed'), null, 'holiday_absence', $parameters, 409);
         }
 
         $message = $this->translator->trans('holiday.absence.bulk.reopened', ['%count%' => $done]);
+        if ($changed > 0) {
+            $message .= ' ' . $this->translator->trans('holiday.absence.undo.skipped', ['%count%' => $changed]);
+        }
 
-        return $this->actionResult($request, $message, null, 'holiday_absence', $this->listParameters($absences[0] ?? null));
+        return $this->actionResult($request, $message, null, 'holiday_absence', $parameters);
     }
 
     /** @deprecated single-row form of holiday_absence_bulk_approve, kept for existing links */
@@ -395,12 +431,12 @@ class AbsenceController extends AbstractController
         $this->assertCsrf($request, self::CSRF_ACTION);
         $absences = $this->loadSelected($request);
 
+        $this->assertCanApproveAll($absences);
+
         $doneIds = [];
+        $doneAbsences = [];
         $skipped = 0;
         foreach ($absences as $absence) {
-            if (!$this->permissions->canApprove($absence)) {
-                throw $this->createAccessDeniedException();
-            }
             if ($absence->getStatus() !== AbsenceStatus::REQUESTED) {
                 ++$skipped;
                 continue;
@@ -410,6 +446,7 @@ class AbsenceController extends AbstractController
                     ? $this->approvalService->approve($absence, $this->getUser())
                     : $this->approvalService->reject($absence, $this->getUser());
                 $doneIds[] = (int) $absence->getId();
+                $doneAbsences[] = $absence;
             } catch (\InvalidArgumentException|\RuntimeException) {
                 ++$skipped;
             }
@@ -426,12 +463,41 @@ class AbsenceController extends AbstractController
         }
 
         $undo = [
-            'url' => $this->generateUrl('holiday_absence_reopen'),
+            'url' => $this->generateUrl('holiday_absence_reopen', ['action' => $this->rememberUndo($request, $doneAbsences)]),
             'token' => $this->container->get('security.csrf.token_manager')->getToken(self::CSRF_ACTION)->getValue(),
             'ids' => $doneIds,
         ];
 
         return $this->actionResult($request, $message, $undo, 'holiday_absence', $parameters);
+    }
+
+    /**
+     * Stores the undo entry of an approve/reject action in the session (GUIDELINES 3.5) and returns its id.
+     * Expired entries of earlier actions are dropped on the way.
+     *
+     * @param list<Absence> $absences
+     */
+    private function rememberUndo(Request $request, array $absences): string
+    {
+        $session = $request->getSession();
+        foreach (array_keys($session->all()) as $name) {
+            if (str_starts_with($name, self::UNDO_SESSION_PREFIX) && (int) ($session->get($name)['at'] ?? 0) < time() - self::UNDO_WINDOW) {
+                $session->remove($name);
+            }
+        }
+
+        $state = [];
+        foreach ($absences as $absence) {
+            $state[(int) $absence->getId()] = [
+                'status' => $absence->getStatus()->value,
+                'approved_at' => $absence->getApprovedAt()?->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        $action = bin2hex(random_bytes(8));
+        $session->set(self::UNDO_SESSION_PREFIX . $action, ['user' => $this->getUser()?->getId(), 'absences' => $state, 'at' => time()]);
+
+        return $action;
     }
 
     /**
@@ -548,6 +614,21 @@ class AbsenceController extends AbstractController
     {
         if (!$this->isCsrfTokenValid($id, (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+    }
+
+    /**
+     * Checks every selected absence before the first one is changed, so a selection with one foreign absence
+     * changes nothing.
+     *
+     * @param iterable<Absence> $absences
+     */
+    private function assertCanApproveAll(iterable $absences): void
+    {
+        foreach ($absences as $absence) {
+            if (!$this->permissions->canApprove($absence)) {
+                throw $this->createAccessDeniedException();
+            }
         }
     }
 

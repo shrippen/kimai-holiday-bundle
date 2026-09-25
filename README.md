@@ -17,13 +17,13 @@ Open-source Kimai plugin for working hours, overtime, absences, and public holid
 - Extends **Profil → Arbeitsvertrag** with vacation days, public-holiday group, and contract start/end
 - Extends **Arbeitsvertrag / Arbeitszeiten** (adds **Abwesenheit** — no duplicate sidebar section)
 - Absences and public holidays in the core Arbeitszeiten year view (including known future days)
-- Absences: vacation (half-day), sickness (+ relative), Freizeitausgleich, other — approval workflow and email notifications
+- Absences: vacation (half-day), sickness (+ relative), time off in lieu (Freizeitausgleich), other — approval workflow with bulk approve/reject and undo, email notifications
 - Edit absences (resets approval when the type requires it)
-- Urlaubskonto on the absence page
+- Vacation balance (taken, requested, sick days, remaining) on the absence page
 - Per-user ICS calendar feed (public holidays + approved absences) for Outlook / Google / Apple
 - Public holiday groups, manual entry, ICS import (curated calendars + custom ICS URL) and sync
 - Absences & public holidays on the Kimai calendar
-- Absence calendar team report + CSV export
+- Absence calendar team report (year or month, requested vs. approved) + CSV export
 - System settings: calculation modes (compensate vs reduce), comment required, workday timesheet restriction, auto absence timesheets
 - REST API under `/api/holiday/...`
 
@@ -68,6 +68,55 @@ Schedule that on the **host** if you want automatic updates (the official image 
 
 3. Assign permissions under **System → Roles** (section *Working Hours & Holidays*).
 
+## Usage
+
+### Absences
+
+**Employment contract → Absences** lists the absences of one user and year (`/holiday/absence/{year}`, `?user=` for other
+users you may access). The tiles at the top show vacation taken, vacation requested, sick days and the remaining vacation
+(entitlement from **Profile → Employment contract**).
+
+- **Create** opens the absence form in a modal. Vacation, time off in lieu and "other" absences start as *Requested*;
+  sickness is approved immediately.
+- Click a row (or **… → Edit**) to change an absence. Saving an approved absence that needs approval sets it back to
+  *Requested*.
+- Approvers select requested absences with the checkboxes and use **Approve** / **Reject** below the table, or the row menu.
+  Both run immediately; the notice offers **Undo**, which sets the absences back to *Requested*. Undo works for
+  15 minutes, only for the approver who acted, in the same browser session, and only for absences nobody changed since.
+- **… → Delete** asks for confirmation. Timesheets created for the absence are removed, exported ones are kept.
+- **Export** downloads the year as CSV.
+
+### Personal calendar (ICS)
+
+**Personal calendar (ICS)** on the absence page shows your subscription link (public holidays and approved absences) for
+Outlook, Google Calendar or Apple Calendar. **Regenerate link** makes the old link invalid.
+
+### Absence calendar
+
+**Reporting → Absence calendar** shows the absences of your teams per year or month (`/holiday/absence-calendar/{year}`
+or `/{year}/{month}`). Requested absences are shown faded, approved ones in full. Filter by team with the team picker.
+
+### Public holidays
+
+**Administration → Public holidays** manages public holiday groups. Select a group on the left, then add single holidays,
+import a calendar (curated ICS feeds or a custom HTTPS URL) or sync a subscribed group. The number of imported holidays
+is shown after the import.
+
+### Manual bookings
+
+**Employment contract → Working times**, absence menu (umbrella icon) next to the user picker → **Manual booking**, adds working time or vacation days to a user's balance. Bookings
+cannot be edited; book the opposite amount to correct a mistake. The same menu opens the month PDFs.
+
+## User interface
+
+The plugin pages follow the shared UI guidelines and kit for Kimai plugins
+([kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui), `GUIDELINES.md` and `CHECKLIST.md`): Kimai page header with
+actions, period navigator, Kimai data tables with row menu, status badges, KPI tiles, Kimai modals for forms and
+confirmations. The kit is copied to `Resources/views/_kit/` and `Resources/translations/kpu.*.xlf` with
+`kimai-plugin-ui/bin/sync.sh` and must not be edited here.
+
+Translation keys of this plugin all start with `holiday.`.
+
 ## Permissions
 
 | Permission | Purpose |
@@ -82,6 +131,18 @@ Schedule that on the **host** if you want automatic updates (the official image 
 | `approve_*_absence` / `approval_other_absence` | Approval workflow |
 | `edit_public_holidays` | Admin public holidays |
 
+### Scope of the `*_other_*` permissions
+
+Permissions for other users (`view_other_absence`, `edit_other_absence`, `approve_other_absence`, `delete_other_absence`, `hours_other_profile`, …) only apply to users you may access by Kimai's own rule (`access_user`):
+
+- users with Kimai's **`view_all_data`** permission (by default `ROLE_ADMIN` / `ROLE_SUPER_ADMIN`) — all users,
+- **team leads** — only members of the teams they lead (plus users that are in no team at all, same as Kimai core).
+
+A team lead of *Team A* therefore cannot list, approve or reject absences of *Team B*, neither in the UI nor via the API.
+The absence calendar only offers teams you lead (`view_other_absence`) or belong to (`view_team_absence`); admins with `view_all_data` see all teams.
+
+The personal **ICS calendar link** is a secret of its owner: it is created when the owner opens their absence page. Admins (`view_all_data` + `edit_other_absence`) can see or regenerate an existing link of another user; team leads cannot. Feeds of disabled users return 404, and comments of sickness absences are never published in the feed. The token is stored in the plugin table `kimai2_ext_holiday_ics_token`, not in the user preferences, so it is not part of `/api/users/…` responses or invoice/export templates.
+
 ## API (examples)
 
 - `GET /api/holiday/absences?year=2026`
@@ -90,6 +151,12 @@ Schedule that on the **host** if you want automatic updates (the official image 
 - `GET /api/holiday/absences/types`
 - `GET /api/holiday/public-holidays?year=2026`
 - `GET /api/holiday/public-holidays/calendar`
+
+Dates must use `YYYY-MM-DD`. Invalid input (unknown type, bad date, end before start, more than one year, `duration` outside 0–86400 seconds, overlap with an existing absence) and approve/reject of an absence that is not `requested` return **400** with a `message`.
+
+## Absence timesheets
+
+With an absence project/activity configured (system settings) and calculation mode *compensate*, approving an absence creates one timesheet per workday. These entries are tagged with the timesheet meta field `holiday_absence_id`, are **not billable**, and replace the absence credit in the working-time balance (no double counting). They are removed when the absence is rejected, re-requested, edited or deleted — except entries that were already **exported**, which are kept. Absence days skip weekends, non-working days and full-day public holidays.
 
 ## Compatibility
 

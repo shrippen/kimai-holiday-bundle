@@ -1,11 +1,15 @@
 {% extends 'base.html.twig' %}
+{% import '@Holiday/_kit/macros.html.twig' as kit %}
 
-{% block page_content %}
-    <h2>{{ 'booking.create'|trans }} — {{ target_user.displayName }}</h2>
-    <p class="text-muted">{{ 'booking.immutable_hint'|trans }}</p>
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-        <button class="btn btn-primary" type="submit">{{ 'action.save'|trans }}</button>
-        <a class="btn btn-link" href="{{ path('user_contract', {user: target_user.id}) }}">{{ 'action.close'|trans }}</a>
-    {{ form_end(form) }}
+{% block stylesheets %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
+    {% embed 'default/_form.html.twig' with {title: 'holiday.booking.create'|trans, form: form, back: back, reset: false} %}
+        {% form_theme form 'form/horizontal.html.twig' %}
+    {% endembed %}
 {% endblock %}

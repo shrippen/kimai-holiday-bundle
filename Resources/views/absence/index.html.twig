@@ -1,110 +1,86 @@
-{% extends 'base.html.twig' %}
+{% extends 'datatable.html.twig' %}
+{% import '@Holiday/_kit/macros.html.twig' as kit %}
+{% import 'macros/widgets.html.twig' as widgets %}
 
-{% block page_content %}
-    <div class="row mb-3">
-        <div class="col-md-8">
-            <h2>{{ 'menu.absence'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
-            <p>
-                <a href="{{ path('holiday_absence', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
-                <a href="{{ path('holiday_absence', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
-                <a href="{{ path('holiday_absence_export', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }}</a>
-            </p>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    {{ 'summary.vacation'|trans }}:
-                    <strong>{{ vacationBalance|number_format(1) }}</strong>
-                    ({{ vacationUsed|number_format(1) }} / {{ vacationEntitlement|number_format(1) }})
-                    {% if is_granted('contract_other_profile') or target_user == app.user %}
-                        <div class="small text-muted mt-1">
-                            {{ 'absence.vacation_from_contract'|trans }}
-                            <a href="{{ path('user_profile_contract', {username: target_user.userIdentifier}) }}">{{ 'contract.edit'|trans }}</a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+{% set status_keys = {new: 'open', requested: 'requested', approved: 'approved', rejected: 'rejected'} %}
+{% set bulk_form = 'holiday-absence-bulk' %}
+
+{% block stylesheets %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, year]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        {{ kit.period_nav(['year'], 'year', year, period.prev, period.next, period.today, {}) }}
+        {% if user_form is not null %}
+            {{ form_start(user_form, {attr: {class: 'holiday-filter', 'data-holiday-autosubmit': '1'}}) }}
+                {{ form_widget(user_form.user) }}
+            {{ form_end(user_form) }}
+        {% endif %}
+        {{ parent() }}
     </div>
+{% endblock %}
 
-    {% if ics_url %}
-        <div class="card mb-3">
-            <div class="card-header">{{ 'absence.ics.title'|trans }}</div>
-            <div class="card-body">
-                <p class="text-muted mb-2">{{ 'absence.ics.help'|trans }}</p>
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control" readonly value="{{ ics_url }}" id="holiday-ics-url" onclick="this.select()">
-                    <a class="btn btn-outline-secondary" href="{{ ics_url }}" target="_blank" rel="noopener">{{ 'absence.ics.open'|trans }}</a>
-                </div>
-                <form method="post" action="{{ path('holiday_absence_ics_regenerate', {user: target_user.id, year: year}) }}" onsubmit="return confirm('{{ 'absence.ics.regenerate_confirm'|trans|e('js') }}');">
-                    <button type="submit" class="btn btn-sm btn-outline-warning">{{ 'absence.ics.regenerate'|trans }}</button>
-                </form>
-            </div>
-        </div>
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block datatable_row_attr %}
+    {%- if can_create %} class="modal-ajax-form open-edit" data-href="{{ path('holiday_absence_edit', {id: entry.id}) }}"{% endif -%}
+{% endblock %}
+
+{% block datatable_column_value %}
+    {% if column == 'select' %}
+        {% if entry.status.value == 'requested' %}
+            {{ kit.bulk_checkbox(bulk_form, entry.id) }}
+        {% endif %}
+    {% elseif column == 'type' %}
+        <i class="{{ entry.type.icon|icon }} fa-fw me-1" aria-hidden="true"></i>{{ entry.type.label|trans }}
+    {% elseif column == 'period' %}
+        <i class="{{ entry.type.icon|icon }} fa-fw me-1 d-md-none" title="{{ entry.type.label|trans }}"></i>
+        {{ entry.startDate|date_short }}{% if entry.endDate != entry.startDate %} – {{ entry.endDate|date_short }}{% endif %}
+    {% elseif column == 'days' %}
+        {{ (absence_days[entry.id] ?? 0)|amount }}
+    {% elseif column == 'half_day' %}
+        {{ widgets.label_boolean(entry.halfDay) }}
+    {% elseif column == 'comment' %}
+        {{ entry.comment }}
+    {% elseif column == 'status' %}
+        {{ kit.status_badge(status_keys[entry.status.value] ?? 'open') }}
+    {% elseif column == 'actions' %}
+        {% set event = actions(app.user, 'holiday_absence', 'index', {absence: entry}) %}
+        {{ widgets.table_actions(event.actions) }}
     {% endif %}
+{% endblock %}
 
-    <div class="card mb-3">
-        <div class="card-header">{{ 'absence.create'|trans }}</div>
-        <div class="card-body">
-            {% include '@Holiday/absence/_form.html.twig' with {form: form, submit_label: 'action.save'} %}
-        </div>
-    </div>
+{% block main %}
+    {% set contract_url = (is_granted('contract_other_profile') or target_user == app.user) ? path('user_profile_contract', {username: target_user.userIdentifier}) : null %}
+    {{ kit.kpi_bar([
+        {label: 'holiday.kpi.vacation_taken'|trans, value: kpi.taken|amount, hint: 'days'|trans},
+        {label: 'holiday.kpi.vacation_requested'|trans, value: kpi.requested|amount, hint: 'days'|trans},
+        {label: 'holiday.kpi.sick_days'|trans, value: kpi.sick|amount, hint: 'days'|trans},
+        {label: 'holiday.kpi.vacation_left'|trans, value: kpi.left|amount, hint: 'holiday.kpi.of_entitlement'|trans({'%days%': kpi.entitlement|amount}), highlight: true, url: contract_url},
+    ]) }}
 
-    <div class="card">
-        <div class="card-header">{{ 'absence.list'|trans }}</div>
-        <div class="card-body p-0">
-            <table class="table table-striped mb-0">
-                <thead>
-                    <tr>
-                        <th>{{ 'absence.type'|trans }}</th>
-                        <th>{{ 'absence.status'|trans }}</th>
-                        <th>{{ 'absence.start'|trans }}</th>
-                        <th>{{ 'absence.end'|trans }}</th>
-                        <th class="text-end" title="{{ 'absence.days_help'|trans }}">{{ 'absence.days'|trans }}</th>
-                        <th>{{ 'absence.half_day'|trans }}</th>
-                        <th>{{ 'absence.comment'|trans }}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in absences %}
-                        <tr>
-                            <td>
-                                <i class="{{ a.type.icon|icon }} me-1" title="{{ a.type.label|trans }}"></i>
-                                {{ a.type.label|trans }}
-                            </td>
-                            <td>{{ a.status.label|trans }}</td>
-                            <td>{{ a.startDate|date('Y-m-d') }}</td>
-                            <td>{{ a.endDate|date('Y-m-d') }}</td>
-                            <td class="text-end">{{ absence_days[a.id]|default(0)|number_format(1) }}</td>
-                            <td>{{ a.halfDay ? ('yes'|trans) : ('no'|trans) }}</td>
-                            <td>{{ a.comment }}</td>
-                            <td class="text-end text-nowrap">
-                                {% if (a.user == app.user and is_granted('edit_own_absence')) or (a.user != app.user and is_granted('edit_other_absence')) %}
-                                    <a class="btn btn-xs btn-outline-primary" href="{{ path('holiday_absence_edit', {id: a.id}) }}">{{ 'action.edit'|trans }}</a>
-                                {% endif %}
-                                {% if a.status.value == 'requested' %}
-                                    {% if (a.user == app.user and is_granted('approve_own_absence')) or (a.user != app.user and is_granted('approve_other_absence')) %}
-                                        <form class="d-inline" method="post" action="{{ path('holiday_absence_approve', {id: a.id}) }}">
-                                            <button class="btn btn-xs btn-success" type="submit">{{ 'action.approve'|trans }}</button>
-                                        </form>
-                                        <form class="d-inline" method="post" action="{{ path('holiday_absence_reject', {id: a.id}) }}">
-                                            <button class="btn btn-xs btn-danger" type="submit">{{ 'action.reject'|trans }}</button>
-                                        </form>
-                                    {% endif %}
-                                {% endif %}
-                                {% if (a.user == app.user and is_granted('delete_own_absence')) or (a.user != app.user and is_granted('delete_other_absence')) %}
-                                    <form class="d-inline" method="post" action="{{ path('holiday_absence_delete', {id: a.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
-                                        <button class="btn btn-xs btn-outline-danger" type="submit">{{ 'action.delete'|trans }}</button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="8" class="text-muted">{{ 'absence.empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    {% if not dataTable.hasResults() %}
+        {{ kit.empty_state(
+            'holiday.absence.empty_year'|trans({'%year%': year}),
+            can_create ? path('holiday_absence_create', {user: user_param}) : null,
+            can_create ? 'holiday.absence.create'|trans : null,
+            'modal-ajax-form'
+        ) }}
+    {% else %}
+        {{ parent() }}
+        {% if bulk_enabled %}
+            {{ kit.bulk_bar(bulk_form, [
+                {label: 'approve'|trans, url: path('holiday_absence_bulk_approve'), token: csrf_token('holiday_absence_action'), icon: 'success', ajax: true},
+                {label: 'reject'|trans, url: path('holiday_absence_bulk_reject'), token: csrf_token('holiday_absence_action'), icon: 'rejected', class: '', ajax: true},
+            ]) }}
+        {% endif %}
+    {% endif %}
 {% endblock %}

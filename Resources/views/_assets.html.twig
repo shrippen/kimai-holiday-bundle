@@ -1,0 +1,43 @@
+{#
+    Kit assets plus the plugin's own page script. Include once per page:
+        {% block stylesheets %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+        {% block javascripts %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+    Immediate actions (data-kpu-post), the reload after the plugin's modal forms (data-form-event "kpu.reload")
+    and the undo toast are handled by the kit (kit.js). Page script (delegated on document, so it survives Kimai's
+    AJAX reloads of section.content):
+      - [data-holiday-copy="<input id>"]: copies the input value to the clipboard.
+      - form[data-holiday-autosubmit]: submits on change (period/user/team filters).
+#}
+{% if part == 'css' %}
+    {% include '@Holiday/_kit/assets.html.twig' with {kpu_part: 'css'} %}
+{% else %}
+    {% include '@Holiday/_kit/assets.html.twig' with {kpu_part: 'js'} %}
+    <script>
+        document.addEventListener('kimai.initialized', function () {
+            const texts = {
+                copied: '{{ 'holiday.absence.ics.copied'|trans|e('js') }}'
+            };
+
+            document.addEventListener('click', function (event) {
+                const copy = event.target.closest('[data-holiday-copy]');
+                if (copy !== null) {
+                    event.preventDefault();
+                    const input = document.getElementById(copy.dataset.holidayCopy);
+                    if (input !== null && navigator.clipboard) {
+                        navigator.clipboard.writeText(input.value).then(function () { KimaiPluginUi.toast(texts.copied, 'success'); });
+                    } else if (input !== null) {
+                        input.select();
+                    }
+                }
+            });
+
+            document.addEventListener('change', function (event) {
+                const form = event.target.closest ? event.target.closest('form[data-holiday-autosubmit]') : null;
+                if (form !== null) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+{% endif %}

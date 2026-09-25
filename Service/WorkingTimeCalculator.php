@@ -26,6 +26,7 @@ class WorkingTimeCalculator
         private readonly TimesheetRepository $timesheetRepository,
         private readonly HolidayConfiguration $configuration,
         private readonly AbsenceWorkdayHelper $workdayHelper,
+        private readonly AbsenceTimesheetService $absenceTimesheetService,
     ) {
     }
 
@@ -80,6 +81,7 @@ class WorkingTimeCalculator
         }
 
         $timesheetDurations = $this->getTimesheetDurationsByDay($user, $yearStart, $yearEnd);
+        $absenceTimesheetDays = $this->absenceTimesheetService->getAbsenceTimesheetDays($user, $yearStart, $yearEnd);
 
         $months = [];
         $yearExpected = 0;
@@ -106,7 +108,8 @@ class WorkingTimeCalculator
                     $timesheetDurations[$key] ?? 0,
                     $absences,
                     $publicHolidays[$key] ?? null,
-                    $includeInBalance
+                    $includeInBalance,
+                    $absenceTimesheetDays
                 );
 
                 $monthData['days'][$key] = $dayResult;
@@ -126,7 +129,7 @@ class WorkingTimeCalculator
         $manualTime = $this->manualBookingRepository->sumTimeSecondsUntil($user, $untilDay);
         $vacationUsed = $this->calculateVacationDaysUsed($user, $year, $absences);
         $manualHolidays = $this->manualBookingRepository->sumHolidayDaysInYear($user, $year);
-        $entitlement = $this->userWorkContract->getVacationDaysPerYear($user) + $manualHolidays;
+        $entitlement = $this->userWorkContract->getVacationDaysPerYear($user, $year) + $manualHolidays;
 
         return [
             'year' => $year,
@@ -143,6 +146,8 @@ class WorkingTimeCalculator
 
     /**
      * @param Absence[] $absences
+     * @param array<int, array<string, int>> $absenceTimesheetDays generated absence timesheets (absence id => [Y-m-d => seconds]);
+     *                                                            these are already part of $timesheetSeconds and must not be credited again
      * @return array{
      *   date: string,
      *   expected: int,
@@ -163,11 +168,13 @@ class WorkingTimeCalculator
         array $absences,
         ?PublicHoliday $publicHoliday,
         bool $includeInBalance = true,
+        array $absenceTimesheetDays = [],
     ): array {
         $baseExpected = $this->userWorkContract->getExpectedSecondsForDate($user, $date);
         $expected = $baseExpected;
         $absenceSeconds = 0;
         $dayAbsences = [];
+        $key = $date->format('Y-m-d');
 
         foreach ($absences as $absence) {
             if (!$absence->coversDate($date) || !$this->workdayHelper->isAbsenceApplicableDay($user, $date)) {
@@ -178,6 +185,11 @@ class WorkingTimeCalculator
                 'type' => $absence->getType()->value,
                 'halfDay' => $absence->isHalfDay(),
             ];
+
+            // Auto-created absence timesheet already counts as worked time for this day.
+            if (isset($absenceTimesheetDays[$absence->getId()][$key])) {
+                continue;
+            }
 
             $absenceSeconds += $this->absenceContribution($absence, $baseExpected, $timesheetSeconds);
             $expected = $this->applyAbsenceToExpected($absence, $baseExpected, $expected, $timesheetSeconds);
@@ -260,7 +272,9 @@ class WorkingTimeCalculator
         }
 
         if (\in_array($absence->getType(), [AbsenceType::SICKNESS, AbsenceType::SICKNESS_RELATIVE], true)) {
-            return max(0, $baseExpected - $timesheetSeconds);
+            $target = $absence->isHalfDay() ? (int) floor($baseExpected / 2) : $baseExpected;
+
+            return max(0, $target - $timesheetSeconds);
         }
 
         if ($absence->isHalfDay()) {

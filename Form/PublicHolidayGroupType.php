@@ -13,16 +13,16 @@ class PublicHolidayGroupType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'public_holiday.group_name'])
+            ->add('name', TextType::class, ['label' => 'holiday.public_holiday.group_name'])
             ->add('country', TextType::class, [
-                'label' => 'public_holiday.country',
+                'label' => 'holiday.public_holiday.country',
                 'required' => false,
-                'help' => 'public_holiday.country_help',
+                'help' => 'holiday.public_holiday.country_help',
             ])
             ->add('region', TextType::class, [
-                'label' => 'public_holiday.region',
+                'label' => 'holiday.public_holiday.region',
                 'required' => false,
-                'help' => 'public_holiday.region_help',
+                'help' => 'holiday.public_holiday.region_help',
             ]);
     }
 

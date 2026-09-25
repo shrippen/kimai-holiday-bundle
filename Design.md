@@ -1,6 +1,16 @@
 # Design Reference
 
-All visual design decisions for this project follow the shared [shrippen DesignDefault](https://github.com/shrippen/shrippen.github.io) design system.
+## Kimai pages (plugin UI)
+
+Everything the plugin shows inside Kimai follows the shared UI guidelines for Kimai plugins:
+[kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) (`GUIDELINES.md`, `CHECKLIST.md`, kit in `Resources/views/_kit/`).
+Kimai core components and Tabler classes only — no own colours, fonts or CSS; the DesignDefault system below does **not**
+apply to Kimai pages.
+
+## Landing page
+
+The landing page (`docs/index.html`) and other web-facing assets outside Kimai follow the shared
+[shrippen DesignDefault](https://github.com/shrippen/shrippen.github.io) design system.
 
 ## Quick Links
 

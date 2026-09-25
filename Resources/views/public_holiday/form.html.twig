@@ -1,0 +1,8 @@
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {% set formTemplate = kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig' %}
+    {% embed formTemplate with {title: title, form: form, back: back, reset: false, submit_button: submit} %}
+        {% form_theme form 'form/horizontal.html.twig' %}
+    {% endembed %}
+{% endblock %}

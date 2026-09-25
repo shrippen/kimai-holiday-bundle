@@ -7,6 +7,7 @@ use KimaiPlugin\HolidayBundle\Entity\PublicHolidayGroup;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayGroupRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpClient\NoPrivateNetworkHttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -166,7 +167,9 @@ class HolidayImporter
 
     private function fetchIcs(string $url): string
     {
-        $response = $this->httpClient->request('GET', $url, [
+        // Custom ICS URLs are admin input: never let them reach internal/private addresses (also after redirects).
+        $client = new NoPrivateNetworkHttpClient($this->httpClient);
+        $response = $client->request('GET', $url, [
             'timeout' => 30,
             'max_redirects' => 5,
             'headers' => [

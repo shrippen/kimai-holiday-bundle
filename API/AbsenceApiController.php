@@ -64,6 +64,7 @@ class AbsenceApiController extends AbstractController
             if (!$user instanceof User) {
                 throw $this->createNotFoundException();
             }
+            $this->assertCanAccessUser($user);
         }
 
         $absences = $this->absenceRepository->findByUserAndYear($user, $year);
@@ -77,7 +78,10 @@ class AbsenceApiController extends AbstractController
     {
         /** @var User $current */
         $current = $this->getUser();
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = json_decode($request->getContent(), true);
+        if (!\is_array($data)) {
+            return $this->error('holiday.error.invalid_json');
+        }
 
         $user = $current;
         if (!empty($data['user']) && (int) $data['user'] !== $current->getId()) {
@@ -88,22 +92,49 @@ class AbsenceApiController extends AbstractController
             if (!$user instanceof User) {
                 throw $this->createNotFoundException();
             }
+            $this->assertCanAccessUser($user);
         }
 
-        $type = AbsenceType::tryFrom((string) ($data['type'] ?? '')) ?? AbsenceType::VACATION;
+        $type = AbsenceType::VACATION;
+        if (isset($data['type'])) {
+            $type = AbsenceType::tryFrom((string) $data['type']);
+            if ($type === null) {
+                return $this->error('holiday.error.invalid_type');
+            }
+        }
+
+        $start = $this->parseDate($data['startDate'] ?? null);
+        $end = isset($data['endDate']) ? $this->parseDate($data['endDate']) : $start;
+        if ($start === null || $end === null) {
+            return $this->error('holiday.error.invalid_date');
+        }
+
+        $duration = null;
+        if (isset($data['duration'])) {
+            if (!is_numeric($data['duration'])) {
+                return $this->error('holiday.error.invalid_duration');
+            }
+            $duration = (int) $data['duration'];
+        }
+
+        $comment = $data['comment'] ?? null;
+        if ($comment !== null && !\is_string($comment)) {
+            return $this->error('holiday.error.invalid_comment');
+        }
+
         $absence = new Absence();
         $absence->setUser($user);
         $absence->setType($type);
-        $absence->setStartDate(new \DateTimeImmutable((string) ($data['startDate'] ?? 'today')));
-        $absence->setEndDate(new \DateTimeImmutable((string) ($data['endDate'] ?? $data['startDate'] ?? 'today')));
+        $absence->setStartDate($start);
+        $absence->setEndDate($end);
         $absence->setHalfDay((bool) ($data['halfDay'] ?? false));
-        $absence->setDuration(isset($data['duration']) ? (int) $data['duration'] : null);
-        $absence->setComment($data['comment'] ?? null);
+        $absence->setDuration($duration);
+        $absence->setComment($comment);
 
         try {
             $this->approvalService->create($absence, $current);
-        } catch (\Throwable $e) {
-            return $this->json(['message' => $this->translator->trans($e->getMessage())], 400);
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            return $this->error($e->getMessage());
         }
 
         return $this->json($this->serializeAbsence($absence), 201);
@@ -113,7 +144,12 @@ class AbsenceApiController extends AbstractController
     public function requestApproval(Absence $absence): JsonResponse
     {
         $this->assertOwnOrEdit($absence);
-        $this->approvalService->request($absence);
+
+        try {
+            $this->approvalService->request($absence);
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            return $this->error($e->getMessage());
+        }
 
         return $this->json($this->serializeAbsence($absence));
     }
@@ -121,10 +157,13 @@ class AbsenceApiController extends AbstractController
     #[Route(path: '/absences/{id}/approve', name: 'api_holiday_absence_approve', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function approve(Absence $absence): JsonResponse
     {
-        if (!$this->isGranted('approve_other_absence') && !$this->isGranted('approve_own_absence')) {
-            throw $this->createAccessDeniedException();
+        $this->assertCanApprove($absence);
+
+        try {
+            $this->approvalService->approve($absence, $this->getUser());
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            return $this->error($e->getMessage());
         }
-        $this->approvalService->approve($absence, $this->getUser());
 
         return $this->json($this->serializeAbsence($absence));
     }
@@ -132,10 +171,13 @@ class AbsenceApiController extends AbstractController
     #[Route(path: '/absences/{id}/reject', name: 'api_holiday_absence_reject', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function reject(Absence $absence): JsonResponse
     {
-        if (!$this->isGranted('approve_other_absence') && !$this->isGranted('approve_own_absence')) {
-            throw $this->createAccessDeniedException();
+        $this->assertCanApprove($absence);
+
+        try {
+            $this->approvalService->reject($absence, $this->getUser());
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            return $this->error($e->getMessage());
         }
-        $this->approvalService->reject($absence, $this->getUser());
 
         return $this->json($this->serializeAbsence($absence));
     }
@@ -175,11 +217,61 @@ class AbsenceApiController extends AbstractController
         if ($absence->getUser() === $this->getUser() && $this->isGranted('edit_own_absence')) {
             return;
         }
-        if ($this->isGranted('edit_other_absence')) {
+        if ($absence->getUser() !== $this->getUser() && $this->isGranted('edit_other_absence') && $this->canAccessUser($absence->getUser())) {
             return;
         }
 
         throw $this->createAccessDeniedException();
+    }
+
+    private function assertCanApprove(Absence $absence): void
+    {
+        $own = $absence->getUser() === $this->getUser();
+        if ($own && $this->isGranted('approve_own_absence')) {
+            return;
+        }
+        if (!$own && $this->isGranted('approve_other_absence') && $this->canAccessUser($absence->getUser())) {
+            return;
+        }
+
+        throw $this->createAccessDeniedException();
+    }
+
+    /**
+     * Same scope as the web UI: Kimai's "access_user" rule (view_all_data or team lead of the user).
+     */
+    private function canAccessUser(?User $user): bool
+    {
+        return $user !== null && ($user === $this->getUser() || $this->isGranted('access_user', $user));
+    }
+
+    private function assertCanAccessUser(User $user): void
+    {
+        if (!$this->canAccessUser($user)) {
+            throw $this->createAccessDeniedException();
+        }
+    }
+
+    private function parseDate(mixed $value): ?\DateTimeImmutable
+    {
+        if ($value === null) {
+            return new \DateTimeImmutable('today');
+        }
+        if (!\is_string($value)) {
+            return null;
+        }
+
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        if ($date === false || $date->format('Y-m-d') !== $value) {
+            return null;
+        }
+
+        return $date;
+    }
+
+    private function error(string $message): JsonResponse
+    {
+        return $this->json(['message' => $this->translator->trans($message, [], 'flashmessages')], 400);
     }
 
     /**

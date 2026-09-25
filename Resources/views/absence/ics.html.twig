@@ -1,0 +1,29 @@
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {% set formTemplate = kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig' %}
+    {% set title = 'holiday.absence.ics.title'|trans %}
+    {% if target_user != app.user %}
+        {% set title = title ~ ' · ' ~ target_user.displayName %}
+    {% endif %}
+    {% embed formTemplate with {title: title, form: form, back: back, reset: false, submit_button: 'holiday.absence.ics.regenerate'} %}
+        {% block form_body %}
+            <p>{{ 'holiday.absence.ics.help'|trans }}</p>
+            {% if ics_url %}
+                <label class="form-label" for="holiday-ics-url">{{ 'holiday.absence.ics.url'|trans }}</label>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" readonly value="{{ ics_url }}" id="holiday-ics-url">
+                    <button type="button" class="btn btn-icon" data-holiday-copy="holiday-ics-url" title="{{ 'copy'|trans }}" aria-label="{{ 'copy'|trans }}">{{ icon('copy', true) }}</button>
+                    <a class="btn btn-icon" href="{{ ics_url }}" target="_blank" rel="noopener" title="{{ 'holiday.absence.ics.open'|trans }}" aria-label="{{ 'holiday.absence.ics.open'|trans }}">{{ icon('download', true) }}</a>
+                </div>
+            {% else %}
+                <p>{{ 'holiday.absence.ics.not_created'|trans }}</p>
+            {% endif %}
+            <div class="form-hint">{{ 'holiday.absence.ics.regenerate_confirm'|trans }}</div>
+            {{ form_rest(form) }}
+        {% endblock %}
+        {% block submit_button %}
+            <button type="submit" class="btn btn-danger modal-form-save">{{ 'holiday.absence.ics.regenerate'|trans }}</button>
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

@@ -21,7 +21,7 @@ class AbsenceTypeForm extends AbstractType
         $builder
             ->add('type', EnumType::class, [
                 'class' => AbsenceType::class,
-                'label' => 'absence.type',
+                'label' => 'holiday.absence.type',
                 'choice_label' => fn (AbsenceType $type) => $type->label(),
                 'choice_attr' => fn (AbsenceType $type) => ['data-icon' => $type->icon()],
                 'choice_translation_domain' => 'messages',
@@ -29,21 +29,21 @@ class AbsenceTypeForm extends AbstractType
                 'multiple' => false,
             ])
             ->add('startDate', DatePickerType::class, [
-                'label' => 'absence.start',
+                'label' => 'holiday.absence.start',
                 'input' => 'datetime_immutable',
             ])
             ->add('endDate', DatePickerType::class, [
-                'label' => 'absence.end',
+                'label' => 'holiday.absence.end',
                 'input' => 'datetime_immutable',
             ])
             ->add('halfDay', CheckboxType::class, [
-                'label' => 'absence.half_day',
+                'label' => 'holiday.absence.half_day',
                 'required' => false,
             ])
             ->add('duration', NumberType::class, [
-                'label' => 'absence.duration',
+                'label' => 'holiday.absence.duration',
                 'required' => false,
-                'help' => 'absence.duration_help',
+                'help' => 'holiday.absence.duration_help',
                 'scale' => 2,
                 'html5' => true,
                 'attr' => [
@@ -52,7 +52,7 @@ class AbsenceTypeForm extends AbstractType
                 ],
             ])
             ->add('comment', TextareaType::class, [
-                'label' => 'absence.comment',
+                'label' => 'holiday.absence.comment',
                 'required' => false,
             ]);
 

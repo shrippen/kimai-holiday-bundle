@@ -16,12 +16,12 @@ class PublicHolidayType extends AbstractType
     {
         $builder
             ->add('date', DatePickerType::class, [
-                'label' => 'public_holiday.date',
+                'label' => 'holiday.public_holiday.date',
                 'input' => 'datetime_immutable',
             ])
-            ->add('name', TextType::class, ['label' => 'public_holiday.name'])
+            ->add('name', TextType::class, ['label' => 'holiday.public_holiday.name'])
             ->add('halfDay', CheckboxType::class, [
-                'label' => 'public_holiday.half_day',
+                'label' => 'holiday.public_holiday.half_day',
                 'required' => false,
             ]);
     }

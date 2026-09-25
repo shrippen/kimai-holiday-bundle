@@ -8,6 +8,7 @@ use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Enum\CalculationMode;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
+use KimaiPlugin\HolidayBundle\Service\AbsenceTimesheetService;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\HolidayConfiguration;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
@@ -29,6 +30,7 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
         private readonly HolidayConfiguration $configuration,
         private readonly TranslatorInterface $translator,
         private readonly AbsenceWorkdayHelper $workdayHelper,
+        private readonly AbsenceTimesheetService $absenceTimesheetService,
     ) {
     }
 
@@ -48,6 +50,10 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
         $yearEnd = $yearStart->modify('last day of December')->setTime(23, 59, 59);
 
         $absences = $this->absenceRepository->findApprovedBetween($user, $yearStart, $yearEnd);
+        // Auto-created absence timesheets are already part of Kimai's "Ist"; do not credit those days twice.
+        $absenceTimesheetDays = $absences !== []
+            ? $this->absenceTimesheetService->getAbsenceTimesheetDays($user, $yearStart, $yearEnd)
+            : [];
 
         $publicHolidays = [];
         $group = $this->userWorkContract->getPublicHolidayGroup($user);
@@ -107,6 +113,11 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                         continue;
                     }
 
+                    if (isset($absenceTimesheetDays[$absence->getId()][$key])) {
+                        $day->addAddon(new DayAddon($title, 0, $absenceTimesheetDays[$absence->getId()][$key], $icon));
+                        continue;
+                    }
+
                     $seconds = $this->absenceSeconds($absence, $expected, $workingTime->getActualTime());
                     if ($seconds <= 0) {
                         continue;
@@ -136,7 +147,7 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                 if ($hasPublicHoliday && $expected > 0) {
                     $ph = $publicHolidays[$key];
                     $phSeconds = $ph->isHalfDay() ? (int) floor($expected / 2) : $expected;
-                    $title = $ph->getName() ?? $this->translator->trans('menu.public_holidays', [], 'messages');
+                    $title = $ph->getName() ?? $this->translator->trans('holiday.menu.public_holidays', [], 'messages');
                     $mode = $this->configuration->getPublicHolidayCalculationMode();
 
                     if ($isFuture) {
@@ -177,7 +188,9 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
         }
 
         if (\in_array($absence->getType(), [AbsenceType::SICKNESS, AbsenceType::SICKNESS_RELATIVE], true)) {
-            return max(0, $baseExpected - $timesheetSeconds);
+            $target = $absence->isHalfDay() ? (int) floor($baseExpected / 2) : $baseExpected;
+
+            return max(0, $target - $timesheetSeconds);
         }
 
         if ($absence->isHalfDay()) {

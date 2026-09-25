@@ -11,6 +11,7 @@ use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -35,25 +36,14 @@ class CalendarFeedController extends AbstractController
         $user = $this->getUser();
         [$from, $to] = $this->parseRange($request);
 
-        $users = [$user];
-        // With view_other_absence, still default to own calendar feed; team views use the report.
-
-        $absences = $this->absenceRepository->findApprovedForUsersBetween($users, $from, $to);
-        // Also include requested for the current user
-        $all = $this->absenceRepository->findByUserAndYear($user, (int) $from->format('Y'));
+        // Approved and requested absences of the current user (may span a year change).
+        $all = $this->absenceRepository->findVisibleBetween($user, $from, $to);
         $events = [];
 
         foreach ($all as $absence) {
-            if (!\in_array($absence->getStatus(), [AbsenceStatus::APPROVED, AbsenceStatus::REQUESTED], true)) {
-                continue;
-            }
-            if ($absence->getEndDate() < $from || $absence->getStartDate() > $to) {
-                continue;
-            }
-
             $title = $this->translator->trans($absence->getType()->label());
             if ($absence->getStatus() === AbsenceStatus::REQUESTED) {
-                $title .= ' (' . $this->translator->trans('absence.status.requested') . ')';
+                $title .= ' (' . $this->translator->trans('holiday.absence.status.requested') . ')';
             }
 
             $part = 0;
@@ -113,13 +103,28 @@ class CalendarFeedController extends AbstractController
      */
     private function parseRange(Request $request): array
     {
-        $start = $request->query->get('start', date('Y-m-01'));
-        $end = $request->query->get('end', date('Y-m-t'));
+        $start = $this->parseDate($request->query->get('start')) ?? new \DateTimeImmutable('first day of this month');
+        $end = $this->parseDate($request->query->get('end')) ?? new \DateTimeImmutable('last day of this month');
 
-        return [
-            new \DateTimeImmutable(substr((string) $start, 0, 10)),
-            new \DateTimeImmutable(substr((string) $end, 0, 10)),
-        ];
+        if ($end < $start || $start->diff($end)->days > 400) {
+            throw new BadRequestHttpException('Invalid date range');
+        }
+
+        return [$start->setTime(0, 0), $end->setTime(0, 0)];
+    }
+
+    private function parseDate(mixed $value): ?\DateTimeImmutable
+    {
+        if (!\is_string($value) || $value === '') {
+            return null;
+        }
+
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', substr($value, 0, 10));
+        if ($date === false || $date->format('Y-m-d') !== substr($value, 0, 10)) {
+            throw new BadRequestHttpException('Invalid date');
+        }
+
+        return $date;
     }
 
     private function colorForType(string $type): string

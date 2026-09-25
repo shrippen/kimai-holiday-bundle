@@ -18,24 +18,25 @@ class ManualBookingType extends AbstractType
         $builder
             ->add('kind', EnumType::class, [
                 'class' => ManualBookingKind::class,
-                'label' => 'booking.kind',
+                'label' => 'holiday.booking.kind',
                 'mapped' => false,
                 'choice_label' => fn (ManualBookingKind $kind) => $kind->label(),
                 'choice_translation_domain' => 'messages',
             ])
             ->add('amount', NumberType::class, [
-                'label' => 'booking.amount',
+                'label' => 'holiday.booking.amount',
                 'mapped' => false,
-                'help' => 'booking.amount_help',
+                'help' => 'holiday.booking.amount_help',
             ])
             ->add('bookingDate', DatePickerType::class, [
-                'label' => 'booking.date',
+                'label' => 'holiday.booking.date',
                 'input' => 'datetime_immutable',
                 'mapped' => false,
             ])
             ->add('comment', TextareaType::class, [
-                'label' => 'booking.comment',
+                'label' => 'holiday.booking.comment',
                 'mapped' => false,
+                'help' => 'holiday.booking.immutable_hint',
             ]);
     }
 

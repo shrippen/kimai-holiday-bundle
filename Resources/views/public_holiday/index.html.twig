@@ -1,104 +1,84 @@
 {% extends 'base.html.twig' %}
+{% import '@Holiday/_kit/macros.html.twig' as kit %}
+{% import 'macros/widgets.html.twig' as widgets %}
+{% import 'macros/datatables.html.twig' as tables %}
 
-{% block page_content %}
-    <h2>{{ 'menu.public_holidays'|trans }} — {{ year }}</h2>
+{% block stylesheets %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'js'} %}{% endblock %}
 
-    <div class="row mb-3">
+{% block page_intro %}
+    {{ kit.context_line([group ? group.name : null, year]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    {{ kit.period_nav(['year'], 'year', year, period.prev, period.next, period.today, {}) }}
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
+    {% if groups is empty %}
+        {{ kit.empty_state('holiday.public_holiday.create_group_first'|trans, path('holiday_public_holiday_group_create'), 'holiday.public_holiday.create_group'|trans, 'modal-ajax-form') }}
+    {% else %}
+    <div class="row row-cards">
         <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-header">{{ 'public_holiday.groups'|trans }}</div>
-                <ul class="list-group list-group-flush">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ 'holiday.public_holiday.groups'|trans }}</h3>
+                </div>
+                <div class="list-group list-group-flush">
                     {% for g in groups %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center {% if group and group.id == g.id %}active{% endif %}">
-                            <a href="{{ path('holiday_public_holidays', {year: year, group: g.id}) }}" {% if group and group.id == g.id %}class="text-white"{% endif %}>{{ g.name }}</a>
-                            <form method="post" action="{{ path('holiday_public_holiday_group_delete', {id: g.id}) }}" onsubmit="return confirm('{{ 'confirm.delete_group'|trans|e('js') }}');">
-                                <button class="btn btn-xs btn-outline-danger" type="submit">&times;</button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <li class="list-group-item text-muted">{{ 'public_holiday.no_groups'|trans }}</li>
+                        {% set active = group and group.id == g.id %}
+                        <div class="list-group-item d-flex align-items-center gap-2{% if active %} active{% endif %}">
+                            <a href="{{ path('holiday_public_holidays', {year: year, group: g.id}) }}" class="flex-fill text-reset text-truncate{% if active %} fw-bold{% endif %}"{% if active %} aria-current="true"{% endif %}>
+                                {{ g.name }}
+                                {% if g.country %}<span class="text-body-secondary ms-1">{{ g.country }}{% if g.region %}-{{ g.region }}{% endif %}</span>{% endif %}
+                            </a>
+                            {% if g.icsUrl %}<span class="text-body-secondary" title="{{ 'holiday.public_holiday.subscribed'|trans }}">{{ icon('link', true) }}</span>{% endif %}
+                            {{ widgets.table_actions({
+                                trash: {url: path('holiday_public_holiday_group_delete', {id: g.id}), class: 'modal-ajax-form text-red', title: 'trash'},
+                            }) }}
+                        </div>
                     {% endfor %}
-                </ul>
-            </div>
-
-            <div class="card mb-3">
-                <div class="card-header">{{ 'public_holiday.create_group'|trans }}</div>
-                <div class="card-body">
-                    {{ form_start(group_form) }}
-                        {{ form_widget(group_form) }}
-                        <button class="btn btn-primary" type="submit">{{ 'action.save'|trans }}</button>
-                    {{ form_end(group_form) }}
                 </div>
             </div>
         </div>
 
         <div class="col-md-8">
-            {% if group %}
-                <div class="card mb-3">
-                    <div class="card-header">{{ 'public_holiday.import'|trans }} ({{ group.name }})</div>
-                    <div class="card-body">
-                        {{ form_start(import_form) }}
-                            {{ form_widget(import_form) }}
-                            <button class="btn btn-secondary" type="submit">{{ 'action.import'|trans }}</button>
-                        {{ form_end(import_form) }}
-                        {% if group.icsUrl %}
-                            <hr>
-                            <p class="text-muted small mb-2">{{ 'public_holiday.sync_help'|trans }}</p>
-                            <form method="post" action="{{ path('holiday_public_holiday_group_sync', {id: group.id}) }}">
-                                <button class="btn btn-outline-secondary" type="submit">{{ 'public_holiday.sync'|trans }}</button>
-                            </form>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="card mb-3">
-                    <div class="card-header">{{ 'public_holiday.create'|trans }}</div>
-                    <div class="card-body">
-                        {{ form_start(holiday_form) }}
-                            {{ form_widget(holiday_form) }}
-                            <button class="btn btn-primary" type="submit">{{ 'action.save'|trans }}</button>
-                        {{ form_end(holiday_form) }}
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        {{ 'public_holiday.list'|trans }}
-                        <a class="btn btn-xs btn-outline-secondary float-end" href="{{ path('holiday_public_holidays', {year: year - 1, group: group.id}) }}">{{ year - 1 }}</a>
-                        <a class="btn btn-xs btn-outline-secondary float-end me-1" href="{{ path('holiday_public_holidays', {year: year + 1, group: group.id}) }}">{{ year + 1 }}</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th>{{ 'public_holiday.date'|trans }}</th>
-                                    <th>{{ 'public_holiday.name'|trans }}</th>
-                                    <th>{{ 'public_holiday.half_day'|trans }}</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for h in holidays %}
-                                    <tr>
-                                        <td>{{ h.date|date('Y-m-d') }}</td>
-                                        <td>{{ h.name }}</td>
-                                        <td>{{ h.halfDay ? ('yes'|trans) : ('no'|trans) }}</td>
-                                        <td>
-                                            <form method="post" action="{{ path('holiday_public_holiday_delete', {id: h.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
-                                                <button class="btn btn-xs btn-outline-danger" type="submit">{{ 'action.delete'|trans }}</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr><td colspan="4" class="text-muted">{{ 'public_holiday.empty'|trans }}</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            {% if holidays is empty %}
+                {{ kit.empty_state(
+                    'holiday.public_holiday.empty'|trans({'%year%': year}),
+                    path('holiday_public_holiday_import', {id: group.id, year: year}),
+                    'holiday.public_holiday.import'|trans,
+                    'modal-ajax-form'
+                ) }}
             {% else %}
-                <div class="alert alert-info">{{ 'public_holiday.create_group_first'|trans }}</div>
+                {% set columns = {
+                    'date': {class: 'alwaysVisible w-min', orderBy: false, title: 'holiday.public_holiday.date'},
+                    'name': {class: 'alwaysVisible', orderBy: false, title: 'holiday.public_holiday.name'},
+                    'half_day': {class: 'text-center w-min', orderBy: false, title: 'holiday.public_holiday.half_day'},
+                    'actions': {class: 'actions alwaysVisible', orderBy: false},
+                } %}
+                {{ tables.datatable_header('holiday_public_holidays', columns, null, {columnConfig: false, sticky: false}) }}
+                    {% for h in holidays %}
+                        <tr>
+                            <td class="{{ datatable_column_class('holiday_public_holidays', 'date') }} text-nowrap">{{ h.date|date_short }}</td>
+                            <td class="{{ datatable_column_class('holiday_public_holidays', 'name') }}">{{ h.name }}</td>
+                            <td class="{{ datatable_column_class('holiday_public_holidays', 'half_day') }}">{{ widgets.label_boolean(h.halfDay) }}</td>
+                            <td class="{{ datatable_column_class('holiday_public_holidays', 'actions') }}">
+                                {{ widgets.table_actions({
+                                    trash: {url: path('holiday_public_holiday_delete', {id: h.id}), class: 'modal-ajax-form text-red', title: 'trash'},
+                                }) }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {{ tables.data_table_footer(null, null, null) }}
             {% endif %}
         </div>
     </div>
+    {% endif %}
 {% endblock %}

@@ -37,6 +37,10 @@ class AbsenceExcelExporter
     private function csvLine(array $fields): string
     {
         return implode(',', array_map(static function (string $field): string {
+            // Prevent formula injection when the file is opened in a spreadsheet application.
+            if ($field !== '' && \in_array($field[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+                $field = "'" . $field;
+            }
             $escaped = str_replace('"', '""', $field);
 
             return '"' . $escaped . '"';

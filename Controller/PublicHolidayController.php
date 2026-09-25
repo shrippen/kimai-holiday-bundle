@@ -38,7 +38,14 @@ class PublicHolidayController extends AbstractController
         return $this->formFactory->createNamed($name, $type, $data, $options);
     }
 
-    #[Route(path: '/{year}', name: 'holiday_public_holidays', defaults: ['year' => null], methods: ['GET', 'POST'])]
+    private function assertCsrf(Request $request): void
+    {
+        if (!$this->isCsrfTokenValid('holiday_public_holiday', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+    }
+
+    #[Route(path: '/{year}', name: 'holiday_public_holidays', defaults: ['year' => null], methods: ['GET', 'POST'], requirements: ['year' => '\d{4}'])]
     public function index(Request $request, ?int $year = null): Response
     {
         $year ??= (int) date('Y');
@@ -121,8 +128,9 @@ class PublicHolidayController extends AbstractController
     }
 
     #[Route(path: '/group/{id}/sync', name: 'holiday_public_holiday_group_sync', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function syncGroup(PublicHolidayGroup $group): Response
+    public function syncGroup(Request $request, PublicHolidayGroup $group): Response
     {
+        $this->assertCsrf($request);
         try {
             $count = $this->importer->sync($group);
             $this->addFlash('success', $this->translator->trans('holiday.sync_success', ['%count%' => $count]));
@@ -137,8 +145,9 @@ class PublicHolidayController extends AbstractController
     }
 
     #[Route(path: '/holiday/{id}/delete', name: 'holiday_public_holiday_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function deleteHoliday(PublicHoliday $holiday): Response
+    public function deleteHoliday(Request $request, PublicHoliday $holiday): Response
     {
+        $this->assertCsrf($request);
         $groupId = $holiday->getHolidayGroup()?->getId();
         $year = (int) $holiday->getDate()?->format('Y');
         $this->holidayRepository->remove($holiday);
@@ -148,8 +157,9 @@ class PublicHolidayController extends AbstractController
     }
 
     #[Route(path: '/group/{id}/delete', name: 'holiday_public_holiday_group_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function deleteGroup(PublicHolidayGroup $group): Response
+    public function deleteGroup(Request $request, PublicHolidayGroup $group): Response
     {
+        $this->assertCsrf($request);
         $this->groupRepository->remove($group);
         $this->flashSuccess('action.delete.success');
 

@@ -33,6 +33,28 @@ trait TargetUserTrait
             throw $this->createNotFoundException('User not found');
         }
 
+        $this->assertCanAccessUser($user);
+
         return $user;
+    }
+
+    /**
+     * Scope for "other user" permissions: Kimai's own user access rule (same user, users with
+     * "view_all_data" (admins by default), or team leads of a team the user belongs to).
+     */
+    protected function canAccessUser(?User $user): bool
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        return $user === $this->getUser() || $this->isGranted('access_user', $user);
+    }
+
+    protected function assertCanAccessUser(?User $user): void
+    {
+        if (!$this->canAccessUser($user)) {
+            throw new AccessDeniedException('You cannot access this user.');
+        }
     }
 }

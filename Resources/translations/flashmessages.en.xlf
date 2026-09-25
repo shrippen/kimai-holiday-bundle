@@ -54,6 +54,42 @@
         <source>absence.ics.regenerated</source>
         <target>Calendar link regenerated. Update any subscriptions with the new URL.</target>
       </trans-unit>
+      <trans-unit id="h013" resname="holiday.error.invalid_date">
+        <source>holiday.error.invalid_date</source>
+        <target>Invalid date. Use the format YYYY-MM-DD.</target>
+      </trans-unit>
+      <trans-unit id="h014" resname="holiday.error.end_before_start">
+        <source>holiday.error.end_before_start</source>
+        <target>The end date must not be before the start date.</target>
+      </trans-unit>
+      <trans-unit id="h015" resname="holiday.error.range_too_long">
+        <source>holiday.error.range_too_long</source>
+        <target>An absence may cover at most one year.</target>
+      </trans-unit>
+      <trans-unit id="h016" resname="holiday.error.invalid_duration">
+        <source>holiday.error.invalid_duration</source>
+        <target>The duration must be between 0 and 24 hours.</target>
+      </trans-unit>
+      <trans-unit id="h017" resname="holiday.error.overlap">
+        <source>holiday.error.overlap</source>
+        <target>This absence overlaps with an existing absence.</target>
+      </trans-unit>
+      <trans-unit id="h018" resname="holiday.error.not_requested">
+        <source>holiday.error.not_requested</source>
+        <target>Only requested absences can be approved or rejected.</target>
+      </trans-unit>
+      <trans-unit id="h019" resname="holiday.error.invalid_type">
+        <source>holiday.error.invalid_type</source>
+        <target>Unknown absence type.</target>
+      </trans-unit>
+      <trans-unit id="h020" resname="holiday.error.invalid_json">
+        <source>holiday.error.invalid_json</source>
+        <target>Invalid JSON request body.</target>
+      </trans-unit>
+      <trans-unit id="h021" resname="holiday.error.invalid_comment">
+        <source>holiday.error.invalid_comment</source>
+        <target>The comment must be a string.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

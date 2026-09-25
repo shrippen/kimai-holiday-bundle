@@ -46,11 +46,13 @@
                     {% endif %}
                     {% if is_granted('approve_times_contract') and not locks[month] %}
                         <form class="d-inline" method="post" action="{{ path('holiday_month_lock', {year: year, month: month, user: target_user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('holiday_month_lock') }}">
                             <button class="btn btn-xs btn-success" type="submit">{{ 'action.lock'|trans }}</button>
                         </form>
                     {% endif %}
                     {% if is_granted('unlock_times_contract') and locks[month] %}
                         <form class="d-inline" method="post" action="{{ path('holiday_month_unlock', {year: year, month: month, user: target_user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('holiday_month_lock') }}">
                             <button class="btn btn-xs btn-warning" type="submit">{{ 'action.unlock'|trans }}</button>
                         </form>
                     {% endif %}

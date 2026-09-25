@@ -31,7 +31,7 @@ class ContractController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/working-times/{year}', name: 'holiday_working_times', defaults: ['year' => null], methods: ['GET', 'POST'])]
+    #[Route(path: '/working-times/{year}', name: 'holiday_working_times', defaults: ['year' => null], methods: ['GET', 'POST'], requirements: ['year' => '\d{4}'])]
     #[IsGranted('hours_own_profile')]
     public function workingTimes(Request $request, ?int $year = null): Response
     {
@@ -57,10 +57,14 @@ class ContractController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/working-times/{year}/{month}/lock', name: 'holiday_month_lock', methods: ['POST'], requirements: ['month' => '\d+'])]
+    #[Route(path: '/working-times/{year}/{month}/lock', name: 'holiday_month_lock', methods: ['POST'], requirements: ['year' => '\d{4}', 'month' => '\d{1,2}'])]
     #[IsGranted('approve_times_contract')]
     public function lockMonth(Request $request, int $year, int $month): Response
     {
+        $this->assertValidMonth($month);
+        if (!$this->isCsrfTokenValid('holiday_month_lock', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
         $user = $this->getTargetUser($request, $this->userRepository);
         $this->monthLockService->lock($user, $year, $month, $this->getUser());
         $this->flashSuccess('action.update.success');
@@ -68,10 +72,14 @@ class ContractController extends AbstractController
         return $this->redirectToRoute('holiday_working_times', ['year' => $year, 'user' => $user->getId()]);
     }
 
-    #[Route(path: '/working-times/{year}/{month}/unlock', name: 'holiday_month_unlock', methods: ['POST'], requirements: ['month' => '\d+'])]
+    #[Route(path: '/working-times/{year}/{month}/unlock', name: 'holiday_month_unlock', methods: ['POST'], requirements: ['year' => '\d{4}', 'month' => '\d{1,2}'])]
     #[IsGranted('unlock_times_contract')]
     public function unlockMonth(Request $request, int $year, int $month): Response
     {
+        $this->assertValidMonth($month);
+        if (!$this->isCsrfTokenValid('holiday_month_lock', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
         $user = $this->getTargetUser($request, $this->userRepository);
         $this->monthLockService->unlock($user, $year, $month);
         $this->flashSuccess('action.update.success');
@@ -79,10 +87,11 @@ class ContractController extends AbstractController
         return $this->redirectToRoute('holiday_working_times', ['year' => $year, 'user' => $user->getId()]);
     }
 
-    #[Route(path: '/working-times/{year}/{month}/pdf', name: 'holiday_month_pdf', methods: ['GET'], requirements: ['month' => '\d+'])]
+    #[Route(path: '/working-times/{year}/{month}/pdf', name: 'holiday_month_pdf', methods: ['GET'], requirements: ['year' => '\d{4}', 'month' => '\d{1,2}'])]
     #[IsGranted('view_booking_contract')]
     public function monthPdf(Request $request, int $year, int $month): Response
     {
+        $this->assertValidMonth($month);
         $user = $this->getTargetUser($request, $this->userRepository);
         $yearData = $this->calculator->calculateYear($user, $year);
         $html = $this->pdfExporter->renderHtml($user, $yearData, $month);
@@ -91,6 +100,13 @@ class ContractController extends AbstractController
             'Content-Type' => 'text/html; charset=UTF-8',
             'Content-Disposition' => sprintf('inline; filename="working-times-%d-%02d.html"', $year, $month),
         ]);
+    }
+
+    private function assertValidMonth(int $month): void
+    {
+        if ($month < 1 || $month > 12) {
+            throw $this->createNotFoundException('Invalid month');
+        }
     }
 
     #[Route(path: '/booking/create', name: 'holiday_booking_create', methods: ['GET', 'POST'])]

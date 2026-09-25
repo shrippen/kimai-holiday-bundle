@@ -36,7 +36,7 @@ class AbsenceController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/absence/{year}', name: 'holiday_absence', defaults: ['year' => null], methods: ['GET', 'POST'])]
+    #[Route(path: '/absence/{year}', name: 'holiday_absence', defaults: ['year' => null], methods: ['GET', 'POST'], requirements: ['year' => '\d{4}'])]
     #[IsGranted('absence')]
     public function index(Request $request, ?int $year = null): Response
     {
@@ -70,9 +70,15 @@ class AbsenceController extends AbstractController
         $page = new PageSetup('menu.absence');
 
         $icsUrl = null;
-        if ($this->canManageIcs($user)) {
-            $token = $this->icsTokenService->getOrCreateToken($user);
-            $icsUrl = $this->generateUrl('holiday_user_ics', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+        $icsManage = $this->canManageIcs($user);
+        if ($icsManage) {
+            // Only the owner gets a token created on first view; admins see an existing one.
+            $token = $user === $this->getUser()
+                ? $this->icsTokenService->getOrCreateToken($user)
+                : $this->icsTokenService->getToken($user);
+            if ($token !== null) {
+                $icsUrl = $this->generateUrl('holiday_user_ics', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            }
         }
 
         $absenceDays = [];
@@ -93,6 +99,7 @@ class AbsenceController extends AbstractController
             'vacationBalance' => $yearData['vacationBalance'],
             'vacationEntitlement' => $yearData['vacationEntitlement'],
             'ics_url' => $icsUrl,
+            'ics_manage' => $icsManage,
         ]);
     }
 
@@ -136,6 +143,7 @@ class AbsenceController extends AbstractController
     #[IsGranted('absence')]
     public function regenerateIcs(Request $request): Response
     {
+        $this->assertCsrf($request, 'holiday_ics_regenerate');
         $user = $this->getTargetUser($request, $this->userRepository);
         if (!$this->canManageIcs($user)) {
             throw $this->createAccessDeniedException();
@@ -145,14 +153,15 @@ class AbsenceController extends AbstractController
         $this->flashSuccess('absence.ics.regenerated');
 
         return $this->redirectToRoute('holiday_absence', [
-            'year' => $request->query->getInt('year') ?: (int) date('Y'),
+            'year' => ($y = $request->query->getInt('year')) >= 1000 && $y <= 9999 ? $y : (int) date('Y'),
             'user' => $user->getId(),
         ]);
     }
 
     #[Route(path: '/absence/{id}/approve', name: 'holiday_absence_approve', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function approve(Absence $absence): Response
+    public function approve(Request $request, Absence $absence): Response
     {
+        $this->assertCsrf($request, 'holiday_absence_action');
         $this->assertCanApprove($absence);
         try {
             $this->approvalService->approve($absence, $this->getUser());
@@ -168,8 +177,9 @@ class AbsenceController extends AbstractController
     }
 
     #[Route(path: '/absence/{id}/reject', name: 'holiday_absence_reject', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function reject(Absence $absence): Response
+    public function reject(Request $request, Absence $absence): Response
     {
+        $this->assertCsrf($request, 'holiday_absence_action');
         $this->assertCanApprove($absence);
         try {
             $this->approvalService->reject($absence, $this->getUser());
@@ -185,14 +195,15 @@ class AbsenceController extends AbstractController
     }
 
     #[Route(path: '/absence/{id}/delete', name: 'holiday_absence_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Absence $absence): Response
+    public function delete(Request $request, Absence $absence): Response
     {
+        $this->assertCsrf($request, 'holiday_absence_action');
         $user = $absence->getUser();
         $own = $user === $this->getUser();
         if ($own && !$this->isGranted('delete_own_absence')) {
             throw $this->createAccessDeniedException();
         }
-        if (!$own && !$this->isGranted('delete_other_absence')) {
+        if (!$own && (!$this->isGranted('delete_other_absence') || !$this->canAccessUser($user))) {
             throw $this->createAccessDeniedException();
         }
 
@@ -209,7 +220,7 @@ class AbsenceController extends AbstractController
         return $this->redirectToRoute('holiday_absence', ['year' => $year, 'user' => $userId]);
     }
 
-    #[Route(path: '/absence/{year}/export', name: 'holiday_absence_export', methods: ['GET'])]
+    #[Route(path: '/absence/{year}/export', name: 'holiday_absence_export', methods: ['GET'], requirements: ['year' => '\d{4}'])]
     #[IsGranted('absence')]
     public function export(Request $request, int $year): Response
     {
@@ -223,13 +234,20 @@ class AbsenceController extends AbstractController
         ]);
     }
 
+    private function assertCsrf(Request $request, string $id): void
+    {
+        if (!$this->isCsrfTokenValid($id, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+    }
+
     private function assertCanEdit(Absence $absence): void
     {
         $own = $absence->getUser() === $this->getUser();
         if ($own && $this->isGranted('edit_own_absence')) {
             return;
         }
-        if (!$own && $this->isGranted('edit_other_absence')) {
+        if (!$own && $this->isGranted('edit_other_absence') && $this->canAccessUser($absence->getUser())) {
             return;
         }
 
@@ -242,19 +260,25 @@ class AbsenceController extends AbstractController
         if ($own && $this->isGranted('approve_own_absence')) {
             return;
         }
-        if (!$own && $this->isGranted('approve_other_absence')) {
+        if (!$own && $this->isGranted('approve_other_absence') && $this->canAccessUser($absence->getUser())) {
             return;
         }
 
         throw $this->createAccessDeniedException();
     }
 
+    /**
+     * The ICS token is a secret of its owner: only the owner and admins (view_all_data + edit_other_absence)
+     * may see or regenerate it. Team leads do not.
+     */
     private function canManageIcs(User $user): bool
     {
-        if ($user === $this->getUser()) {
+        /** @var User $current */
+        $current = $this->getUser();
+        if ($user === $current) {
             return $this->isGranted('absence');
         }
 
-        return $this->isGranted('edit_other_absence') || $this->isGranted('view_other_absence');
+        return $current->canSeeAllData() && $this->isGranted('edit_other_absence');
     }
 }

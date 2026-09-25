@@ -54,6 +54,42 @@
         <source>absence.ics.regenerated</source>
         <target>Kalender-Link neu erzeugt. Bestehende Abonnements mit der neuen URL aktualisieren.</target>
       </trans-unit>
+      <trans-unit id="h013" resname="holiday.error.invalid_date">
+        <source>holiday.error.invalid_date</source>
+        <target>Ungültiges Datum. Format JJJJ-MM-TT verwenden.</target>
+      </trans-unit>
+      <trans-unit id="h014" resname="holiday.error.end_before_start">
+        <source>holiday.error.end_before_start</source>
+        <target>Das Enddatum darf nicht vor dem Startdatum liegen.</target>
+      </trans-unit>
+      <trans-unit id="h015" resname="holiday.error.range_too_long">
+        <source>holiday.error.range_too_long</source>
+        <target>Eine Abwesenheit darf höchstens ein Jahr umfassen.</target>
+      </trans-unit>
+      <trans-unit id="h016" resname="holiday.error.invalid_duration">
+        <source>holiday.error.invalid_duration</source>
+        <target>Die Dauer muss zwischen 0 und 24 Stunden liegen.</target>
+      </trans-unit>
+      <trans-unit id="h017" resname="holiday.error.overlap">
+        <source>holiday.error.overlap</source>
+        <target>Diese Abwesenheit überschneidet sich mit einer bestehenden Abwesenheit.</target>
+      </trans-unit>
+      <trans-unit id="h018" resname="holiday.error.not_requested">
+        <source>holiday.error.not_requested</source>
+        <target>Nur beantragte Abwesenheiten können genehmigt oder abgelehnt werden.</target>
+      </trans-unit>
+      <trans-unit id="h019" resname="holiday.error.invalid_type">
+        <source>holiday.error.invalid_type</source>
+        <target>Unbekannte Abwesenheitsart.</target>
+      </trans-unit>
+      <trans-unit id="h020" resname="holiday.error.invalid_json">
+        <source>holiday.error.invalid_json</source>
+        <target>Ungültiger JSON-Request.</target>
+      </trans-unit>
+      <trans-unit id="h021" resname="holiday.error.invalid_comment">
+        <source>holiday.error.invalid_comment</source>
+        <target>Der Kommentar muss ein Text sein.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

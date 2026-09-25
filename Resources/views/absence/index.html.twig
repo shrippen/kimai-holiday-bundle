@@ -27,16 +27,19 @@
         </div>
     </div>
 
-    {% if ics_url %}
+    {% if ics_manage %}
         <div class="card mb-3">
             <div class="card-header">{{ 'absence.ics.title'|trans }}</div>
             <div class="card-body">
                 <p class="text-muted mb-2">{{ 'absence.ics.help'|trans }}</p>
+                {% if ics_url %}
                 <div class="input-group mb-2">
                     <input type="text" class="form-control" readonly value="{{ ics_url }}" id="holiday-ics-url" onclick="this.select()">
                     <a class="btn btn-outline-secondary" href="{{ ics_url }}" target="_blank" rel="noopener">{{ 'absence.ics.open'|trans }}</a>
                 </div>
+                {% endif %}
                 <form method="post" action="{{ path('holiday_absence_ics_regenerate', {user: target_user.id, year: year}) }}" onsubmit="return confirm('{{ 'absence.ics.regenerate_confirm'|trans|e('js') }}');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('holiday_ics_regenerate') }}">
                     <button type="submit" class="btn btn-sm btn-outline-warning">{{ 'absence.ics.regenerate'|trans }}</button>
                 </form>
             </div>
@@ -86,15 +89,18 @@
                                 {% if a.status.value == 'requested' %}
                                     {% if (a.user == app.user and is_granted('approve_own_absence')) or (a.user != app.user and is_granted('approve_other_absence')) %}
                                         <form class="d-inline" method="post" action="{{ path('holiday_absence_approve', {id: a.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('holiday_absence_action') }}">
                                             <button class="btn btn-xs btn-success" type="submit">{{ 'action.approve'|trans }}</button>
                                         </form>
                                         <form class="d-inline" method="post" action="{{ path('holiday_absence_reject', {id: a.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('holiday_absence_action') }}">
                                             <button class="btn btn-xs btn-danger" type="submit">{{ 'action.reject'|trans }}</button>
                                         </form>
                                     {% endif %}
                                 {% endif %}
                                 {% if (a.user == app.user and is_granted('delete_own_absence')) or (a.user != app.user and is_granted('delete_other_absence')) %}
                                     <form class="d-inline" method="post" action="{{ path('holiday_absence_delete', {id: a.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('holiday_absence_action') }}">
                                         <button class="btn btn-xs btn-outline-danger" type="submit">{{ 'action.delete'|trans }}</button>
                                     </form>
                                 {% endif %}

@@ -28,7 +28,7 @@ class AbsenceCalendarController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/absence-calendar/{year}', name: 'holiday_absence_calendar', defaults: ['year' => null], methods: ['GET'], requirements: ['year' => '\d+'])]
+    #[Route(path: '/absence-calendar/{year}', name: 'holiday_absence_calendar', defaults: ['year' => null], methods: ['GET'], requirements: ['year' => '\d{4}'])]
     #[IsGranted('absence')]
     public function index(Request $request, ?int $year = null): Response
     {
@@ -93,9 +93,7 @@ class AbsenceCalendarController extends AbstractController
             }
         }
 
-        $teams = $this->isGranted('view_other_absence') || $this->isGranted('view_team_absence')
-            ? $this->teamRepository->findAll()
-            : [];
+        $teams = $this->getSelectableTeams();
 
         $page = new PageSetup('menu.absence_calendar');
 
@@ -127,6 +125,37 @@ class AbsenceCalendarController extends AbstractController
     }
 
     /**
+     * Teams the current user may pick: all teams with view_all_data (admins), otherwise
+     * teams they lead (view_other_absence) or belong to (view_team_absence).
+     *
+     * @return Team[]
+     */
+    private function getSelectableTeams(): array
+    {
+        /** @var User $current */
+        $current = $this->getUser();
+        $canOther = $this->isGranted('view_other_absence');
+        $canTeam = $this->isGranted('view_team_absence');
+
+        if (!$canOther && !$canTeam) {
+            return [];
+        }
+
+        if ($canOther && $current->canSeeAllData()) {
+            return $this->teamRepository->findAll();
+        }
+
+        $teams = [];
+        foreach ($current->getTeams() as $team) {
+            if ($canTeam || $current->isTeamleadOf($team)) {
+                $teams[$team->getId()] = $team;
+            }
+        }
+
+        return array_values($teams);
+    }
+
+    /**
      * @return User[]
      */
     private function resolveUsers(Request $request): array
@@ -138,25 +167,32 @@ class AbsenceCalendarController extends AbstractController
             return [$current];
         }
 
+        $teams = $this->getSelectableTeams();
         $teamId = $request->query->getInt('team');
         if ($teamId > 0) {
-            $team = $this->teamRepository->find($teamId);
-            if ($team instanceof Team) {
-                return $team->getUsers();
+            foreach ($teams as $team) {
+                if ($team->getId() === $teamId) {
+                    return array_values(array_filter(
+                        $team->getUsers(),
+                        static fn (User $u): bool => $u->isEnabled()
+                    ));
+                }
             }
+
+            throw $this->createAccessDeniedException('You cannot view this team.');
         }
 
         if ($this->isGranted('view_other_absence')) {
             return array_values(array_filter(
                 $this->userRepository->findAll(),
-                static fn (User $u): bool => method_exists($u, 'isEnabled') ? $u->isEnabled() : true
+                fn (User $u): bool => $u->isEnabled() && ($u === $current || $this->isGranted('access_user', $u))
             ));
         }
 
-        $users = [$current];
-        foreach ($current->getTeams() as $team) {
-            if (method_exists($current, 'isTeamlead') && $current->isTeamlead($team)) {
-                foreach ($team->getUsers() as $member) {
+        $users = [$current->getId() => $current];
+        foreach ($teams as $team) {
+            foreach ($team->getUsers() as $member) {
+                if ($member->isEnabled()) {
                     $users[$member->getId()] = $member;
                 }
             }

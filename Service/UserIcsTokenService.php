@@ -19,14 +19,16 @@ class UserIcsTokenService
     ) {
     }
 
-    public function getOrCreateToken(User $user): string
+    public function getToken(User $user): ?string
     {
         $token = $user->getPreferenceValue(self::PREFERENCE_NAME);
-        if (\is_string($token) && $token !== '') {
-            return $token;
-        }
 
-        return $this->regenerateToken($user);
+        return \is_string($token) && $token !== '' ? $token : null;
+    }
+
+    public function getOrCreateToken(User $user): string
+    {
+        return $this->getToken($user) ?? $this->regenerateToken($user);
     }
 
     public function regenerateToken(User $user): string
@@ -44,7 +46,7 @@ class UserIcsTokenService
             return null;
         }
 
-        return $this->entityManager->createQueryBuilder()
+        $user = $this->entityManager->createQueryBuilder()
             ->select('u')
             ->from(User::class, 'u')
             ->innerJoin('u.preferences', 'p')
@@ -55,5 +57,8 @@ class UserIcsTokenService
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+
+        // Disabled accounts must not leak their calendar anymore.
+        return $user instanceof User && $user->isEnabled() ? $user : null;
     }
 }

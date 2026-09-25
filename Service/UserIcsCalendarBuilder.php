@@ -5,6 +5,7 @@ namespace KimaiPlugin\HolidayBundle\Service;
 use App\Entity\User;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
 use KimaiPlugin\HolidayBundle\Entity\PublicHoliday;
+use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -119,7 +120,10 @@ class UserIcsCalendarBuilder
         if ($absence->isHalfDay()) {
             $summary .= ' (' . $this->t('absence.half_day', $locale) . ')';
         }
-        $description = $absence->getComment();
+        // Comments may contain personal details; never publish them for sickness absences.
+        $description = \in_array($absence->getType(), [AbsenceType::SICKNESS, AbsenceType::SICKNESS_RELATIVE], true)
+            ? null
+            : $absence->getComment();
         $id = $absence->getId() ?? 0;
 
         $lines = [];
@@ -171,19 +175,27 @@ class UserIcsCalendarBuilder
         );
     }
 
+    /**
+     * RFC 5545 line folding at 75 octets without splitting UTF-8 multibyte characters.
+     */
     private function fold(string $line): string
     {
-        if (strlen($line) <= 75) {
+        if (\strlen($line) <= 75) {
             return $line;
         }
 
-        $out = substr($line, 0, 75);
-        $rest = substr($line, 75);
-        while ($rest !== '' && $rest !== false) {
-            $out .= "\r\n " . substr($rest, 0, 74);
-            $rest = substr($rest, 74);
+        $parts = [];
+        $limit = 75;
+        while ($line !== '') {
+            $chunk = mb_strcut($line, 0, $limit, 'UTF-8');
+            if ($chunk === '') {
+                break;
+            }
+            $parts[] = $chunk;
+            $line = (string) substr($line, \strlen($chunk));
+            $limit = 74;
         }
 
-        return $out;
+        return implode("\r\n ", $parts);
     }
 }

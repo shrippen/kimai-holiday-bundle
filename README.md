@@ -82,6 +82,18 @@ Schedule that on the **host** if you want automatic updates (the official image 
 | `approve_*_absence` / `approval_other_absence` | Approval workflow |
 | `edit_public_holidays` | Admin public holidays |
 
+### Scope of the `*_other_*` permissions
+
+Permissions for other users (`view_other_absence`, `edit_other_absence`, `approve_other_absence`, `delete_other_absence`, `hours_other_profile`, …) only apply to users you may access by Kimai's own rule (`access_user`):
+
+- users with Kimai's **`view_all_data`** permission (by default `ROLE_ADMIN` / `ROLE_SUPER_ADMIN`) — all users,
+- **team leads** — only members of the teams they lead (plus users that are in no team at all, same as Kimai core).
+
+A team lead of *Team A* therefore cannot list, approve or reject absences of *Team B*, neither in the UI nor via the API.
+The absence calendar only offers teams you lead (`view_other_absence`) or belong to (`view_team_absence`); admins with `view_all_data` see all teams.
+
+The personal **ICS calendar link** is a secret of its owner: it is created when the owner opens their absence page. Admins (`view_all_data` + `edit_other_absence`) can see or regenerate an existing link of another user; team leads cannot. Feeds of disabled users return 404, and comments of sickness absences are never published in the feed.
+
 ## API (examples)
 
 - `GET /api/holiday/absences?year=2026`
@@ -90,6 +102,12 @@ Schedule that on the **host** if you want automatic updates (the official image 
 - `GET /api/holiday/absences/types`
 - `GET /api/holiday/public-holidays?year=2026`
 - `GET /api/holiday/public-holidays/calendar`
+
+Dates must use `YYYY-MM-DD`. Invalid input (unknown type, bad date, end before start, more than one year, `duration` outside 0–86400 seconds, overlap with an existing absence) and approve/reject of an absence that is not `requested` return **400** with a `message`.
+
+## Absence timesheets
+
+With an absence project/activity configured (system settings) and calculation mode *compensate*, approving an absence creates one timesheet per workday. These entries are tagged with the timesheet meta field `holiday_absence_id`, are **not billable**, and replace the absence credit in the working-time balance (no double counting). They are removed when the absence is rejected, re-requested, edited or deleted — except entries that were already **exported**, which are kept. Absence days skip weekends, non-working days and full-day public holidays.
 
 ## Compatibility
 

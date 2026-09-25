@@ -1,0 +1,69 @@
+{#
+    Kit assets plus the plugin's own page script. Include once per page:
+        {% block stylesheets %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+        {% block javascripts %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+    Page script (delegated on document, so it survives Kimai's AJAX reloads of section.content):
+      - [data-holiday-post="<url>"] + data-token, data-ids="1,2", data-question?: POST via the kit, then reload
+        with the result toast (incl. "Undo" when the response has one). data-question asks with Kimai's modal first.
+      - [data-holiday-copy="<input id>"]: copies the input value to the clipboard.
+      - form[data-holiday-autosubmit]: submits on change (period/user/team filters).
+      - event kimai.holidayUpdate (data-form-event of the plugin's modal forms): reloads the page, so the
+        result callouts (flash type kpu_result) and KPI tiles are rendered fresh.
+#}
+{% if part == 'css' %}
+    {% include '@Holiday/_kit/assets.html.twig' with {kpu_part: 'css'} %}
+{% else %}
+    {% include '@Holiday/_kit/assets.html.twig' with {kpu_part: 'js'} %}
+    <script>
+        document.addEventListener('kimai.initialized', function (initEvent) {
+            const kimai = initEvent.detail.kimai;
+            const alert = kimai.getPlugin('alert');
+            const texts = {
+                error: '{{ 'holiday.error.action_failed'|trans|e('js') }}',
+                copied: '{{ 'holiday.absence.ics.copied'|trans|e('js') }}'
+            };
+
+            document.addEventListener('{{ constant('KimaiPlugin\\HolidayBundle\\Controller\\AbsenceController::UPDATE_EVENT') }}', function () {
+                window.location.reload();
+            });
+
+            document.addEventListener('click', function (event) {
+                const post = event.target.closest('[data-holiday-post]');
+                if (post !== null) {
+                    event.preventDefault();
+                    const ids = (post.dataset.ids || '').split(',').filter(function (id) { return id !== ''; });
+                    const run = function () {
+                        KimaiPluginUi.post(post.dataset.holidayPost, post.dataset.token, ids)
+                            .then(function (data) { KimaiPluginUi.reloadWithToast(data.message || '', data.undo || null); })
+                            .catch(function (error) { alert.error(texts.error, error.kpuMessage || null); });
+                    };
+                    if (post.dataset.question) {
+                        alert.question(post.dataset.question, function (ok) { if (ok) { run(); } });
+                    } else {
+                        run();
+                    }
+                    return;
+                }
+
+                const copy = event.target.closest('[data-holiday-copy]');
+                if (copy !== null) {
+                    event.preventDefault();
+                    const input = document.getElementById(copy.dataset.holidayCopy);
+                    if (input !== null && navigator.clipboard) {
+                        navigator.clipboard.writeText(input.value).then(function () { KimaiPluginUi.toast(texts.copied, 'success'); });
+                    } else if (input !== null) {
+                        input.select();
+                    }
+                }
+            });
+
+            document.addEventListener('change', function (event) {
+                const form = event.target.closest ? event.target.closest('form[data-holiday-autosubmit]') : null;
+                if (form !== null) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+{% endif %}

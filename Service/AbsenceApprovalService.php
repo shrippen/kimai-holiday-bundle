@@ -126,7 +126,10 @@ class AbsenceApprovalService
         return $absence;
     }
 
-    public function request(Absence $absence): Absence
+    /**
+     * @param bool $notify false when an approver only undoes their own decision
+     */
+    public function request(Absence $absence, bool $notify = true): Absence
     {
         $this->assertNotLocked($absence);
         $this->timesheetService->removeAbsenceTimesheets($absence);
@@ -134,7 +137,9 @@ class AbsenceApprovalService
         $absence->setApprovedBy(null);
         $absence->setApprovedAt(null);
         $this->absenceRepository->save($absence);
-        $this->notifier->notifyRequested($absence);
+        if ($notify) {
+            $this->notifier->notifyRequested($absence);
+        }
 
         return $absence;
     }

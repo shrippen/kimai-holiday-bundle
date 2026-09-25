@@ -4,15 +4,22 @@ namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
+use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 
 /**
  * Absence days only count on contractual workdays — never on weekends (Sat/Sun),
- * and never on days with 0 expected hours (e.g. configured non-working weekdays).
+ * never on days with 0 expected hours (e.g. configured non-working weekdays)
+ * and never on full-day public holidays of the user's holiday group.
  */
 class AbsenceWorkdayHelper
 {
-    public function __construct(private readonly UserWorkContract $userWorkContract)
-    {
+    /** @var array<string, array<string, true>> "groupId-year" => full-day public holiday dates */
+    private array $publicHolidayCache = [];
+
+    public function __construct(
+        private readonly UserWorkContract $userWorkContract,
+        private readonly PublicHolidayRepository $publicHolidayRepository,
+    ) {
     }
 
     public function isWeekend(\DateTimeInterface $date): bool
@@ -31,7 +38,33 @@ class AbsenceWorkdayHelper
             return false;
         }
 
-        return $this->userWorkContract->getExpectedSecondsForDate($user, $date) > 0;
+        if ($this->userWorkContract->getExpectedSecondsForDate($user, $date) <= 0) {
+            return false;
+        }
+
+        return !$this->isFullDayPublicHoliday($user, $date);
+    }
+
+    public function isFullDayPublicHoliday(User $user, \DateTimeInterface $date): bool
+    {
+        $group = $this->userWorkContract->getPublicHolidayGroup($user);
+        if ($group === null || $group->getId() === null) {
+            return false;
+        }
+
+        $year = (int) $date->format('Y');
+        $cacheKey = $group->getId() . '-' . $year;
+        if (!isset($this->publicHolidayCache[$cacheKey])) {
+            $this->publicHolidayCache[$cacheKey] = [];
+            foreach ($this->publicHolidayRepository->findByGroupAndYear($group, $year) as $holiday) {
+                $day = $holiday->getDate()?->format('Y-m-d');
+                if ($day !== null && !$holiday->isHalfDay()) {
+                    $this->publicHolidayCache[$cacheKey][$day] = true;
+                }
+            }
+        }
+
+        return isset($this->publicHolidayCache[$cacheKey][$date->format('Y-m-d')]);
     }
 
     /**

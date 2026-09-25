@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="de" datatype="plaintext" original="HolidayBundleValidators">
+    <body>
+      <trans-unit id="hv000" resname="holiday.error.timesheet_non_workday">
+        <source>holiday.error.timesheet_non_workday</source>
+        <target>Zeiteinträge sind auf vertragliche Arbeitstage beschränkt.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

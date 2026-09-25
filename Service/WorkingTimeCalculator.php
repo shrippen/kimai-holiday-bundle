@@ -129,7 +129,7 @@ class WorkingTimeCalculator
         $manualTime = $this->manualBookingRepository->sumTimeSecondsUntil($user, $untilDay);
         $vacationUsed = $this->calculateVacationDaysUsed($user, $year, $absences);
         $manualHolidays = $this->manualBookingRepository->sumHolidayDaysInYear($user, $year);
-        $entitlement = $this->userWorkContract->getVacationDaysPerYear($user) + $manualHolidays;
+        $entitlement = $this->userWorkContract->getVacationDaysPerYear($user, $year) + $manualHolidays;
 
         return [
             'year' => $year,

@@ -46,9 +46,35 @@ class UserWorkContract
         return $mode->getCalculator($user)->getWorkHoursForDay($day);
     }
 
-    public function getVacationDaysPerYear(User $user): float
+    /**
+     * Yearly vacation entitlement. With $year, it is pro-rated for a contract that starts or ends
+     * within that year: 1/12 per full calendar month of employment, rounded up to half days.
+     */
+    public function getVacationDaysPerYear(User $user, ?int $year = null): float
     {
-        return $user->getHolidaysPerYear();
+        $perYear = (float) $user->getHolidaysPerYear();
+        if ($year === null || $perYear <= 0) {
+            return $perYear;
+        }
+
+        $start = $user->getWorkStartingDay();
+        $end = $user->getLastWorkingDay();
+        $startDay = $start !== null ? $start->format('Y-m-d') : null;
+        $endDay = $end !== null ? $end->format('Y-m-d') : null;
+
+        if (($startDay === null || $startDay <= sprintf('%d-01-01', $year)) && ($endDay === null || $endDay >= sprintf('%d-12-31', $year))) {
+            return $perYear;
+        }
+
+        $months = 0;
+        for ($month = 1; $month <= 12; ++$month) {
+            $first = new \DateTimeImmutable(sprintf('%d-%02d-01', $year, $month));
+            if (($startDay === null || $startDay <= $first->format('Y-m-d')) && ($endDay === null || $endDay >= $first->format('Y-m-t'))) {
+                ++$months;
+            }
+        }
+
+        return ceil($perYear * $months / 12 * 2) / 2;
     }
 
     public function getPublicHolidayGroup(User $user): ?PublicHolidayGroup

@@ -3,7 +3,7 @@
 namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
-use App\WorkingTime\WorkingTimeService;
+use App\Repository\WorkingTimeRepository;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
@@ -22,7 +22,7 @@ class AbsenceApprovalService
         private readonly AbsenceNotifier $notifier,
         private readonly HolidayConfiguration $configuration,
         private readonly AbsenceTimesheetService $timesheetService,
-        private readonly WorkingTimeService $workingTimeService,
+        private readonly WorkingTimeRepository $workingTimeRepository,
     ) {
     }
 
@@ -200,7 +200,9 @@ class AbsenceApprovalService
             : \DateTimeImmutable::createFromInterface($end);
 
         // Kimai's own working-time approval (Arbeitszeiten → month approved) locks everything up to that date.
-        if ($this->workingTimeService->isApproved($user, $cursor)) {
+        // Queried directly: WorkingTimeService::isApproved() may flush the entity manager (caches a user preference).
+        $approvedUntil = $this->workingTimeRepository->getLatestApprovalDate($user);
+        if ($approvedUntil !== null && $cursor->format('Y-m-d') <= $approvedUntil->format('Y-m-d')) {
             throw new \RuntimeException('holiday.error.month_locked');
         }
 

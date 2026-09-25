@@ -13,6 +13,7 @@ Legende: ✅ = live reproduziert, 📖 = aus Code-Review
 - [x] ✅ API approve/reject: Owner-/Team-Check, nur REQUESTED, Exceptions → 400
 - [x] ✅ ICS-Token nur für Owner (oder Admin), kein Auto-Create beim Ansehen fremder User, isEnabled() in findUserByToken, keine DESCRIPTION/comment bei Krankheit
 - [x] ✅ Validierung (Form + API): Ende ≥ Beginn, max ~1 Jahr, duration 0..24h, keine Überschneidung, Datum-Parse → 400
+- [x] ✅ ICS-Token als Benutzereinstellung `holiday_ics_token` über `GET /api/users/me` und `/api/users/{id}` (Admin/Teamleiter) sichtbar und in Rechnungs-/Exportvorlagen (`user.meta.*`) — jetzt eigene Tabelle `kimai2_ext_holiday_ics_token` (Token eindeutig indiziert), Migration `Version20260925120000` verschiebt die Werte unverändert und löscht die Präferenzzeilen
 - [x] 📖 CSRF-Tokens für alle POST-Formulare (approve/reject/delete/ics regenerate/lock/unlock/sync/holiday delete)
 
 ## P2

@@ -141,7 +141,7 @@ Permissions for other users (`view_other_absence`, `edit_other_absence`, `approv
 A team lead of *Team A* therefore cannot list, approve or reject absences of *Team B*, neither in the UI nor via the API.
 The absence calendar only offers teams you lead (`view_other_absence`) or belong to (`view_team_absence`); admins with `view_all_data` see all teams.
 
-The personal **ICS calendar link** is a secret of its owner: it is created when the owner opens their absence page. Admins (`view_all_data` + `edit_other_absence`) can see or regenerate an existing link of another user; team leads cannot. Feeds of disabled users return 404, and comments of sickness absences are never published in the feed.
+The personal **ICS calendar link** is a secret of its owner: it is created when the owner opens their absence page. Admins (`view_all_data` + `edit_other_absence`) can see or regenerate an existing link of another user; team leads cannot. Feeds of disabled users return 404, and comments of sickness absences are never published in the feed. The token is stored in the plugin table `kimai2_ext_holiday_ics_token`, not in the user preferences, so it is not part of `/api/users/…` responses or invoice/export templates.
 
 ## API (examples)
 

@@ -60,10 +60,16 @@ All notable changes to this project will be documented in this file.
 - Timezone-safe date comparison in `Absence::coversDate()`; half-day sickness credits half a day; calendar feed covers year changes
 - Workday restriction is reported as a timesheet validation error instead of an exception
 - CSV export guards against formula injection; ICS import blocks private/internal addresses (SSRF)
+- The personal ICS feed token is no longer a Kimai user preference (`holiday_ics_token`): preferences are returned by
+  `/api/users/me` and `/api/users/{id}` (visible to admins and team leads) and handed to invoice/export templates
+  (`user.meta.*`), so anyone with that access could read the calendar feed. The token lives in the new table
+  `kimai2_ext_holiday_ics_token` (unique index on the token)
 
 ### Migration
 
 - Run `bin/console kimai:bundle:holiday:install`: tags existing absence timesheets with the new meta field and marks the non-exported ones as non-billable
+- The same command runs `Version20260925120000`: moves existing ICS tokens unchanged into `kimai2_ext_holiday_ics_token`
+  (subscribed feed URLs keep working) and deletes the `holiday_ics_token` preference rows; `--down` moves them back
 
 ## [1.0.0] — 2026-08-10
 

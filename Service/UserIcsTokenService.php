@@ -3,27 +3,25 @@
 namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use KimaiPlugin\HolidayBundle\Entity\IcsToken;
+use KimaiPlugin\HolidayBundle\Repository\IcsTokenRepository;
 
 /**
  * Per-user secret token for public ICS calendar subscription URLs.
+ *
+ * Stored in its own table ({@see IcsToken}), not as a user preference: Kimai returns all preferences in
+ * `/api/users/me` and `/api/users/{id}` and hands them to invoice and export templates. Migration Version20260925120000 moved the former
+ * preference `holiday_ics_token` into the table.
  */
 class UserIcsTokenService
 {
-    public const PREFERENCE_NAME = 'holiday_ics_token';
-
-    public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly EntityManagerInterface $entityManager,
-    ) {
+    public function __construct(private readonly IcsTokenRepository $repository)
+    {
     }
 
     public function getToken(User $user): ?string
     {
-        $token = $user->getPreferenceValue(self::PREFERENCE_NAME);
-
-        return \is_string($token) && $token !== '' ? $token : null;
+        return $this->repository->findByUser($user)?->getToken();
     }
 
     public function getOrCreateToken(User $user): string
@@ -34,8 +32,13 @@ class UserIcsTokenService
     public function regenerateToken(User $user): string
     {
         $token = bin2hex(random_bytes(24));
-        $user->setPreferenceValue(self::PREFERENCE_NAME, $token);
-        $this->userRepository->saveUser($user);
+        $entity = $this->repository->findByUser($user);
+        if ($entity === null) {
+            $entity = new IcsToken($user, $token);
+        } else {
+            $entity->setToken($token);
+        }
+        $this->repository->save($entity);
 
         return $token;
     }
@@ -46,17 +49,7 @@ class UserIcsTokenService
             return null;
         }
 
-        $user = $this->entityManager->createQueryBuilder()
-            ->select('u')
-            ->from(User::class, 'u')
-            ->innerJoin('u.preferences', 'p')
-            ->andWhere('p.name = :name')
-            ->andWhere('p.value = :token')
-            ->setParameter('name', self::PREFERENCE_NAME)
-            ->setParameter('token', $token)
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $user = $this->repository->findByToken($token)?->getUser();
 
         // Disabled accounts must not leak their calendar anymore.
         return $user instanceof User && $user->isEnabled() ? $user : null;

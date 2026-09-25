@@ -12,7 +12,8 @@ use KimaiPlugin\HolidayBundle\Form\PublicHolidayType;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayGroupRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use KimaiPlugin\HolidayBundle\Service\HolidayImporter;
-use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,28 +25,19 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[IsGranted('edit_public_holidays')]
 class PublicHolidayController extends AbstractController
 {
+    use HolidayUiTrait;
+
+    public const CSRF_ID = 'holiday_public_holiday';
+
     public function __construct(
         private readonly PublicHolidayGroupRepository $groupRepository,
         private readonly PublicHolidayRepository $holidayRepository,
         private readonly HolidayImporter $importer,
-        private readonly FormFactoryInterface $formFactory,
         private readonly TranslatorInterface $translator,
     ) {
     }
 
-    private function namedForm(string $name, string $type, mixed $data = null, array $options = []): FormInterface
-    {
-        return $this->formFactory->createNamed($name, $type, $data, $options);
-    }
-
-    private function assertCsrf(Request $request): void
-    {
-        if (!$this->isCsrfTokenValid('holiday_public_holiday', (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
-        }
-    }
-
-    #[Route(path: '/{year}', name: 'holiday_public_holidays', defaults: ['year' => null], methods: ['GET', 'POST'], requirements: ['year' => '\d{4}'])]
+    #[Route(path: '/{year}', name: 'holiday_public_holidays', defaults: ['year' => null], methods: ['GET'], requirements: ['year' => '\d{4}'])]
     public function index(Request $request, ?int $year = null): Response
     {
         $year ??= (int) date('Y');
@@ -55,45 +47,88 @@ class PublicHolidayController extends AbstractController
 
         if ($groupId > 0) {
             $group = $this->groupRepository->find($groupId);
-        } elseif ($groups !== []) {
+        }
+        // Unknown or just deleted group: fall back to the first one
+        if ($group === null && $groups !== []) {
             $group = $groups[0];
         }
 
         $holidays = $group !== null ? $this->holidayRepository->findByGroupAndYear($group, $year) : [];
+        $groupParam = $group?->getId();
+        $currentYear = (int) date('Y');
 
-        $groupForm = $this->namedForm('group_form', PublicHolidayGroupType::class, new PublicHolidayGroup());
-        $groupForm->handleRequest($request);
-        if ($groupForm->isSubmitted() && $groupForm->isValid()) {
-            /** @var PublicHolidayGroup $newGroup */
-            $newGroup = $groupForm->getData();
-            $this->groupRepository->save($newGroup);
-            $this->flashSuccess('action.update.success');
+        $page = new PageSetup($this->translator->trans('holiday.page.public_holidays', ['%year%' => $year]));
+        $page->setActionName('holiday_public_holidays');
+        $page->setActionPayload(['group' => $group, 'year' => $year]);
+        $page->setHelp($this->helpUrl('public-holidays'));
 
-            return $this->redirectToRoute('holiday_public_holidays', ['year' => $year, 'group' => $newGroup->getId()]);
+        return $this->render('@Holiday/public_holiday/index.html.twig', [
+            'page_setup' => $page,
+            'year' => $year,
+            'groups' => $groups,
+            'group' => $group,
+            'holidays' => $holidays,
+            'period' => [
+                'prev' => $this->generateUrl('holiday_public_holidays', ['year' => $year - 1, 'group' => $groupParam]),
+                'next' => $this->generateUrl('holiday_public_holidays', ['year' => $year + 1, 'group' => $groupParam]),
+                'today' => $year === $currentYear ? null : $this->generateUrl('holiday_public_holidays', ['year' => $currentYear, 'group' => $groupParam]),
+            ],
+        ]);
+    }
+
+    #[Route(path: '/group/create', name: 'holiday_public_holiday_group_create', methods: ['GET', 'POST'])]
+    public function createGroup(Request $request): Response
+    {
+        $group = new PublicHolidayGroup();
+        $form = $this->createModalForm(PublicHolidayGroupType::class, $group, $this->generateUrl('holiday_public_holiday_group_create'));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->groupRepository->save($group);
+
+            return $this->formSuccess($request, 'holiday_public_holidays', ['group' => $group->getId()]);
         }
 
+        return $this->renderModalForm($form, 'holiday.public_holiday.create_group', $this->generateUrl('holiday_public_holidays'));
+    }
+
+    #[Route(path: '/group/{id}/holiday/create', name: 'holiday_public_holiday_create', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function createHoliday(Request $request, PublicHolidayGroup $group): Response
+    {
+        $year = $this->validYear($request);
         $holiday = new PublicHoliday();
-        if ($group !== null) {
-            $holiday->setHolidayGroup($group);
-        }
-        $holidayForm = $this->namedForm('holiday_form', PublicHolidayType::class, $holiday);
-        $holidayForm->handleRequest($request);
-        if ($holidayForm->isSubmitted() && $holidayForm->isValid() && $group !== null) {
+        $holiday->setHolidayGroup($group);
+        $holiday->setDate(new \DateTimeImmutable($year === (int) date('Y') ? 'today' : sprintf('%d-01-01', $year)));
+
+        $form = $this->createModalForm(PublicHolidayType::class, $holiday, $this->generateUrl('holiday_public_holiday_create', ['id' => $group->getId(), 'year' => $year]));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $holiday->setHolidayGroup($group);
             $this->holidayRepository->save($holiday);
-            $this->flashSuccess('action.update.success');
 
-            return $this->redirectToRoute('holiday_public_holidays', ['year' => $year, 'group' => $group->getId()]);
+            return $this->formSuccess($request, 'holiday_public_holidays', [
+                'year' => (int) $holiday->getDate()?->format('Y'),
+                'group' => $group->getId(),
+            ]);
         }
 
-        $importForm = $this->namedForm('import_form', PublicHolidayImportType::class, null, [
+        return $this->renderModalForm($form, 'holiday.public_holiday.create', $this->generateUrl('holiday_public_holidays', ['year' => $year, 'group' => $group->getId()]), $group->getName());
+    }
+
+    #[Route(path: '/group/{id}/import', name: 'holiday_public_holiday_import', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function import(Request $request, PublicHolidayGroup $group): Response
+    {
+        $year = $this->validYear($request);
+        $form = $this->createModalForm(PublicHolidayImportType::class, null, $this->generateUrl('holiday_public_holiday_import', ['id' => $group->getId(), 'year' => $year]), [
             'catalog_choices' => $this->importer->getCatalog()->getChoices(),
         ]);
-        $importForm->handleRequest($request);
-        if ($importForm->isSubmitted() && $importForm->isValid() && $group !== null) {
-            $source = (string) $importForm->get('source')->getData();
-            $customUrl = $importForm->get('customUrl')->getData();
-            $importYear = (int) $importForm->get('year')->getData();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $source = (string) $form->get('source')->getData();
+            $customUrl = $form->get('customUrl')->getData();
+            $importYear = (int) $form->get('year')->getData();
 
             try {
                 $count = $this->importer->import(
@@ -102,67 +137,135 @@ class PublicHolidayController extends AbstractController
                     $source !== 'custom' ? $source : null,
                     $source === 'custom' ? (string) $customUrl : null,
                 );
-                $this->addFlash('success', $this->translator->trans('holiday.import_success', ['%count%' => $count]));
-            } catch (\Throwable $e) {
-                $this->flashError($e->getMessage());
-            }
+                $this->addFlash('kpu_result', $this->translator->trans('holiday.import_success', ['%count%' => $count, '%year%' => $importYear]));
 
-            return $this->redirectToRoute('holiday_public_holidays', [
-                'year' => $importYear,
-                'group' => $group->getId(),
-            ]);
+                return $this->formSuccess($request, 'holiday_public_holidays', ['year' => $importYear, 'group' => $group->getId()]);
+            } catch (\InvalidArgumentException|\RuntimeException $e) {
+                $key = $this->errorKey($e) ?? 'holiday.error.ics_fetch_failed';
+                $field = $key === 'holiday.error.ics_invalid_url' ? 'customUrl' : null;
+                $error = new FormError($this->translator->trans($key, [], 'flashmessages'));
+                $field !== null ? $form->get($field)->addError($error) : $form->addError($error);
+            }
         }
 
-        $page = new PageSetup('menu.public_holidays');
-
-        return $this->render('@Holiday/public_holiday/index.html.twig', [
-            'page_setup' => $page,
-            'year' => $year,
-            'groups' => $groups,
-            'group' => $group,
-            'holidays' => $holidays,
-            'group_form' => $groupForm->createView(),
-            'holiday_form' => $holidayForm->createView(),
-            'import_form' => $importForm->createView(),
-        ]);
+        return $this->renderModalForm($form, 'holiday.public_holiday.import', $this->generateUrl('holiday_public_holidays', ['year' => $year, 'group' => $group->getId()]), $group->getName(), 'import');
     }
 
     #[Route(path: '/group/{id}/sync', name: 'holiday_public_holiday_group_sync', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function syncGroup(Request $request, PublicHolidayGroup $group): Response
     {
         $this->assertCsrf($request);
+        $parameters = ['year' => $this->validYear($request), 'group' => $group->getId()];
+
         try {
             $count = $this->importer->sync($group);
-            $this->addFlash('success', $this->translator->trans('holiday.sync_success', ['%count%' => $count]));
-        } catch (\Throwable $e) {
-            $this->flashError($e->getMessage());
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            $message = $this->translator->trans($this->errorKey($e) ?? 'holiday.error.ics_fetch_failed', [], 'flashmessages');
+
+            return $this->actionResult($request, $message, null, 'holiday_public_holidays', $parameters, 422);
         }
 
-        return $this->redirectToRoute('holiday_public_holidays', [
-            'year' => $group->getIcsFromYear() ?? (int) date('Y'),
-            'group' => $group->getId(),
+        return $this->actionResult($request, $this->translator->trans('holiday.sync_success', ['%count%' => $count]), null, 'holiday_public_holidays', $parameters);
+    }
+
+    #[Route(path: '/holiday/{id}/delete', name: 'holiday_public_holiday_delete', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function deleteHoliday(Request $request, PublicHoliday $holiday): Response
+    {
+        $parameters = ['year' => (int) $holiday->getDate()?->format('Y'), 'group' => $holiday->getHolidayGroup()?->getId()];
+
+        if ($request->isMethod('POST')) {
+            $this->assertCsrf($request);
+            $this->holidayRepository->remove($holiday);
+            $this->flashSuccess('action.delete.success');
+
+            return $this->formSuccess($request, 'holiday_public_holidays', $parameters);
+        }
+
+        return $this->renderDelete(
+            $this->generateUrl('holiday_public_holiday_delete', ['id' => $holiday->getId()]),
+            $holiday,
+            'holiday.public_holiday.delete_message',
+            $this->generateUrl('holiday_public_holidays', $parameters)
+        );
+    }
+
+    #[Route(path: '/group/{id}/delete', name: 'holiday_public_holiday_group_delete', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function deleteGroup(Request $request, PublicHolidayGroup $group): Response
+    {
+        if ($request->isMethod('POST')) {
+            $this->assertCsrf($request);
+            $this->groupRepository->remove($group);
+            $this->flashSuccess('action.delete.success');
+
+            return $this->formSuccess($request, 'holiday_public_holidays');
+        }
+
+        return $this->renderDelete(
+            $this->generateUrl('holiday_public_holiday_group_delete', ['id' => $group->getId()]),
+            $group,
+            'holiday.public_holiday.delete_group_message',
+            $this->generateUrl('holiday_public_holidays', ['group' => $group->getId()])
+        );
+    }
+
+    private function createModalForm(string $type, mixed $data, string $action, array $options = []): FormInterface
+    {
+        return $this->createForm($type, $data, array_merge([
+            'action' => $action,
+            'method' => 'POST',
+            'attr' => ['data-form-event' => AbsenceController::UPDATE_EVENT],
+        ], $options));
+    }
+
+    private function renderModalForm(FormInterface $form, string $title, string $back, ?string $context = null, string $submit = 'action.save'): Response
+    {
+        $page = new PageSetup($title);
+        $page->setHelp($this->helpUrl('public-holidays'));
+
+        $title = $this->translator->trans($title);
+
+        return $this->render('@Holiday/public_holiday/form.html.twig', [
+            'page_setup' => $page,
+            'form' => $form->createView(),
+            'title' => $context !== null ? $title . ' · ' . $context : $title,
+            'back' => $back,
+            'submit' => $submit,
         ]);
     }
 
-    #[Route(path: '/holiday/{id}/delete', name: 'holiday_public_holiday_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function deleteHoliday(Request $request, PublicHoliday $holiday): Response
+    private function renderDelete(string $action, PublicHoliday|PublicHolidayGroup $subject, string $message, string $back): Response
     {
-        $this->assertCsrf($request);
-        $groupId = $holiday->getHolidayGroup()?->getId();
-        $year = (int) $holiday->getDate()?->format('Y');
-        $this->holidayRepository->remove($holiday);
-        $this->flashSuccess('action.delete.success');
+        $form = $this->container->get('form.factory')->createNamed('', FormType::class, null, [
+            'action' => $action,
+            'method' => 'POST',
+            'csrf_field_name' => '_token',
+            'csrf_token_id' => self::CSRF_ID,
+            'attr' => ['data-form-event' => AbsenceController::UPDATE_EVENT],
+        ]);
 
-        return $this->redirectToRoute('holiday_public_holidays', ['year' => $year, 'group' => $groupId]);
+        $page = new PageSetup('holiday.menu.public_holidays');
+        $page->setHelp($this->helpUrl('public-holidays'));
+
+        return $this->render('@Holiday/public_holiday/delete.html.twig', [
+            'page_setup' => $page,
+            'form' => $form->createView(),
+            'subject' => $subject,
+            'message' => $message,
+            'back' => $back,
+        ]);
     }
 
-    #[Route(path: '/group/{id}/delete', name: 'holiday_public_holiday_group_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function deleteGroup(Request $request, PublicHolidayGroup $group): Response
+    private function validYear(Request $request): int
     {
-        $this->assertCsrf($request);
-        $this->groupRepository->remove($group);
-        $this->flashSuccess('action.delete.success');
+        $year = $request->query->getInt('year');
 
-        return $this->redirectToRoute('holiday_public_holidays');
+        return $year >= 1000 && $year <= 9999 ? $year : (int) date('Y');
+    }
+
+    private function assertCsrf(Request $request): void
+    {
+        if (!$this->isCsrfTokenValid(self::CSRF_ID, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
     }
 }

@@ -1,70 +1,82 @@
 {% extends 'base.html.twig' %}
+{% import '@Holiday/_kit/macros.html.twig' as kit %}
 
-{% block page_content %}
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <h2 class="mb-0">{{ 'menu.absence_calendar'|trans }} — {{ year }}</h2>
-        <div>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ path('holiday_absence_calendar', {year: year - 1, team: selected_team ?: null}) }}">&laquo; {{ year - 1 }}</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ path('holiday_absence_calendar', {year: year + 1, team: selected_team ?: null}) }}">{{ year + 1 }} &raquo;</a>
+{% block stylesheets %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Holiday/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% set period_label = month is null ? year : month_date|month_name(true) %}
+
+{% block page_intro %}
+    {{ kit.context_line([selected_team ? selected_team.name : null, period_label]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        {{ kit.period_nav(['month', 'year'], period.unit, period_label, period.prev, period.next, period.today, period.units) }}
+        {% if team_form is not null %}
+            {{ form_start(team_form, {attr: {class: 'holiday-filter', 'data-holiday-autosubmit': '1'}}) }}
+                {{ form_widget(team_form.team) }}
+            {{ form_end(team_form) }}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block main %}
+    <div class="card mb-3">
+        <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3 text-body-secondary">
+            {% for item in type_legend %}
+                <span class="text-nowrap"><i class="{{ item.icon|icon }} fa-fw" aria-hidden="true"></i> {{ item.label|trans }}</span>
+            {% endfor %}
+            <span class="text-nowrap"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i> {{ kit.status_badge('approved') }}</span>
+            <span class="text-nowrap"><span class="opacity-50"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('requested') }}</span>
         </div>
     </div>
 
-    {% if teams is not empty %}
-        <form method="get" class="mb-3">
-            <label class="me-1">{{ 'label.team'|trans }}</label>
-            <select name="team" class="form-select w-auto d-inline-block" onchange="this.form.submit()">
-                <option value="0">—</option>
-                {% for t in teams %}
-                    <option value="{{ t.id }}" {% if selected_team == t.id %}selected{% endif %}>{{ t.name }}</option>
-                {% endfor %}
-            </select>
-        </form>
-    {% endif %}
-
-    <p class="text-muted small mb-3">
-        {% for item in type_legend %}
-            <span class="me-3">
-                <i class="{{ item.icon|icon }}"></i>
-                {{ item.label|trans }}
-            </span>
-        {% endfor %}
-    </p>
-
-    {% for monthNum, month in months %}
+    {% for monthNum, m in months %}
         <div class="card mb-3">
-            <div class="card-header">{{ month.date|month_name }} {{ year }}</div>
-            <div class="card-body p-0 table-responsive">
-                <table class="table table-bordered table-sm mb-0 absence-calendar-month">
-                    <thead>
-                        <tr>
-                            <th class="text-nowrap">{{ 'label.user'|trans }}</th>
-                            {% for day in 1..month.daysInMonth %}
-                                <th class="text-center px-1">{{ day }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in month.grid %}
+            <div class="card-header">
+                <h3 class="card-title">
+                    {% if month is null %}
+                        <a class="text-reset" href="{{ path('holiday_absence_calendar_month', {year: year, month: monthNum, team: selected_team ? selected_team.id : null}) }}">{{ m.date|month_name(true) }}</a>
+                    {% else %}
+                        {{ m.date|month_name(true) }}
+                    {% endif %}
+                </h3>
+            </div>
+            {% if m.grid is empty %}
+                <div class="card-body">
+                    {{ kit.empty_state('holiday.calendar.no_users'|trans) }}
+                </div>
+            {% else %}
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-bordered table-sm mb-0 holiday-calendar">
+                        <thead>
                             <tr>
-                                <td class="text-nowrap">{{ row.user.displayName }}</td>
-                                {% for day in 1..month.daysInMonth %}
-                                    <td class="text-center align-middle px-0">
-                                        {% if row.days[day] is defined %}
-                                            {% for entry in row.days[day] %}
-                                                <i class="{{ entry.icon|icon }} fa-xs" title="{{ entry.label|trans }}"></i>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </td>
+                                <th class="text-nowrap">{{ 'user'|trans }}</th>
+                                {% for day in 1..m.daysInMonth %}
+                                    <th class="text-center px-1{% if m.weekend[day] %} bg-secondary-lt{% endif %}">{{ day }}</th>
                                 {% endfor %}
                             </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="{{ month.daysInMonth + 1 }}" class="text-muted">{{ 'absence.empty'|trans }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {% for row in m.grid %}
+                                <tr>
+                                    <td class="text-nowrap">{{ row.user.displayName }}</td>
+                                    {% for day in 1..m.daysInMonth %}
+                                        <td class="text-center align-middle px-0{% if m.weekend[day] %} bg-secondary-lt{% endif %}">
+                                            {% for entry in row.days[day] ?? [] %}
+                                                {% set title = entry.label|trans ~ ' · ' ~ (entry.requested ? 'kpu.status.requested' : 'kpu.status.approved')|trans({}, 'kpu') %}
+                                                <span class="{{ entry.requested ? 'opacity-50' : '' }}" data-toggle="tooltip" title="{{ title }}" aria-label="{{ title }}"><i class="{{ entry.icon|icon }} fa-xs"></i></span>
+                                            {% endfor %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
         </div>
     {% endfor %}
 {% endblock %}

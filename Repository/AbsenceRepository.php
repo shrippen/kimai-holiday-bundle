@@ -83,6 +83,32 @@ class AbsenceRepository extends ServiceEntityRepository
     }
 
     /**
+     * Approved and requested absences of the users in the date range (absence calendar).
+     *
+     * @param User[] $users
+     * @return Absence[]
+     */
+    public function findVisibleForUsersBetween(array $users, \DateTimeInterface $from, \DateTimeInterface $to): array
+    {
+        if ($users === []) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.user IN (:users)')
+            ->andWhere('a.status IN (:status)')
+            ->andWhere('a.startDate <= :to')
+            ->andWhere('a.endDate >= :from')
+            ->setParameter('users', $users)
+            ->setParameter('status', [AbsenceStatus::APPROVED->value, AbsenceStatus::REQUESTED->value])
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('a.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Absences of the user (not rejected) that overlap the given date range.
      *
      * @return Absence[]

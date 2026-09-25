@@ -43,7 +43,7 @@ class CalendarFeedController extends AbstractController
         foreach ($all as $absence) {
             $title = $this->translator->trans($absence->getType()->label());
             if ($absence->getStatus() === AbsenceStatus::REQUESTED) {
-                $title .= ' (' . $this->translator->trans('absence.status.requested') . ')';
+                $title .= ' (' . $this->translator->trans('holiday.absence.status.requested') . ')';
             }
 
             $part = 0;

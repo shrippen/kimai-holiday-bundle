@@ -14,79 +14,71 @@
         <source>holiday.error.timesheet_non_workday</source>
         <target>Zeiteinträge sind auf vertragliche Arbeitstage beschränkt.</target>
       </trans-unit>
-      <trans-unit id="h003" resname="action.update.success">
-        <source>action.update.success</source>
-        <target>Erfolgreich gespeichert</target>
-      </trans-unit>
-      <trans-unit id="h004" resname="action.delete.success">
-        <source>action.delete.success</source>
-        <target>Erfolgreich gelöscht</target>
-      </trans-unit>
-      <trans-unit id="h005" resname="holiday.error.ics_unknown_catalog">
+      <trans-unit id="h003" resname="holiday.error.ics_unknown_catalog">
         <source>holiday.error.ics_unknown_catalog</source>
         <target>Unbekannter Feiertagskalender.</target>
       </trans-unit>
-      <trans-unit id="h006" resname="holiday.error.ics_invalid_url">
+      <trans-unit id="h004" resname="holiday.error.ics_invalid_url">
         <source>holiday.error.ics_invalid_url</source>
         <target>ICS-URL muss mit http:// oder https:// beginnen.</target>
       </trans-unit>
-      <trans-unit id="h007" resname="holiday.error.ics_source_required">
+      <trans-unit id="h005" resname="holiday.error.ics_source_required">
         <source>holiday.error.ics_source_required</source>
         <target>Bitte einen Feiertagskalender wählen oder eine eigene ICS-URL angeben.</target>
       </trans-unit>
-      <trans-unit id="h008" resname="holiday.error.ics_fetch_failed">
+      <trans-unit id="h006" resname="holiday.error.ics_fetch_failed">
         <source>holiday.error.ics_fetch_failed</source>
         <target>ICS-Kalender konnte nicht geladen oder gelesen werden.</target>
       </trans-unit>
-      <trans-unit id="h009" resname="holiday.error.ics_url_required">
+      <trans-unit id="h007" resname="holiday.error.ics_url_required">
         <source>holiday.error.ics_url_required</source>
         <target>Bitte eine eigene ICS-URL eingeben.</target>
       </trans-unit>
-      <trans-unit id="h010" resname="holiday.error.ics_no_subscription">
+      <trans-unit id="h008" resname="holiday.error.ics_no_subscription">
         <source>holiday.error.ics_no_subscription</source>
         <target>Diese Feiertagsgruppe hat keine ICS-Subscription. Zuerst einen Kalender importieren.</target>
       </trans-unit>
-      <trans-unit id="h011" resname="absence.edit.reapproval">
-        <source>absence.edit.reapproval</source>
+      <trans-unit id="h009" resname="holiday.absence.edit.reapproval">
+        <source>holiday.absence.edit.reapproval</source>
         <target>Abwesenheit aktualisiert. Sie muss erneut freigegeben werden, bevor sie zählt.</target>
       </trans-unit>
-      <trans-unit id="h012" resname="absence.ics.regenerated">
-        <source>absence.ics.regenerated</source>
+      <trans-unit id="h010" resname="holiday.absence.ics.regenerated">
+        <source>holiday.absence.ics.regenerated</source>
         <target>Kalender-Link neu erzeugt. Bestehende Abonnements mit der neuen URL aktualisieren.</target>
       </trans-unit>
-      <trans-unit id="h013" resname="holiday.error.invalid_date">
+      <trans-unit id="h011" resname="holiday.error.invalid_date">
         <source>holiday.error.invalid_date</source>
         <target>Ungültiges Datum. Format JJJJ-MM-TT verwenden.</target>
       </trans-unit>
-      <trans-unit id="h014" resname="holiday.error.end_before_start">
+      <trans-unit id="h012" resname="holiday.error.end_before_start">
         <source>holiday.error.end_before_start</source>
         <target>Das Enddatum darf nicht vor dem Startdatum liegen.</target>
       </trans-unit>
-      <trans-unit id="h015" resname="holiday.error.range_too_long">
+      <trans-unit id="h013" resname="holiday.error.range_too_long">
         <source>holiday.error.range_too_long</source>
         <target>Eine Abwesenheit darf höchstens ein Jahr umfassen.</target>
       </trans-unit>
-      <trans-unit id="h016" resname="holiday.error.invalid_duration">
+      <trans-unit id="h014" resname="holiday.error.invalid_duration">
         <source>holiday.error.invalid_duration</source>
         <target>Die Dauer muss zwischen 0 und 24 Stunden liegen.</target>
       </trans-unit>
-      <trans-unit id="h017" resname="holiday.error.overlap">
+      <trans-unit id="h015" resname="holiday.error.overlap">
         <source>holiday.error.overlap</source>
         <target>Diese Abwesenheit überschneidet sich mit einer bestehenden Abwesenheit.</target>
       </trans-unit>
-      <trans-unit id="h018" resname="holiday.error.not_requested">
+      <trans-unit id="h016" resname="holiday.error.not_requested">
         <source>holiday.error.not_requested</source>
         <target>Nur beantragte Abwesenheiten können genehmigt oder abgelehnt werden.</target>
       </trans-unit>
-      <trans-unit id="h019" resname="holiday.error.invalid_type">
+      <trans-unit id="h017" resname="holiday.error.invalid_type">
         <source>holiday.error.invalid_type</source>
         <target>Unbekannte Abwesenheitsart.</target>
       </trans-unit>
-      <trans-unit id="h020" resname="holiday.error.invalid_json">
+      <trans-unit id="h018" resname="holiday.error.invalid_json">
         <source>holiday.error.invalid_json</source>
         <target>Ungültiger JSON-Request.</target>
       </trans-unit>
-      <trans-unit id="h021" resname="holiday.error.invalid_comment">
+      <trans-unit id="h019" resname="holiday.error.invalid_comment">
         <source>holiday.error.invalid_comment</source>
         <target>Der Kommentar muss ein Text sein.</target>
       </trans-unit>

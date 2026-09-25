@@ -147,7 +147,7 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                 if ($hasPublicHoliday && $expected > 0) {
                     $ph = $publicHolidays[$key];
                     $phSeconds = $ph->isHalfDay() ? (int) floor($expected / 2) : $expected;
-                    $title = $ph->getName() ?? $this->translator->trans('menu.public_holidays', [], 'messages');
+                    $title = $ph->getName() ?? $this->translator->trans('holiday.menu.public_holidays', [], 'messages');
                     $mode = $this->configuration->getPublicHolidayCalculationMode();
 
                     if ($isFuture) {

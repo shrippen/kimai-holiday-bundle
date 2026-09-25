@@ -21,7 +21,7 @@ enum AbsenceType: string
     /** Translation key for this type. */
     public function label(): string
     {
-        return 'absence.type.' . $this->value;
+        return 'holiday.absence.type.' . $this->value;
     }
 
     /**

@@ -37,8 +37,8 @@ class UserContractTypeExtension extends AbstractTypeExtension
 
         $builder
             ->add('holidaysPerYear', NumberType::class, [
-                'label' => 'contract.vacation_days',
-                'help' => 'contract.vacation_days_help',
+                'label' => 'holiday.contract.vacation_days',
+                'help' => 'holiday.contract.vacation_days_help',
                 'required' => false,
                 'scale' => 1,
                 'html5' => true,
@@ -49,20 +49,20 @@ class UserContractTypeExtension extends AbstractTypeExtension
                 ],
             ])
             ->add('publicHolidayGroup', ChoiceType::class, [
-                'label' => 'contract.public_holiday_group',
-                'help' => 'contract.public_holiday_group_help',
+                'label' => 'holiday.contract.public_holiday_group',
+                'help' => 'holiday.contract.public_holiday_group_help',
                 'required' => false,
                 'placeholder' => '',
                 'choices' => $groupChoices,
                 'translation_domain' => 'messages',
             ])
             ->add('workStartingDay', DatePickerType::class, [
-                'label' => 'contract.start_date',
+                'label' => 'holiday.contract.start_date',
                 'required' => false,
                 'translation_domain' => 'messages',
             ])
             ->add('lastWorkingDay', DatePickerType::class, [
-                'label' => 'contract.end_date',
+                'label' => 'holiday.contract.end_date',
                 'required' => false,
                 'translation_domain' => 'messages',
             ]);

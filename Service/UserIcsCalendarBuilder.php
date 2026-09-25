@@ -41,7 +41,7 @@ class UserIcsCalendarBuilder
             'METHOD:PUBLISH',
             $this->fold('X-WR-CALNAME:' . $this->escapeText(sprintf(
                 '%s — %s',
-                $this->t('absence.ics.calendar_name', $locale),
+                $this->t('holiday.absence.ics.calendar_name', $locale),
                 $user->getDisplayName()
             ))),
         ];
@@ -98,9 +98,9 @@ class UserIcsCalendarBuilder
 
         $start = $date->format('Ymd');
         $end = $date->modify('+1 day')->format('Ymd');
-        $summary = $holiday->getName() ?: $this->t('menu.public_holidays', $locale);
+        $summary = $holiday->getName() ?: $this->t('holiday.menu.public_holidays', $locale);
         if ($holiday->isHalfDay()) {
-            $summary .= ' (' . $this->t('public_holiday.half_day', $locale) . ')';
+            $summary .= ' (' . $this->t('holiday.public_holiday.half_day', $locale) . ')';
         }
 
         return $this->vevent(
@@ -118,7 +118,7 @@ class UserIcsCalendarBuilder
     {
         $summary = $this->t($absence->getType()->label(), $locale);
         if ($absence->isHalfDay()) {
-            $summary .= ' (' . $this->t('absence.half_day', $locale) . ')';
+            $summary .= ' (' . $this->t('holiday.absence.half_day', $locale) . ')';
         }
         // Comments may contain personal details; never publish them for sickness absences.
         $description = \in_array($absence->getType(), [AbsenceType::SICKNESS, AbsenceType::SICKNESS_RELATIVE], true)

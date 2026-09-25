@@ -38,7 +38,7 @@ class MenuSubscriber implements EventSubscriberInterface
             }
 
             if ($contract->getChild('holiday_absence') === null) {
-                $absence = new MenuItemModel('holiday_absence', 'menu.absence', 'holiday_absence', [], 'fas fa-umbrella-beach');
+                $absence = new MenuItemModel('holiday_absence', 'holiday.menu.absence', 'holiday_absence', [], 'holiday');
                 $absence->setTranslationDomain('messages');
                 $contract->addChild($absence);
             }
@@ -47,7 +47,7 @@ class MenuSubscriber implements EventSubscriberInterface
         if ($this->security->isGranted('absence')) {
             $reporting = $event->getReportingMenu();
             if ($reporting !== null && $reporting->getChild('absence_calendar_report') === null) {
-                $item = new MenuItemModel('absence_calendar_report', 'menu.absence_calendar', 'holiday_absence_calendar', [], 'fas fa-calendar-week');
+                $item = new MenuItemModel('absence_calendar_report', 'holiday.menu.absence_calendar', 'holiday_absence_calendar', [], 'calendar');
                 $item->setTranslationDomain('messages');
                 $reporting->addChild($item);
             }
@@ -56,7 +56,7 @@ class MenuSubscriber implements EventSubscriberInterface
         if ($this->security->isGranted('edit_public_holidays')) {
             $admin = $event->getAdminMenu();
             if ($admin->getChild('public_holidays') === null) {
-                $item = new MenuItemModel('public_holidays', 'menu.public_holidays', 'holiday_public_holidays', [], 'fas fa-calendar-day');
+                $item = new MenuItemModel('public_holidays', 'holiday.menu.public_holidays', 'holiday_public_holidays', [], 'public-holiday');
                 $item->setTranslationDomain('messages');
                 $admin->addChild($item);
             }

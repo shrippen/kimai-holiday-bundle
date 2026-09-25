@@ -17,28 +17,28 @@ class PublicHolidayImportType extends AbstractType
     {
         $catalogChoices = $options['catalog_choices'];
         $choices = array_merge(
-            ['public_holiday.ics.custom' => 'custom'],
+            ['holiday.public_holiday.ics.custom' => 'custom'],
             $catalogChoices
         );
 
         $builder
             ->add('source', ChoiceType::class, [
-                'label' => 'public_holiday.ics_source',
+                'label' => 'holiday.public_holiday.ics_source',
                 'choices' => $choices,
                 'choice_translation_domain' => 'messages',
-                'help' => 'public_holiday.ics_source_help',
+                'help' => 'holiday.public_holiday.ics_source_help',
             ])
             ->add('customUrl', TextType::class, [
-                'label' => 'public_holiday.ics_url',
+                'label' => 'holiday.public_holiday.ics_url',
                 'required' => false,
-                'help' => 'public_holiday.ics_url_help',
+                'help' => 'holiday.public_holiday.ics_url_help',
                 'attr' => [
                     'placeholder' => 'https://example.com/holidays.ics',
                 ],
             ])
             ->add('year', IntegerType::class, [
-                'label' => 'public_holiday.year',
-                'help' => 'public_holiday.year_help',
+                'label' => 'holiday.public_holiday.year',
+                'help' => 'holiday.public_holiday.year_help',
                 'data' => (int) date('Y'),
             ]);
     }

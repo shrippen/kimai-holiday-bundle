@@ -10,6 +10,6 @@ enum ManualBookingKind: string
     /** Translation key for this kind. */
     public function label(): string
     {
-        return 'booking.kind.' . $this->value;
+        return 'holiday.booking.kind.' . $this->value;
     }
 }

@@ -22,7 +22,8 @@ class HolidayExtension extends Extension implements PrependExtensionInterface
 
     public function prepend(ContainerBuilder $container): void
     {
-        // Prefer plugin templates over Kimai core (e.g. user/contract.html.twig).
+        // Prefer plugin templates over Kimai core: only contract/status.html.twig is overridden (future days with
+        // absences/public holidays). Plugin templates are addressed as @Holiday/... everywhere else.
         $container->prependExtensionConfig('twig', [
             'paths' => [
                 \dirname(__DIR__) . '/Resources/views' => null,

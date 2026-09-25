@@ -147,10 +147,13 @@ class ContractController extends AbstractController
             ]);
         }
 
-        $page = new PageSetup('booking.create');
+        $page = new PageSetup('holiday.booking.create');
+        $page->setActionName('holiday_booking');
+        $page->setHelp('https://github.com/shrippen/kimai-holiday-bundle/blob/main/README.md#manual-bookings');
 
         return $this->render('@Holiday/contract/booking.html.twig', [
             'page_setup' => $page,
+            'back' => $this->generateUrl('user_contract', array_filter(['user' => $user === $this->getUser() ? null : $user->getId()])),
             'form' => $form->createView(),
             'target_user' => $user,
         ]);

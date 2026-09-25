@@ -91,6 +91,14 @@
         <source>kpu.toast.undone</source>
         <target>Aktion rückgängig gemacht.</target>
       </trans-unit>
+      <trans-unit id="kpu022" resname="kpu.status.warning">
+        <source>kpu.status.warning</source>
+        <target>Warnung</target>
+      </trans-unit>
+      <trans-unit id="kpu023" resname="kpu.bulk.select_group">
+        <source>kpu.bulk.select_group</source>
+        <target>%name% auswählen</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

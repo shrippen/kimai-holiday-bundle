@@ -86,7 +86,7 @@ class PublicHolidayController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->groupRepository->save($group);
 
-            return $this->formSuccess($request, 'holiday_public_holidays', ['group' => $group->getId()]);
+            return $this->formSuccess($request, 'holiday_public_holidays', ['group' => $group->getId()], false);
         }
 
         return $this->renderModalForm($form, 'holiday.public_holiday.create_group', $this->generateUrl('holiday_public_holidays'));
@@ -110,7 +110,7 @@ class PublicHolidayController extends AbstractController
             return $this->formSuccess($request, 'holiday_public_holidays', [
                 'year' => (int) $holiday->getDate()?->format('Y'),
                 'group' => $group->getId(),
-            ]);
+            ], false);
         }
 
         return $this->renderModalForm($form, 'holiday.public_holiday.create', $this->generateUrl('holiday_public_holidays', ['year' => $year, 'group' => $group->getId()]), $group->getName());
@@ -139,7 +139,7 @@ class PublicHolidayController extends AbstractController
                 );
                 $this->addFlash('kpu_result', $this->translator->trans('holiday.import_success', ['%count%' => $count, '%year%' => $importYear]));
 
-                return $this->formSuccess($request, 'holiday_public_holidays', ['year' => $importYear, 'group' => $group->getId()]);
+                return $this->formSuccess($request, 'holiday_public_holidays', ['year' => $importYear, 'group' => $group->getId()], false);
             } catch (\InvalidArgumentException|\RuntimeException $e) {
                 $key = $this->errorKey($e) ?? 'holiday.error.ics_fetch_failed';
                 $field = $key === 'holiday.error.ics_invalid_url' ? 'customUrl' : null;
@@ -197,7 +197,7 @@ class PublicHolidayController extends AbstractController
             $this->groupRepository->remove($group);
             $this->flashSuccess('action.delete.success');
 
-            return $this->formSuccess($request, 'holiday_public_holidays');
+            return $this->formSuccess($request, 'holiday_public_holidays', [], false);
         }
 
         return $this->renderDelete(

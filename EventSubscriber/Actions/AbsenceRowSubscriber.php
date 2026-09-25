@@ -44,23 +44,23 @@ final class AbsenceRowSubscriber extends AbstractActionsSubscriber
 
         if ($absence->getStatus() === AbsenceStatus::REQUESTED && $this->permissions->canApprove($absence)) {
             $token = $this->csrfTokenManager->getToken(AbsenceController::CSRF_ACTION)->getValue();
-            // Reversible: runs immediately, the result toast offers "Undo" (see _scripts.html.twig)
+            // Reversible: kit.js runs it immediately (data-kpu-post), the result toast offers "Undo"
             $event->addAction('success', [
                 'url' => '#',
                 'title' => 'approve',
                 'attr' => [
-                    'data-holiday-post' => $this->path('holiday_absence_bulk_approve'),
-                    'data-token' => $token,
-                    'data-ids' => (string) $absence->getId(),
+                    'data-kpu-post' => $this->path('holiday_absence_bulk_approve'),
+                    'data-kpu-token' => $token,
+                    'data-kpu-ids' => (string) $absence->getId(),
                 ],
             ]);
             $event->addAction('rejected', [
                 'url' => '#',
                 'title' => 'reject',
                 'attr' => [
-                    'data-holiday-post' => $this->path('holiday_absence_bulk_reject'),
-                    'data-token' => $token,
-                    'data-ids' => (string) $absence->getId(),
+                    'data-kpu-post' => $this->path('holiday_absence_bulk_reject'),
+                    'data-kpu-token' => $token,
+                    'data-kpu-ids' => (string) $absence->getId(),
                 ],
             ]);
         }

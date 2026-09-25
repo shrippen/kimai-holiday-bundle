@@ -57,8 +57,8 @@ final class PublicHolidayPageSubscriber extends AbstractActionsSubscriber
                     'title' => 'holiday.public_holiday.sync',
                     'translation_domain' => 'messages',
                     'attr' => [
-                        'data-holiday-post' => $this->path('holiday_public_holiday_group_sync', ['id' => $group->getId(), 'year' => $year]),
-                        'data-token' => $this->csrfTokenManager->getToken(PublicHolidayController::CSRF_ID)->getValue(),
+                        'data-kpu-post' => $this->path('holiday_public_holiday_group_sync', ['id' => $group->getId(), 'year' => $year]),
+                        'data-kpu-token' => $this->csrfTokenManager->getToken(PublicHolidayController::CSRF_ID)->getValue(),
                     ],
                 ]);
             }

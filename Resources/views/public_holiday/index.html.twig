@@ -22,7 +22,7 @@
 
 {% block main %}
     {% if groups is empty %}
-        {{ kit.empty_state('holiday.public_holiday.create_group_first'|trans, path('holiday_public_holiday_group_create'), 'holiday.public_holiday.create_group'|trans) }}
+        {{ kit.empty_state('holiday.public_holiday.create_group_first'|trans, path('holiday_public_holiday_group_create'), 'holiday.public_holiday.create_group'|trans, 'modal-ajax-form') }}
     {% else %}
     <div class="row row-cards">
         <div class="col-md-4">
@@ -53,7 +53,8 @@
                 {{ kit.empty_state(
                     'holiday.public_holiday.empty'|trans({'%year%': year}),
                     path('holiday_public_holiday_import', {id: group.id, year: year}),
-                    'holiday.public_holiday.import'|trans
+                    'holiday.public_holiday.import'|trans,
+                    'modal-ajax-form'
                 ) }}
             {% else %}
                 {% set columns = {

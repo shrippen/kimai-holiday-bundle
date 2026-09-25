@@ -33,17 +33,22 @@ trait HolidayUiTrait
     }
 
     /**
-     * After a successful modal form: answer without a redirect, so the flash messages survive until the page
-     * reloads (a followed redirect would render and consume them inside the modal request). Kimai's modal
-     * plugin treats a response without form as success, fires the form's data-form-event and closes the modal.
+     * Answer after a successful form whose result may set a kpu_result callout (kimai-plugin-ui GUIDELINES 3.6,
+     * README "kpuFormSuccess"). A normal 302 would be followed inside Kimai's modal fetch and consume the flash.
+     *
+     * keepUrl = true : empty 200 in the modal; Kimai closes it and fires the form's data-form-event "kpu.reload"
+     *                  (see modalFormOptions()), kit.js reloads the current page (filters and period stay).
+     * keepUrl = false: 201 + x-modal-redirect (redirectToRouteAfterCreate), Kimai loads $route (e.g. the year or
+     *                  group of the created entry).
+     * Without modal (plain page) always a redirect to $route.
      */
-    private function formSuccess(Request $request, string $route, array $parameters = []): Response
+    private function formSuccess(Request $request, string $route, array $parameters = [], bool $keepUrl = true): Response
     {
-        if ($this->isModalRequest($request)) {
-            return new Response('');
+        if (!$this->isModalRequest($request)) {
+            return $this->redirectToRoute($route, $parameters);
         }
 
-        return $this->redirectToRoute($route, $parameters);
+        return $keepUrl ? new Response('') : $this->redirectToRouteAfterCreate($route, $parameters);
     }
 
     /**

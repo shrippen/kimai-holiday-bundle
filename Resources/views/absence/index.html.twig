@@ -71,7 +71,8 @@
         {{ kit.empty_state(
             'holiday.absence.empty_year'|trans({'%year%': year}),
             can_create ? path('holiday_absence_create', {user: user_param}) : null,
-            can_create ? 'holiday.absence.create'|trans : null
+            can_create ? 'holiday.absence.create'|trans : null,
+            'modal-ajax-form'
         ) }}
     {% else %}
         {{ parent() }}

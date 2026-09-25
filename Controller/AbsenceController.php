@@ -38,8 +38,11 @@ class AbsenceController extends AbstractController
     use TargetUserTrait;
     use HolidayUiTrait;
 
-    /** Fired by the modal forms of this page; the page reloads on it (see _scripts.html.twig). */
-    public const UPDATE_EVENT = 'kimai.holidayUpdate';
+    /**
+     * data-form-event of the plugin's modal forms: kit.js reloads the page on it, so kpu_result callouts and
+     * KPI tiles are rendered fresh (kimai-plugin-ui GUIDELINES 3.6, "keep URL" variant of formSuccess()).
+     */
+    public const UPDATE_EVENT = 'kpu.reload';
     public const CSRF_ACTION = 'holiday_absence_action';
 
     public function __construct(
@@ -185,10 +188,11 @@ class AbsenceController extends AbstractController
             try {
                 $this->approvalService->create($absence, $this->getUser());
 
+                // show the year of the new absence
                 return $this->formSuccess($request, 'holiday_absence', [
                     'year' => (int) $absence->getStartDate()?->format('Y'),
                     'user' => $userParam,
-                ]);
+                ], false);
             } catch (\InvalidArgumentException|\RuntimeException $e) {
                 $this->addServiceError($form, $e);
             }

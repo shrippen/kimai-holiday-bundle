@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed (user interface)
+
+- All pages follow the kimai-plugin-ui guidelines and kit 0.1.0 (`Resources/views/_kit/`): Kimai page title with period and
+  context line, actions in the page header, period navigator, help button, dark mode and 390 px layouts
+- Absences: Kimai data table with status badges and row menu; create/edit/delete and the personal ICS calendar in Kimai
+  modals; bulk **Approve** / **Reject** with undo; vacation balance as KPI tiles (taken, requested, sick days, remaining);
+  user picker for approvers
+- Absence calendar: month view (`/holiday/absence-calendar/{year}/{month}` no longer redirects), month/year switch, team
+  picker, requested absences shown faded, weekends shaded
+- Public holidays: year navigator in the right order, readable active group, add/import/create group in modals, deletes
+  with Kimai confirmation, import and sync results shown on the page
+- Manual booking: Kimai form card; working times page: one absence menu with absences, manual booking and month PDFs
+- Success messages with information (import count, ICS link regenerated, re-approval) are shown as info callouts; errors
+  are translated messages instead of raw exception texts
+- Dates, numbers and days use Kimai's formatters (`date_short`, `amount`)
+
+### Changed (for integrators)
+
+- Translation keys are all prefixed with `holiday.` (e.g. `menu.absence` → `holiday.menu.absence`); the plugin no longer
+  overrides Kimai core keys (`action.save`, `action.close`, `action.delete`, `confirm.delete`, `yes`, `no`,
+  `action.update.success`, `action.delete.success`). English: "Time-Off" → "Time off in lieu", menu "Absence" → "Absences"
+- New routes: `holiday_absence_create`, `holiday_absence_ics`, `holiday_absence_bulk_approve`, `holiday_absence_bulk_reject`,
+  `holiday_absence_reopen` (undo), `holiday_public_holiday_group_create`, `holiday_public_holiday_create`,
+  `holiday_public_holiday_import`; `holiday_absence` and `holiday_public_holidays` are GET only; delete routes show a
+  confirmation on GET and delete on POST (same CSRF tokens as before)
+- Removed the template overrides `user/contract.html.twig` (Kimai renders the extra contract fields itself) and the unused
+  `contract/working_times.html.twig`; `contract/status.html.twig` is still overridden (one condition, see file)
+- `AbsenceApprovalService::request()` has an optional `$notify` argument (undo does not mail approvers again)
+
 ### Fixed
 
 - Absences with auto-created timesheets were credited twice in the working-time balance

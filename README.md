@@ -17,13 +17,13 @@ Open-source Kimai plugin for working hours, overtime, absences, and public holid
 - Extends **Profil → Arbeitsvertrag** with vacation days, public-holiday group, and contract start/end
 - Extends **Arbeitsvertrag / Arbeitszeiten** (adds **Abwesenheit** — no duplicate sidebar section)
 - Absences and public holidays in the core Arbeitszeiten year view (including known future days)
-- Absences: vacation (half-day), sickness (+ relative), Freizeitausgleich, other — approval workflow and email notifications
+- Absences: vacation (half-day), sickness (+ relative), time off in lieu (Freizeitausgleich), other — approval workflow with bulk approve/reject and undo, email notifications
 - Edit absences (resets approval when the type requires it)
-- Urlaubskonto on the absence page
+- Vacation balance (taken, requested, sick days, remaining) on the absence page
 - Per-user ICS calendar feed (public holidays + approved absences) for Outlook / Google / Apple
 - Public holiday groups, manual entry, ICS import (curated calendars + custom ICS URL) and sync
 - Absences & public holidays on the Kimai calendar
-- Absence calendar team report + CSV export
+- Absence calendar team report (year or month, requested vs. approved) + CSV export
 - System settings: calculation modes (compensate vs reduce), comment required, workday timesheet restriction, auto absence timesheets
 - REST API under `/api/holiday/...`
 
@@ -67,6 +67,54 @@ bin/console kimai:bundle:holiday:sync-ics
 Schedule that on the **host** if you want automatic updates (the official image has no cron).
 
 3. Assign permissions under **System → Roles** (section *Working Hours & Holidays*).
+
+## Usage
+
+### Absences
+
+**Employment contract → Absences** lists the absences of one user and year (`/holiday/absence/{year}`, `?user=` for other
+users you may access). The tiles at the top show vacation taken, vacation requested, sick days and the remaining vacation
+(entitlement from **Profile → Employment contract**).
+
+- **Create** opens the absence form in a modal. Vacation, time off in lieu and "other" absences start as *Requested*;
+  sickness is approved immediately.
+- Click a row (or **… → Edit**) to change an absence. Saving an approved absence that needs approval sets it back to
+  *Requested*.
+- Approvers select requested absences with the checkboxes and use **Approve** / **Reject** below the table, or the row menu.
+  Both run immediately; the notice offers **Undo**, which sets the absences back to *Requested*.
+- **… → Delete** asks for confirmation. Timesheets created for the absence are removed, exported ones are kept.
+- **Export** downloads the year as CSV.
+
+### Personal calendar (ICS)
+
+**Personal calendar (ICS)** on the absence page shows your subscription link (public holidays and approved absences) for
+Outlook, Google Calendar or Apple Calendar. **Regenerate link** makes the old link invalid.
+
+### Absence calendar
+
+**Reporting → Absence calendar** shows the absences of your teams per year or month (`/holiday/absence-calendar/{year}`
+or `/{year}/{month}`). Requested absences are shown faded, approved ones in full. Filter by team with the team picker.
+
+### Public holidays
+
+**Administration → Public holidays** manages public holiday groups. Select a group on the left, then add single holidays,
+import a calendar (curated ICS feeds or a custom HTTPS URL) or sync a subscribed group. The number of imported holidays
+is shown after the import.
+
+### Manual bookings
+
+**Employment contract → Working times**, absence menu (umbrella icon) next to the user picker → **Manual booking**, adds working time or vacation days to a user's balance. Bookings
+cannot be edited; book the opposite amount to correct a mistake. The same menu opens the month PDFs.
+
+## User interface
+
+The plugin pages follow the shared UI guidelines and kit for Kimai plugins
+([kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui), `GUIDELINES.md` and `CHECKLIST.md`): Kimai page header with
+actions, period navigator, Kimai data tables with row menu, status badges, KPI tiles, Kimai modals for forms and
+confirmations. The kit is copied to `Resources/views/_kit/` and `Resources/translations/kpu.*.xlf` with
+`kimai-plugin-ui/bin/sync.sh` and must not be edited here.
+
+Translation keys of this plugin all start with `holiday.`.
 
 ## Permissions
 

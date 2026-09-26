@@ -62,8 +62,8 @@
     {% set contract_url = (is_granted('contract_other_profile') or target_user == app.user) ? path('user_profile_contract', {username: target_user.userIdentifier}) : null %}
     {{ kit.kpi_bar([
         {label: 'holiday.kpi.vacation_taken'|trans, value: kpi.taken|amount, hint: 'days'|trans},
-        {label: 'holiday.kpi.vacation_requested'|trans, value: kpi.requested|amount, hint: 'days'|trans},
-        {label: 'holiday.kpi.sick_days'|trans, value: kpi.sick|amount, hint: 'days'|trans},
+        {label: 'holiday.kpi.vacation_requested'|trans, value: kpi.requested|amount, hint: 'days'|trans, tier: kpi.requested > 0 ? 1 : null},
+        {label: 'holiday.kpi.sick_days'|trans, value: kpi.sick|amount, hint: 'days'|trans, tier: kpi.sick > 0 ? 2 : null},
         {label: 'holiday.kpi.vacation_left'|trans, value: kpi.left|amount, hint: 'holiday.kpi.of_entitlement'|trans({'%days%': kpi.entitlement|amount}), highlight: true, url: contract_url},
     ]) }}
 

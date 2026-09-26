@@ -66,7 +66,7 @@
                 {{ tables.datatable_header('holiday_public_holidays', columns, null, {columnConfig: false, sticky: false}) }}
                     {% for h in holidays %}
                         <tr>
-                            <td class="{{ datatable_column_class('holiday_public_holidays', 'date') }} text-nowrap">{{ h.date|date_short }}</td>
+                            <td class="{{ datatable_column_class('holiday_public_holidays', 'date') }} text-nowrap kpu-num">{{ h.date|date_short }}</td>
                             <td class="{{ datatable_column_class('holiday_public_holidays', 'name') }}">{{ h.name }}</td>
                             <td class="{{ datatable_column_class('holiday_public_holidays', 'half_day') }}">{{ widgets.label_boolean(h.halfDay) }}</td>
                             <td class="{{ datatable_column_class('holiday_public_holidays', 'actions') }}">

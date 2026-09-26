@@ -43,9 +43,9 @@
         <i class="{{ entry.type.icon|icon }} fa-fw me-1" aria-hidden="true"></i>{{ entry.type.label|trans }}
     {% elseif column == 'period' %}
         <i class="{{ entry.type.icon|icon }} fa-fw me-1 d-md-none" title="{{ entry.type.label|trans }}"></i>
-        {{ entry.startDate|date_short }}{% if entry.endDate != entry.startDate %} – {{ entry.endDate|date_short }}{% endif %}
+        <span class="kpu-num">{{ entry.startDate|date_short }}{% if entry.endDate != entry.startDate %} – {{ entry.endDate|date_short }}{% endif %}</span>
     {% elseif column == 'days' %}
-        {{ (absence_days[entry.id] ?? 0)|amount }}
+        <span class="kpu-num">{{ (absence_days[entry.id] ?? 0)|amount }}</span>
     {% elseif column == 'half_day' %}
         {{ widgets.label_boolean(entry.halfDay) }}
     {% elseif column == 'comment' %}

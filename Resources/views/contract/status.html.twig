@@ -45,7 +45,7 @@
                     {% for summary in summaries %}
                         <tr>
                             <td>{{ summary.title|trans }}</td>
-                            <td class="text-end total">
+                            <td class="kpu-num text-end total">
                                 {% if summary.expectedTime > 0 %}
                                     {{ work_times_result(summary.expectedTime, summary.actualTime, decimal) }}
                                 {% else %}
@@ -60,7 +60,7 @@
                                 {% set monthTotalIsTmp = monthTotalIs[dateKey] + monthIs %}
                                 {% set monthTotalShould = monthTotalShould|merge({(dateKey): monthTotalShouldTmp}) %}
                                 {% set monthTotalIs = monthTotalIs|merge({(dateKey): monthTotalIsTmp}) %}
-                                <td class="text-end">
+                                <td class="kpu-num text-end">
                                     {% if now < month.month and monthShould > 0 %}
                                         {{ monthShould|duration(decimal) }}
                                     {% else %}
@@ -74,12 +74,12 @@
                     <tfoot>
                         <tr class="summary">
                             <td>{{ 'sum.total'|trans }}</td>
-                            <td class="text-end total">
+                            <td class="kpu-num text-end total">
                                 {{ work_times_result(summaries.expectedTime, summaries.actualTime, decimal) }}
                             </td>
                             {% for month in year.months %}
                                 {% set dateKey = '_' ~ month.month.format('m') %}
-                                <td class="text-end">
+                                <td class="kpu-num text-end">
                                     {{ work_times_result(monthTotalShould[dateKey], monthTotalIs[dateKey], decimal) }}
                                 </td>
                             {% endfor %}
@@ -147,13 +147,13 @@
                             <td class="text-nowrap w-min">
                                 {{ month.month|month_name }}
                             </td>
-                            <td class="text-end total w-min">
+                            <td class="kpu-num text-end total w-min">
                                 {{ work_times_result(monthShould, monthIs, decimal) }}
                             </td>
-                            <td class="text-end w-min">
+                            <td class="kpu-num text-end w-min">
                                 {{ monthShould|duration(decimal) }}
                             </td>
-                            <td class="text-end  w-min">
+                            <td class="kpu-num text-end  w-min">
                                 {{ monthIs|duration(decimal) }}
                             </td>
                             {% set dayCount = 0 %}
@@ -177,7 +177,7 @@
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}
-                                <td class="text-end contractDay text-nowrap{% if style is not null %} bg-{{ style }}{% endif %}"{% if statusTitle is not null %} data-toggle="tooltip" data-placement="top" title="{{ statusTitle }}"{% endif %}>
+                                <td class="kpu-num text-end contractDay text-nowrap{% if style is not null %} bg-{{ style }}{% endif %}"{% if statusTitle is not null %} data-toggle="tooltip" data-placement="top" title="{{ statusTitle }}"{% endif %}>
                                     {# HolidayBundle: also show future days that have absences / public holidays #}
                                     {% if day.hasAddons() or ((day.workingTime.expectedTime != 0 or day.workingTime.actualTime != 0) and (now > day.day or day.workingTime.actualTime > 0)) %}
                                         {% if style is not null and statusTitle is not null %}
@@ -210,13 +210,13 @@
                             <td></td>
                             {% endif %}
                             <td></td>
-                            <td class="text-end total">
+                            <td class="kpu-num text-end total">
                                 {{ work_times_result(yearShould, yearIs, decimal) }}
                             </td>
-                            <td class="text-end">
+                            <td class="kpu-num text-end">
                                 {{ yearShould|duration(decimal) }}
                             </td>
-                            <td class="text-end">
+                            <td class="kpu-num text-end">
                                 {{ yearIs|duration(decimal) }}
                             </td>
                             {% for day in 1..31 %}
@@ -250,7 +250,7 @@
                         <div class="datagrid-title">{{ day.date|day_name }}</div>
                         <div class="datagrid-content">
                             {% if day.duration is not null %}
-                                {{ day.duration|duration }}
+                                <span class="kpu-num">{{ day.duration|duration }}</span>
                             {% else %}
                                 &ndash;
                             {% endif %}

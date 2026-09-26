@@ -1,0 +1,11 @@
+# Not part of the plugin zip built by git archive (release workflow)
+/.gitea          export-ignore
+/.github         export-ignore
+/.gitattributes  export-ignore
+/.gitignore      export-ignore
+/agent.md        export-ignore
+/Design.md       export-ignore
+/SECURITY.md     export-ignore
+/TODO.md         export-ignore
+/UI-TODO.md      export-ignore
+/docs            export-ignore

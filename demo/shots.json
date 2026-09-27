@@ -1,0 +1,57 @@
+{
+  "kind": "web",
+  "group": "kimai",
+  "start": "{repo}/demo/kimai/reset.sh --lang {lang} --theme {theme} --port {port}",
+  "detach": true,
+  "stop": "{repo}/demo/kimai/reset.sh --down",
+  "ready": "http://127.0.0.1:{port}/en/login",
+  "base": "http://127.0.0.1:{port}",
+  "today": "real",
+  "timeout": 600,
+  "themes": [
+    "default",
+    "knust"
+  ],
+  "viewport": [
+    1440,
+    900
+  ],
+  "user": "mara",
+  "setup": [
+    {
+      "goto": "/{lang}/login"
+    },
+    {
+      "fill": "#username",
+      "value": "{user}"
+    },
+    {
+      "fill": "#password",
+      "value": "{password}"
+    },
+    {
+      "click": "form button[type=submit]"
+    },
+    {
+      "wait": "body.page-header-fixed, .page-wrapper"
+    }
+  ],
+  "shots": [
+    {
+      "name": "absences",
+      "url": "/{lang}/holiday/absence?user=3"
+    },
+    {
+      "name": "absence-calendar",
+      "url": "/{lang}/holiday/absence-calendar"
+    },
+    {
+      "name": "working-times",
+      "url": "/{lang}/holiday/working-times?user=3"
+    },
+    {
+      "name": "public-holidays",
+      "url": "/{lang}/holiday/public-holidays"
+    }
+  ]
+}

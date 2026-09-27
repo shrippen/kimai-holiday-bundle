@@ -7,6 +7,7 @@ services:
     KimaiPlugin\HolidayBundle\:
         resource: '../../*'
         exclude:
+            - '../../demo/'
             - '../../Migrations/'
             - '../../Resources/'
             - '../../DependencyInjection/'

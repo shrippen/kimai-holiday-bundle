@@ -53,5 +53,11 @@
       "name": "public-holidays",
       "url": "/{lang}/holiday/public-holidays"
     }
-  ]
+  ],
+  "page": {
+    "abwesenheit.jpg": "absences",
+    "abwesenheitskalender.jpg": "absence-calendar",
+    "arbeitszeiten.jpg": "working-times"
+  },
+  "page_theme": "default"
 }

@@ -24,8 +24,8 @@ All notable changes to this project will be documented in this file.
 - Dates, numbers and days use Kimai's formatters (`date_short`, `amount`)
 - Kimai calendar: absences and public holidays use Kimai's day roles (`--kimai-holiday`, `--kimai-public-holiday`, …)
   instead of fixed colours, requested absences are faded; the theme (Knust) decides the colour
-- Absence calendar: weekends and days with approved absences use Kimai's day classes (`bg-weekend`, `bg-holiday`, …),
-  like the working times screen; the legend shows them
+- Absence calendar: days use the kit's calendar-day marker (kit 0.7): today framed, each user's public holidays and
+  approved absences as bars, weekends sunken; two-digit day numbers keep the columns equally wide
 
 ### Changed (for integrators)
 

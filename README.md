@@ -94,8 +94,8 @@ Outlook, Google Calendar or Apple Calendar. **Regenerate link** makes the old li
 ### Absence calendar
 
 **Reporting → Absence calendar** shows the absences of your teams per year or month (`/holiday/absence-calendar/{year}`
-or `/{year}/{month}`). Requested absences are shown faded; days with approved absences and weekends are tinted like
-Kimai's working times screen. Filter by team with the team picker.
+or `/{year}/{month}`). Approved absences and each user's public holidays are shown as bars,
+requested absences as faded icons; today is framed. Filter by team with the team picker.
 
 ### Public holidays
 

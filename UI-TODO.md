@@ -49,7 +49,8 @@ und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 - [x] Zeitraum über `kit.period_nav` mit Segment Monat | Jahr (Monatsroute zeigt jetzt nur den Monat statt Weiterleitung)
 - [x] Teamfilter als Kimai-Formularfeld (Tom-Select) in der Kopfzeile, ohne `onchange`-Attribut
 - [x] Beantragt vs. genehmigt unterscheidbar (beantragt blass + Legende mit Status-Badges)
-- [x] Wochenenden und genehmigte Abwesenheiten mit Kimais Tag-Klassen (`bg-weekend`, `bg-holiday`, …) wie im Arbeitszeiten-Bildschirm
+- [x] Tage über `kit.calendar_day` (Kit 0.7): Heute gelber Rahmen, Feiertag der Benutzergruppe oranger Balken, genehmigte
+      Abwesenheit cyan Balken, Wochenende abgesenkt; Tageszahlen zweistellig (gleich breite Spalten)
 - [x] Monatsüberschrift über `month_name(true)`, Leerzustand über `kit.empty_state`
 
 ## Feiertage (`/holiday/public-holidays/{year}`)
@@ -87,5 +88,3 @@ und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 - [ ] Radio-Buttons „Art“ zeigen im horizontalen Kimai-Formular an jeder Option ein Pflicht-Sternchen – Kimai-Theme-Verhalten, nicht plugin-spezifisch
 - [ ] Monats-PDF selbst (HTML-Ausgabe mit festen Formaten/Texten) – Leitfaden gilt nicht für PDFs
 - [ ] Monatsansicht der Abwesenheitsliste – Urlaubskonto und Export sind jahresbezogen, Monat brächte keinen Mehrwert
-- [ ] Abwesenheitskalender: Heute (Kante: gelber Rahmen) und Feiertage (Kante: oranger Balken) markieren – braucht eine
-      Kalender-Kennzeichnung im Kit und ihre Gestaltung in Knust; nicht im Plugin nachbauen

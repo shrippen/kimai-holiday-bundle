@@ -23,13 +23,16 @@
 {% endblock %}
 
 {% block main %}
+    {# Legend: types by icon, day marks as the kit's calendar days (absence bar, public holiday bar, today) #}
     <div class="card mb-3">
         <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3 text-body-secondary">
             {% for item in type_legend %}
-                <span class="text-nowrap"><span class="bg-{{ item.icon }} px-1"><i class="{{ item.icon|icon }} fa-fw" aria-hidden="true"></i></span> {{ item.label|trans }}</span>
+                <span class="text-nowrap"><i class="{{ item.icon|icon }} fa-fw" aria-hidden="true"></i> {{ item.label|trans }}</span>
             {% endfor %}
-            <span class="text-nowrap"><span class="bg-holiday px-1"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('approved') }}</span>
-            <span class="text-nowrap"><span class="opacity-50 px-1"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('requested') }}</span>
+            <div class="d-flex align-items-center gap-1 text-nowrap">{{ kit.calendar_day('01', {absence: true}) }} {{ kit.status_badge('approved') }}</div>
+            <div class="d-flex align-items-center gap-1 text-nowrap"><span class="opacity-50"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('requested') }}</div>
+            <div class="d-flex align-items-center gap-1 text-nowrap">{{ kit.calendar_day('01', {holiday: true}) }} {{ 'kpu.day.holiday'|trans({}, 'kpu') }}</div>
+            <div class="d-flex align-items-center gap-1 text-nowrap">{{ kit.calendar_day('01', {today: true}) }} {{ 'kpu.day.today'|trans({}, 'kpu') }}</div>
         </div>
     </div>
 
@@ -54,8 +57,9 @@
                         <thead>
                             <tr>
                                 <th class="text-nowrap">{{ 'user'|trans }}</th>
+                                {# Two-digit days (as Kimai's working times) keep the columns equally wide #}
                                 {% for day in 1..m.daysInMonth %}
-                                    <th class="text-center px-1{% if m.weekend[day] %} bg-weekend{% endif %}">{{ day }}</th>
+                                    {{ kit.calendar_day('%02d'|format(day), {tag: 'td', today: day == m.today, weekend: m.weekend[day]}) }}
                                 {% endfor %}
                             </tr>
                         </thead>
@@ -64,15 +68,24 @@
                                 <tr>
                                     <td class="text-nowrap">{{ row.user.displayName }}</td>
                                     {% for day in 1..m.daysInMonth %}
-                                        {# Kimai's day roles (bg-weekend, bg-holiday, bg-sickness, ...) as on the working-times screen; approved absences only #}
-                                        {% set approved = (row.days[day] ?? [])|filter(e => not e.requested)|first %}
-                                        {% set day_class = approved ? 'bg-' ~ approved.icon : (m.weekend[day] ? 'bg-weekend' : null) %}
-                                        <td class="text-center align-middle px-0{% if day_class %} {{ day_class }}{% endif %}">
-                                            {% for entry in row.days[day] ?? [] %}
-                                                {% set title = entry.label|trans ~ ' · ' ~ (entry.requested ? 'kpu.status.requested' : 'kpu.status.approved')|trans({}, 'kpu') %}
-                                                <span class="{{ entry.requested ? 'opacity-50' : '' }}" data-toggle="tooltip" title="{{ title }}" aria-label="{{ title }}"><i class="{{ entry.icon|icon }} fa-xs"></i></span>
-                                            {% endfor %}
-                                        </td>
+                                        {# Bar for approved absences and the user's public holidays; requested absences only as faded icon #}
+                                        {% set entries = row.days[day] ?? [] %}
+                                        {% set holiday = row.holidays[day] ?? null %}
+                                        {% set labels = entries|map(e => e.label|trans ~ ' · ' ~ (e.requested ? 'kpu.status.requested' : 'kpu.status.approved')|trans({}, 'kpu')) %}
+                                        {% set icons %}
+                                            {%- for entry in entries -%}
+                                                <i class="{{ entry.icon|icon }} fa-xs{{ entry.requested ? ' opacity-50' : '' }}" aria-hidden="true"></i>
+                                            {%- endfor -%}
+                                        {% endset %}
+                                        {{ kit.calendar_day('', {
+                                            tag: 'td',
+                                            today: day == m.today,
+                                            weekend: m.weekend[day],
+                                            holiday: holiday is not null,
+                                            absence: entries|filter(e => not e.requested) is not empty,
+                                            label: (holiday is not null ? [holiday] : [])|merge(labels)|join(', ') ?: null,
+                                            content: entries is empty ? null : icons,
+                                        }) }}
                                     {% endfor %}
                                 </tr>
                             {% endfor %}

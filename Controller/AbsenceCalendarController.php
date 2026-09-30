@@ -14,7 +14,9 @@ use App\Utils\PageSetup;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
+use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
+use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,6 +34,8 @@ class AbsenceCalendarController extends AbstractController
         private readonly AbsenceWorkdayHelper $workdayHelper,
         private readonly LocaleService $localeService,
         private readonly TranslatorInterface $translator,
+        private readonly PublicHolidayRepository $publicHolidayRepository,
+        private readonly UserWorkContract $userWorkContract,
     ) {
     }
 
@@ -62,6 +66,8 @@ class AbsenceCalendarController extends AbstractController
         $to = (new \DateTimeImmutable(sprintf('%d-%02d-01', $year, $lastMonth)))->modify('last day of this month');
 
         $absences = $this->absenceRepository->findVisibleForUsersBetween($users, $from, $to);
+        $holidays = $this->holidaysByUser($users, $from, $to);
+        $today = new \DateTimeImmutable('today');
 
         $months = [];
         for ($month = $firstMonth; $month <= $lastMonth; ++$month) {
@@ -76,12 +82,14 @@ class AbsenceCalendarController extends AbstractController
                 $grid[$user->getId()] = [
                     'user' => $user,
                     'days' => [],
+                    'holidays' => $holidays[$user->getId()][$month] ?? [],
                 ];
             }
             $months[$month] = [
                 'date' => $monthStart,
                 'daysInMonth' => $daysInMonth,
                 'weekend' => $weekend,
+                'today' => $today->format('Y-n') === $year . '-' . $month ? (int) $today->format('j') : null,
                 'grid' => $grid,
             ];
         }
@@ -274,5 +282,41 @@ class AbsenceCalendarController extends AbstractController
         }
 
         return array_values($users);
+    }
+
+    /**
+     * Public holiday names per user, month and day from each user's holiday group (groups loaded once).
+     * Example: [7 => [10 => [3 => 'Tag der Deutschen Einheit']]] (user 7, October, day 3).
+     *
+     * @param User[] $users
+     * @return array<int, array<int, array<int, string>>>
+     */
+    private function holidaysByUser(array $users, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $byGroup = [];
+        $result = [];
+
+        foreach ($users as $user) {
+            $group = $this->userWorkContract->getPublicHolidayGroup($user);
+            if ($group === null || $group->getId() === null) {
+                continue;
+            }
+
+            $gid = $group->getId();
+            if (!isset($byGroup[$gid])) {
+                $byGroup[$gid] = [];
+                foreach ($this->publicHolidayRepository->findByGroupBetween($group, $from, $to) as $holiday) {
+                    $date = $holiday->getDate();
+                    if ($date === null) {
+                        continue;
+                    }
+                    $byGroup[$gid][(int) $date->format('n')][(int) $date->format('j')] = $holiday->getName();
+                }
+            }
+
+            $result[$user->getId()] = $byGroup[$gid];
+        }
+
+        return $result;
     }
 }

@@ -5,7 +5,9 @@
 Everything the plugin shows inside Kimai follows the shared UI guidelines for Kimai plugins:
 [kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) (`GUIDELINES.md`, `CHECKLIST.md`, kit in `Resources/views/_kit/`).
 Kimai core components and Tabler classes only — no own colours, fonts or CSS; the DesignDefault system below does **not**
-apply to Kimai pages.
+apply to Kimai pages. The shrippen look comes from [Knust](https://github.com/shrippen/kimai-knust-bundle) (`PLUGINS.md`),
+which styles Tabler, Kimai's classes and the kit's `kpu-*` markers; missing elements go to the kit or Knust first
+(see `agent.md`).
 
 ## Landing page
 

@@ -36,7 +36,7 @@ class CalendarSourceSubscriber implements EventSubscriberInterface
                 CalendarSourceType::JSON,
                 'holiday_absences',
                 $uri,
-                '#4e73df'
+                'var(--kimai-holiday)'
             ));
         }
 
@@ -46,7 +46,7 @@ class CalendarSourceSubscriber implements EventSubscriberInterface
                 CalendarSourceType::JSON,
                 'holiday_public_holidays',
                 $uri,
-                '#e74a3b'
+                'var(--kimai-public-holiday)'
             ));
         }
     }

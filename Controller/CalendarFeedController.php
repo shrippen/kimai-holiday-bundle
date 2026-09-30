@@ -5,6 +5,7 @@ namespace KimaiPlugin\HolidayBundle\Controller;
 use App\Controller\AbstractController;
 use App\Entity\User;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
+use KimaiPlugin\HolidayBundle\EventSubscriber\WorkingTimeYearSubscriber;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
@@ -19,6 +20,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route(path: '/holiday/calendar')]
 class CalendarFeedController extends AbstractController
 {
+    // Event text on the tinted day colours below: readable in light and dark mode.
+    private const TEXT_COLOR = 'var(--tblr-body-color)';
+
+    // Tabler class that fades requested absences, as in the absence calendar report.
+    private const REQUESTED_CLASS = 'opacity-50';
+
     public function __construct(
         private readonly AbsenceRepository $absenceRepository,
         private readonly PublicHolidayRepository $publicHolidayRepository,
@@ -58,8 +65,8 @@ class CalendarFeedController extends AbstractController
                     'start' => $rangeStart->format('Y-m-d'),
                     'end' => $rangeEnd->modify('+1 day')->format('Y-m-d'),
                     'allDay' => true,
-                    'color' => $this->colorForType($absence->getType()->value),
-                ];
+                    'classNames' => $absence->getStatus() === AbsenceStatus::REQUESTED ? [self::REQUESTED_CLASS] : [],
+                ] + $this->dayColors($absence->getType()->icon());
             }
         }
 
@@ -91,8 +98,7 @@ class CalendarFeedController extends AbstractController
                 'title' => $holiday->getName(),
                 'start' => $date->format('Y-m-d'),
                 'allDay' => true,
-                'color' => '#e74a3b',
-            ];
+            ] + $this->dayColors(WorkingTimeYearSubscriber::PUBLIC_HOLIDAY_ICON);
         }
 
         return $this->json($events);
@@ -127,13 +133,19 @@ class CalendarFeedController extends AbstractController
         return $date;
     }
 
-    private function colorForType(string $type): string
+    /**
+     * FullCalendar colours from Kimai's day roles (--kimai-holiday, --kimai-public-holiday, ...), the same the
+     * working-times screen uses; the theme (Knust) decides the actual colour. Example: 'sickness' →
+     * var(--kimai-sickness-bg) with a var(--kimai-sickness) border.
+     *
+     * @return array{backgroundColor: string, borderColor: string, textColor: string}
+     */
+    private function dayColors(string $role): array
     {
-        return match ($type) {
-            'vacation' => '#1cc88a',
-            'sickness', 'sickness_relative' => '#f6c23e',
-            'time_off' => '#36b9cc',
-            default => '#858796',
-        };
+        return [
+            'backgroundColor' => 'var(--kimai-' . $role . '-bg)',
+            'borderColor' => 'var(--kimai-' . $role . ')',
+            'textColor' => self::TEXT_COLOR,
+        ];
     }
 }

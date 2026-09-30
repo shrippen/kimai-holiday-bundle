@@ -22,6 +22,10 @@ All notable changes to this project will be documented in this file.
 - Success messages with information (import count, ICS link regenerated, re-approval) are shown as info callouts; errors
   are translated messages instead of raw exception texts
 - Dates, numbers and days use Kimai's formatters (`date_short`, `amount`)
+- Kimai calendar: absences and public holidays use Kimai's day roles (`--kimai-holiday`, `--kimai-public-holiday`, …)
+  instead of fixed colours, requested absences are faded; the theme (Knust) decides the colour
+- Absence calendar: weekends and days with approved absences use Kimai's day classes (`bg-weekend`, `bg-holiday`, …),
+  like the working times screen; the legend shows them
 
 ### Changed (for integrators)
 

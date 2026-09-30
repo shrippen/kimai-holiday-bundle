@@ -26,10 +26,10 @@
     <div class="card mb-3">
         <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3 text-body-secondary">
             {% for item in type_legend %}
-                <span class="text-nowrap"><i class="{{ item.icon|icon }} fa-fw" aria-hidden="true"></i> {{ item.label|trans }}</span>
+                <span class="text-nowrap"><span class="bg-{{ item.icon }} px-1"><i class="{{ item.icon|icon }} fa-fw" aria-hidden="true"></i></span> {{ item.label|trans }}</span>
             {% endfor %}
-            <span class="text-nowrap"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i> {{ kit.status_badge('approved') }}</span>
-            <span class="text-nowrap"><span class="opacity-50"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('requested') }}</span>
+            <span class="text-nowrap"><span class="bg-holiday px-1"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('approved') }}</span>
+            <span class="text-nowrap"><span class="opacity-50 px-1"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('requested') }}</span>
         </div>
     </div>
 
@@ -55,7 +55,7 @@
                             <tr>
                                 <th class="text-nowrap">{{ 'user'|trans }}</th>
                                 {% for day in 1..m.daysInMonth %}
-                                    <th class="text-center px-1{% if m.weekend[day] %} bg-secondary-lt{% endif %}">{{ day }}</th>
+                                    <th class="text-center px-1{% if m.weekend[day] %} bg-weekend{% endif %}">{{ day }}</th>
                                 {% endfor %}
                             </tr>
                         </thead>
@@ -64,7 +64,10 @@
                                 <tr>
                                     <td class="text-nowrap">{{ row.user.displayName }}</td>
                                     {% for day in 1..m.daysInMonth %}
-                                        <td class="text-center align-middle px-0{% if m.weekend[day] %} bg-secondary-lt{% endif %}">
+                                        {# Kimai's day roles (bg-weekend, bg-holiday, bg-sickness, ...) as on the working-times screen; approved absences only #}
+                                        {% set approved = (row.days[day] ?? [])|filter(e => not e.requested)|first %}
+                                        {% set day_class = approved ? 'bg-' ~ approved.icon : (m.weekend[day] ? 'bg-weekend' : null) %}
+                                        <td class="text-center align-middle px-0{% if day_class %} {{ day_class }}{% endif %}">
                                             {% for entry in row.days[day] ?? [] %}
                                                 {% set title = entry.label|trans ~ ' · ' ~ (entry.requested ? 'kpu.status.requested' : 'kpu.status.approved')|trans({}, 'kpu') %}
                                                 <span class="{{ entry.requested ? 'opacity-50' : '' }}" data-toggle="tooltip" title="{{ title }}" aria-label="{{ title }}"><i class="{{ entry.icon|icon }} fa-xs"></i></span>

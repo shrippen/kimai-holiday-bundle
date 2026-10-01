@@ -114,7 +114,7 @@ The plugin pages follow the shared UI guidelines and kit for Kimai plugins
 ([kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui), `GUIDELINES.md` and `CHECKLIST.md`): Kimai page header with
 actions, period navigator, Kimai data tables with row menu, status badges, KPI tiles, Kimai modals for forms and
 confirmations. The kit is copied to `Resources/views/_kit/` and `Resources/translations/kpu.*.xlf` with
-`kimai-plugin-ui/bin/sync.sh` and must not be edited here.
+`kimai/kit/bin/sync.sh` in [Kante](https://github.com/shrippen/Kante) and must not be edited here.
 
 Translation keys of this plugin all start with `holiday.`.
 

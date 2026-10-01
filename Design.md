@@ -3,35 +3,17 @@
 ## Kimai pages (plugin UI)
 
 Everything the plugin shows inside Kimai follows the shared UI guidelines for Kimai plugins:
-[kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) (`GUIDELINES.md`, `CHECKLIST.md`, kit in `Resources/views/_kit/`).
-Kimai core components and Tabler classes only — no own colours, fonts or CSS; the DesignDefault system below does **not**
-apply to Kimai pages. The shrippen look comes from [Knust](https://github.com/shrippen/kimai-knust-bundle) (`PLUGINS.md`),
+[kimai-plugin-ui](https://github.com/shrippen/Kante/tree/main/kimai/kit) (`kimai/kit/` in Kante: `GUIDELINES.md`, `CHECKLIST.md`; vendored kit in `Resources/views/_kit/`).
+Kimai core components and Tabler classes only — no own colours, fonts or CSS; Kante (below) does **not**
+apply to Kimai pages. The shrippen look comes from [Knust](https://github.com/shrippen/Kante/tree/main/kimai/knust) (`kimai/knust/` in Kante, `PLUGINS.md`),
 which styles Tabler, Kimai's classes and the kit's `kpu-*` markers; missing elements go to the kit or Knust first
 (see `agent.md`).
 
 ## Landing page
 
-The landing page (`docs/index.html`) and other web-facing assets outside Kimai follow the shared
-[shrippen DesignDefault](https://github.com/shrippen/shrippen.github.io) design system.
-
-## Quick Links
-
-- **Full spec**: <https://github.com/shrippen/shrippen.github.io>
-- **CSS tokens**: <https://github.com/shrippen/shrippen.github.io/blob/main/kante/tokens/variables.css>
-- **Landing page template**: <https://github.com/shrippen/shrippen.github.io/blob/main/kante/templates/landing.html>
-
-## Key Decisions
-
-| Aspect | Choice |
-|---|---|
-| Palette | Gruvbox-inspired warm dark (`bg0: #282828`, `fg1: #ebdbb2`, accent cream `#e8dcc4`) |
-| Headings font | [Rajdhani](https://fonts.google.com/specimen/Rajdhani) 600/700 |
-| Body font | System sans stack |
-| Code font | JetBrains Mono / Fira Code / Cascadia Code |
-| Links / primary action | `--blue: #83a598` |
-| Landing page layout | DesignDefault vertical rhythm: icon → name → tagline → badges → install card → CTA → features → prose → footer |
-| Max content width | 860px |
-| Badges | shields.io with `labelColor=1c1c20`, version `e8dcc4`, tech `83a598`, license `a89984` |
-| No light mode | Dark-first only for landing pages |
-
-When making visual changes to the landing page (`docs/index.html`) or any future web-facing assets, consult the DesignDefault README for the full rules.
+The landing page (`docs/index.html`) and other web-facing assets outside Kimai are generated from
+**Kante**, the shared shrippen design system: <https://github.com/shrippen/Kante> (checkout `../Kante`).
+The page links `https://shrippen.github.io/v1/shrippen.css` and `shrippen.js`, follows Kante's
+`templates/landing.html` and uses Kante's roles only (`--fg1`, `--primary`, `--link` …), never `#hex`.
+Badges, layout and the dark-only rule for landing pages are in Kante's `README.md`; missing elements
+go to Kante first. Kante does **not** apply to the pages inside Kimai.

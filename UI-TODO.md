@@ -1,6 +1,6 @@
 # UI-TODO – Umstellung auf kimai-plugin-ui
 
-Grundlage: [kimai-plugin-ui GUIDELINES.md / CHECKLIST.md](https://github.com/shrippen/kimai-plugin-ui), Leitfaden Abschnitt 6 (Holiday)
+Grundlage: [kimai-plugin-ui GUIDELINES.md / CHECKLIST.md](https://github.com/shrippen/Kante/tree/main/kimai/kit), Leitfaden Abschnitt 6 (Holiday)
 und UI-Inventar. Kit-Version siehe `Resources/views/_kit/VERSION`.
 
 ## Alle Seiten

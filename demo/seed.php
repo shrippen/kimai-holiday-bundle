@@ -31,15 +31,17 @@ foreach ($w['people'] as $person) {
     $users[$person['id']] = $em->getRepository(User::class)->findOneBy(['email' => $person['email']])
         ?? throw new RuntimeException('Core demo data missing (seed-core.php first).');
 }
-if ($em->getRepository(PublicHolidayGroup::class)->findOneBy(['name' => 'Hamburg']) !== null) {
+$approvals = $w['approvals'];
+[$country, $region] = explode('-', $w['public_holidays']['region']);
+if ($em->getRepository(PublicHolidayGroup::class)->findOneBy(['name' => $w['studio']['city']]) !== null) {
     echo "Already seeded.\n";
     exit(0);
 }
 
 $group = new PublicHolidayGroup();
-$group->setName('Hamburg');
-$group->setCountry('DE');
-$group->setRegion('HH');
+$group->setName($w['studio']['city']);
+$group->setCountry($country);
+$group->setRegion($region);
 $em->persist($group);
 foreach ($w['public_holidays']['dates'] as $date => $name) {
     $holiday = new PublicHoliday();
@@ -64,8 +66,8 @@ foreach ($w['absences'] as $a) {
     $absence->setEndDate($world->date($a['to']));
     $absence->setComment($world->t($a['comment']) ?: null);
     if ($a['status'] !== 'pending') {
-        $absence->setApprovedBy($users['lena']);
-        $absence->setApprovedAt($world->date(min($a['from'], 0) - 7, '10:00'));
+        $absence->setApprovedBy($users[$approvals['by']]);
+        $absence->setApprovedAt($world->date(min($a['from'], 0) - $approvals['days_before'], $approvals['time']));
     }
     $em->persist($absence);
 }
@@ -77,10 +79,11 @@ foreach ($users as $user) {
     $lock->setUser($user);
     $lock->setYear((int) $previous->format('Y'));
     $lock->setMonth((int) $previous->format('n'));
-    $lock->setLockedBy($users['lena']);
-    $lock->setLockedAt($previous->modify('last day of this month')->setTime(18, 0));
+    $lock->setLockedBy($users[$approvals['by']]);
+    [$hour, $minute] = array_map('intval', explode(':', $approvals['month_lock_time']));
+    $lock->setLockedAt($previous->modify('last day of this month')->setTime($hour, $minute));
     $em->persist($lock);
 }
 $em->flush();
 
-echo 'Seeded ' . count($w['absences']) . " absences, public holidays Hamburg, month lock {$previous->format('Y-m')}.\n";
+echo 'Seeded ' . count($w['absences']) . " absences, public holidays {$w['studio']['city']}, month lock {$previous->format('Y-m')}.\n";

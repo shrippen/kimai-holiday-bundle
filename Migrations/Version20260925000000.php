@@ -29,11 +29,16 @@ final class Version20260925000000 extends AbstractMigration
             return;
         }
 
+        // Computed strings carry the connection collation, Kimai's columns utf8mb4_unicode_ci; comparing them
+        // as bytes avoids "Illegal mix of collations" where the two differ (e.g. MariaDB defaults).
         $legacy = "
             FROM kimai2_timesheet t
-            INNER JOIN kimai2_ext_holiday_absence a ON a.user_id = t.user AND t.description = CONCAT('Absence (#', a.id, ')')
-            INNER JOIN kimai2_configuration cp ON cp.name = 'holiday.absence_project_id' AND cp.value = CAST(t.project_id AS CHAR)
-            INNER JOIN kimai2_configuration ca ON ca.name = 'holiday.absence_activity_id' AND ca.value = CAST(t.activity_id AS CHAR)
+            INNER JOIN kimai2_ext_holiday_absence a ON a.user_id = t.user
+                AND CAST(t.description AS BINARY) = CAST(CONCAT('Absence (#', a.id, ')') AS BINARY)
+            INNER JOIN kimai2_configuration cp ON cp.name = 'holiday.absence_project_id'
+                AND CAST(cp.value AS BINARY) = CAST(t.project_id AS BINARY)
+            INNER JOIN kimai2_configuration ca ON ca.name = 'holiday.absence_activity_id'
+                AND CAST(ca.value AS BINARY) = CAST(t.activity_id AS BINARY)
             LEFT JOIN kimai2_timesheet_meta m ON m.timesheet_id = t.id AND m.name = 'holiday_absence_id'
             WHERE m.id IS NULL";
 

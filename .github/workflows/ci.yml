@@ -57,7 +57,8 @@ jobs:
           MARIADB_DATABASE: kimai
           MARIADB_USER: kimai
           MARIADB_PASSWORD: kimai
-        ports: ['3306:3306']
+        # random host port: two jobs on the same runner must not both claim 3306
+        ports: ['3306']
         options: >-
           --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=5s --health-timeout=5s --health-retries=30
@@ -75,10 +76,12 @@ jobs:
 
       - name: Database host
         # Gitea runner: job container reaches the service by name; GitHub: service port on localhost
+        env:
+          HOST_PORT: ${{ job.services.mariadb.ports['3306'] }}
         run: |
-          host=127.0.0.1
-          if getent hosts mariadb > /dev/null; then host=mariadb; fi
-          echo "DATABASE_URL=mysql://kimai:kimai@$host:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB" >> "$GITHUB_ENV"
+          host=127.0.0.1 port="$HOST_PORT"
+          if getent hosts mariadb > /dev/null; then host=mariadb port=3306; fi
+          echo "DATABASE_URL=mysql://kimai:kimai@$host:$port/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB" >> "$GITHUB_ENV"
 
       - name: Build plugin zip (same as release)
         working-directory: plugin

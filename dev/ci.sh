@@ -61,7 +61,7 @@ curl -sf -o /dev/null -c "$JAR" -b "$JAR" --data-urlencode "_username=admin" --d
 check() {
     local url="$1" status="$2" expect="${3:-}" body code final
     body="$(mktemp)"
-    read -r code final < <(curl -sL -o "$body" -w '%{http_code} %{url_effective}' -c "$JAR" -b "$JAR" -H 'Accept: text/html,application/json' "$BASE$url")
+    read -r code final < <(curl -sL -o "$body" -w '%{http_code} %{url_effective}\n' -c "$JAR" -b "$JAR" -H 'Accept: text/html,application/json' "$BASE$url")
     test "$code" = "$status" || { tail -20 "$LOG" >&2; fail "$url: HTTP $code, expected $status"; }
     if [[ -n "$expect" ]] && ! grep -q "$expect" "$body"; then
         echo "landed on $final, title: $(grep -o '<title>[^<]*' "$body" | head -1)" >&2

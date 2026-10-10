@@ -46,6 +46,13 @@ test "$(console debug:router | grep -c 'holiday_')" -ge 20 || fail "routes missi
 
 step "HTTP"
 console kimai:user:create admin admin@example.test ROLE_SUPER_ADMIN "$ADMIN_PASS"
+# Onboarding done, as in dev/seed.php of the Farbfächer plugin: otherwise every page redirects to /wizard/intro
+php -r '
+    $url = parse_url(getenv("DATABASE_URL"));
+    $dsn = sprintf("mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4", $url["host"], $url["port"] ?? 3306, ltrim($url["path"], "/"));
+    $pdo = new PDO($dsn, urldecode($url["user"]), urldecode($url["pass"] ?? ""), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    $pdo->exec("INSERT INTO kimai2_user_preferences (user_id, name, value) SELECT id, \"__wizards__\", \"intro,profile\" FROM kimai2_users WHERE username = \"admin\"");
+'
 # EGPCS: the built-in server otherwise hides environment variables (DATABASE_URL) from Symfony
 php -d memory_limit=-1 -d variables_order=EGPCS -S "127.0.0.1:$PORT" -t "$KIMAI/public" "$KIMAI/public/index.php" > "$LOG" 2>&1 &
 SERVER=$!

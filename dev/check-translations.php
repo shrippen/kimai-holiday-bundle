@@ -31,13 +31,18 @@ foreach (glob("$dir/*.de.xlf") as $de) {
     }
     $deKeys = keys($de);
     $enKeys = keys($en);
-    foreach (array_diff($deKeys, $enKeys) as $key) {
-        fwrite(STDERR, "FAIL: $name: '$key' missing in en\n");
-        $failed = true;
+    $missing = [
+        'en' => array_diff($deKeys, $enKeys),
+        'de' => array_diff($enKeys, $deKeys),
+    ];
+    foreach ($missing as $lang => $keys) {
+        foreach ($keys as $key) {
+            fwrite(STDERR, "FAIL: $name: '$key' missing in $lang\n");
+        }
     }
-    foreach (array_diff($enKeys, $deKeys) as $key) {
-        fwrite(STDERR, "FAIL: $name: '$key' missing in de\n");
+    if ($missing['en'] !== [] || $missing['de'] !== []) {
         $failed = true;
+        continue;
     }
     echo "ok $name (" . count($deKeys) . " keys)\n";
 }

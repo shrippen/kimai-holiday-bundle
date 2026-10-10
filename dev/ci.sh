@@ -78,7 +78,7 @@ check() {
 }
 check "/en/holiday/absence" 200 "Vacation left"
 check "/en/holiday/absence-calendar" 200 "data-holiday-autosubmit"
-check "/en/holiday/public-holidays" 200 "Groups"
+check "/en/holiday/public-holidays" 200 "public-holidays/group/create"
 check "/en/holiday/working-times" 200
 check "/en/holiday/absence/ics" 200
 

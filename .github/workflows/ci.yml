@@ -1,0 +1,91 @@
+# Checks on every pull request and on master: PHP syntax, translations (same keys in de and en),
+# and the release zip installed into Kimai 2.67 (dev/ci.sh).
+#
+# This same file lives in .gitea/workflows and .github/workflows: Gitea reads only .gitea/workflows
+# as soon as it exists, GitHub only ever reads .github/workflows. Kept as two files, so a change
+# here is a reminder to update the other one too. Gitea then no longer reads release.yml (GitHub
+# only).
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# One runner works the queue in order. A newer push to the same branch or PR replaces the
+# older run instead of queueing behind it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: PHP syntax
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Translations (same keys in de and en)
+        run: php dev/check-translations.php
+
+  kimai:
+    name: Kimai 2.67 end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KIMAI_VERSION: '2.67.0'
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: kimai
+          MARIADB_USER: kimai
+          MARIADB_PASSWORD: kimai
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, gd, zip, xsl, pdo_mysql, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Database host
+        # Gitea runner: job container reaches the service by name; GitHub: service port on localhost
+        run: |
+          host=127.0.0.1
+          if getent hosts mariadb > /dev/null; then host=mariadb; fi
+          echo "DATABASE_URL=mysql://kimai:kimai@$host:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB" >> "$GITHUB_ENV"
+
+      - name: Build plugin zip (same as release)
+        working-directory: plugin
+        run: git archive --format=zip --prefix=HolidayBundle/ -o ../HolidayBundle-ci.zip HEAD
+
+      - name: Install Kimai
+        run: plugin/dev/ci-kimai.sh kimai
+
+      - name: Test the zip in Kimai
+        run: plugin/dev/ci.sh kimai HolidayBundle-ci.zip

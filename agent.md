@@ -50,7 +50,7 @@ names). Never install both.
   `kimai:bundle:holiday:install`; released migrations are never edited.
 - Permissions are declared in `DependencyInjection/HolidayExtension.php` per role.
 - Texts in `Resources/translations/*.{de,en}.xlf`, same keys in both.
-- Checks (CI, `.gitea/workflows/ci.yml`): PHP syntax 8.1–8.4, `php dev/check-translations.php`,
+- Checks (CI, `.github/workflows/ci.yml`): PHP syntax 8.1–8.4, `php dev/check-translations.php`,
   and `dev/ci.sh`, which installs the release zip into Kimai 2.67, runs the migrations and loads
   the pages, API and ICS feed.
 - `demo/` (screenshots) and `dev/` never ship: `.gitattributes` keeps them out of the zip,
@@ -76,6 +76,7 @@ names). Never install both.
 ## Repository rule
 
 - This repository lives on Gitea (`git.arianw.de`). GitHub is only a push mirror of it.
+- CI runs on the GitHub mirror (`.github/workflows/ci.yml`, since 16.10.2026) and reports back to Gitea as the commit status `github / test`.
 - Changes arrive as pull requests: work on a branch, open a PR, merge it on Gitea (the mirror follows).
 - Never merge a PR, push to `main` (or any default branch), push tags or publish releases on GitHub. A merge there is overwritten by the next Gitea push.
 - Never force-push a branch that someone else's PR depends on.

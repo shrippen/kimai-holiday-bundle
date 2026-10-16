@@ -8,6 +8,7 @@ services:
         resource: '../../*'
         exclude:
             - '../../demo/'
+            - '../../dev/'
             - '../../Migrations/'
             - '../../Resources/'
             - '../../DependencyInjection/'

@@ -12,11 +12,12 @@ use Symfony\Component\HttpFoundation\Response;
 trait HolidayUiTrait
 {
     /** Plugin documentation, shown by Kimai's floating "?" button (PageSetup::setHelp). */
-    private const HELP_URL = 'https://github.com/shrippen/kimai-holiday-bundle/blob/main/README.md';
-
     private function helpUrl(string $anchor): string
     {
-        return self::HELP_URL . '#' . $anchor;
+        // Not a trait constant: those need PHP 8.2, the plugin supports 8.1.
+        $readme = 'https://github.com/shrippen/kimai-holiday-bundle/blob/main/README.md';
+
+        return $readme . '#' . $anchor;
     }
 
     /** Request sent by Kimai's modal form plugin (modal-ajax-form). */

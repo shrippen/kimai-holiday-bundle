@@ -4,6 +4,7 @@
 /.gitattributes  export-ignore
 /.gitignore      export-ignore
 /agent.md        export-ignore
+/REVIEW.md       export-ignore
 /Design.md       export-ignore
 /SECURITY.md     export-ignore
 /TODO.md         export-ignore

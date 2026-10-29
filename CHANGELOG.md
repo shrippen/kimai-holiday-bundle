@@ -84,7 +84,7 @@ gets that format when it is released.
 The first release of Working Hours & Holidays for Kimai: absences with approval, public holidays from ICS calendars and a vacation account, built into Kimai's own contract and working times pages.
 
 #### New
-- Absences (vacation, sickness, time off in lieu, other) with an approval workflow; an edited absence is approved again. Type icons, and only workdays count (weekends are left out).
+- Absences (vacation, sickness, time off in lieu, other) with an approval workflow; an edited absence needs approval again. Type icons, and only workdays count (weekends are left out).
 - Vacation account on the absence page; future absences and public holidays in the working times table.
 - Extends Kimai's Profile → Contract and Working times pages (Absence menu) instead of a second contract page.
 - Public holiday groups, imported and synced from ICS calendars.
@@ -101,7 +101,7 @@ All changes: https://github.com/shrippen/kimai-holiday-bundle/commits/v1.0.0
 Die erste Version von Arbeitszeiten & Feiertage für Kimai: Abwesenheiten mit Genehmigung, Feiertage aus ICS-Kalendern und ein Urlaubskonto, eingebaut in Kimais eigene Seiten für Arbeitsvertrag und Arbeitszeiten.
 
 #### Neu
-- Abwesenheiten (Urlaub, Krankheit, Freizeitausgleich, Sonstiges) mit Genehmigung; eine geänderte Abwesenheit wird neu genehmigt. Symbole je Art, und es zählen nur Arbeitstage (Wochenenden nicht).
+- Abwesenheiten (Urlaub, Krankheit, Freizeitausgleich, Sonstiges) mit Genehmigung; eine geänderte Abwesenheit muss neu genehmigt werden. Symbole je Art, und es zählen nur Arbeitstage (Wochenenden nicht).
 - Urlaubskonto auf der Abwesenheitsseite; künftige Abwesenheiten und Feiertage in der Arbeitszeiten-Tabelle.
 - Erweitert Kimais Seiten Profil → Arbeitsvertrag und Arbeitszeiten (Menü Abwesenheit) statt einer zweiten Vertragsseite.
 - Feiertagsgruppen, importiert und abgeglichen aus ICS-Kalendern.

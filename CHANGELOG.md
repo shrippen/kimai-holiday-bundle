@@ -1,6 +1,8 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file. Each release section is also its
+release note (GitHub and Gitea) and its entry under "Changes" on the landing page; `[Unreleased]`
+gets that format when it is released.
 
 ## [Unreleased]
 
@@ -77,11 +79,36 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] — 2026-08-10
 
-### Added
+### English
 
-- Initial public release (Kimai ≥ 2.64): working times, absences, public holidays, calendar, reports, API
-- Extends Kimai Profil → Arbeitsvertrag and Arbeitszeiten (Abwesenheit menu; no duplicate contract UI)
-- Absences with approval workflow, edit + reapproval, type icons, workday-only counting (weekends excluded)
-- Urlaubskonto on the absence page; future absences/public holidays in the Arbeitszeiten table
-- Public holiday groups with ICS import/sync; per-user ICS feed (locale-aware) for calendar apps
-- Absence calendar (full year), CSV export, system settings for calculation modes
+The first release of Working Hours & Holidays for Kimai: absences with approval, public holidays from ICS calendars and a vacation account, built into Kimai's own contract and working times pages.
+
+#### New
+- Absences (vacation, sickness, time off in lieu, other) with an approval workflow; an edited absence is approved again. Type icons, and only workdays count (weekends are left out).
+- Vacation account on the absence page; future absences and public holidays in the working times table.
+- Extends Kimai's Profile → Contract and Working times pages (Absence menu) instead of a second contract page.
+- Public holiday groups, imported and synced from ICS calendars.
+- A personal ICS feed per user for calendar apps, in the user's language.
+- Absence calendar for the whole year, CSV export, system settings for the calculation modes, and an API.
+#### Note
+- Needs Kimai 2.64 or newer. Clone or extract into `var/plugins/HolidayBundle`, then run `bin/console kimai:reload -n` and `bin/console kimai:bundle:holiday:install`.
+- Do not install it alongside the commercial WorkContractBundle.
+
+All changes: https://github.com/shrippen/kimai-holiday-bundle/commits/v1.0.0
+
+### Deutsch
+
+Die erste Version von Arbeitszeiten & Feiertage für Kimai: Abwesenheiten mit Genehmigung, Feiertage aus ICS-Kalendern und ein Urlaubskonto, eingebaut in Kimais eigene Seiten für Arbeitsvertrag und Arbeitszeiten.
+
+#### Neu
+- Abwesenheiten (Urlaub, Krankheit, Freizeitausgleich, Sonstiges) mit Genehmigung; eine geänderte Abwesenheit wird neu genehmigt. Symbole je Art, und es zählen nur Arbeitstage (Wochenenden nicht).
+- Urlaubskonto auf der Abwesenheitsseite; künftige Abwesenheiten und Feiertage in der Arbeitszeiten-Tabelle.
+- Erweitert Kimais Seiten Profil → Arbeitsvertrag und Arbeitszeiten (Menü Abwesenheit) statt einer zweiten Vertragsseite.
+- Feiertagsgruppen, importiert und abgeglichen aus ICS-Kalendern.
+- Ein persönlicher ICS-Feed je Benutzer für Kalender-Apps, in der Sprache des Benutzers.
+- Abwesenheitskalender für das ganze Jahr, CSV-Export, Systemeinstellungen für die Berechnungsarten und eine API.
+#### Hinweis
+- Braucht Kimai 2.64 oder neuer. Nach `var/plugins/HolidayBundle` klonen oder entpacken, dann `bin/console kimai:reload -n` und `bin/console kimai:bundle:holiday:install` ausführen.
+- Nicht zusammen mit dem kommerziellen WorkContractBundle installieren.
+
+Alle Änderungen: https://github.com/shrippen/kimai-holiday-bundle/commits/v1.0.0

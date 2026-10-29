@@ -32,6 +32,11 @@ is one the user loses data or money to, or sees:
   in `AbsencePermissions`), then `Repository/`; permissions are declared
   per role in `DependencyInjection/HolidayExtension.php`.
 - New pages get a check in `dev/ci.sh`.
+- Release: a section `## [X.Y.Z] — date` in `CHANGELOG.md` with lead and
+  groups in English and German (it becomes the release notes, the release
+  workflow fails without it); the same entry at the top of `#changes` in
+  `docs/index.html` and the footer version bumped (release rule in
+  `agent.md`).
 - Bug fixes: does the fix remove the cause, with a test that failed before?
 - `agent.md` code rules: braces always, early return, enums not bools,
   private by default (widening needs the owner's approval).

@@ -25,7 +25,7 @@
 <nav class="nav"><div class="nav-inner">
   <a class="nav-brand" href="#"><img src="icon.svg" alt="">Working Hours &amp; Holidays</a>
   <div class="nav-links">
-    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#holidays"><span lang="en">Holidays</span><span lang="de">Feiertage</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#permissions"><span lang="en">Permissions</span><span lang="de">Rechte</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a class="nav-hl" href="https://github.com/shrippen/kimai-holiday-bundle">GitHub</a>
+    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#holidays"><span lang="en">Holidays</span><span lang="de">Feiertage</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#permissions"><span lang="en">Permissions</span><span lang="de">Rechte</span></a><a href="#changes"><span lang="en">Changes</span><span lang="de">Änderungen</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a class="nav-hl" href="https://github.com/shrippen/kimai-holiday-bundle">GitHub</a>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" data-lang="en" aria-pressed="true">EN</button>
       <button type="button" data-lang="de" aria-pressed="false">DE</button>
@@ -110,6 +110,31 @@ GET  /api/holiday/public-holidays?year=2026
 GET  /api/holiday/public-holidays/calendar</div>
 </section>
 <section class="section" id="faq"><h2 lang="en">Questions</h2><h2 lang="de">Fragen</h2><div class="faq"><details><summary><span lang="en">Can I use it together with the commercial WorkContractBundle?</span><span lang="de">Kann ich es zusammen mit dem kommerziellen WorkContractBundle nutzen?</span></summary><div><p lang="en">No. The two cover the same feature area and permissions, so remove the commercial plugin first. Permission names and screens overlap on purpose, so existing documentation and habits carry over.</p><p lang="de">Nein. Beide decken denselben Funktionsbereich und dieselben Rechte ab, entferne also zuerst das kommerzielle Plugin. Namen der Rechte und Bildschirme überschneiden sich absichtlich, vorhandene Dokumentation und Gewohnheiten bleiben nutzbar.</p></div></details><details><summary><span lang="en">Is it ready for production?</span><span lang="de">Ist es produktionsreif?</span></summary><div><p lang="en">It is experimental and entirely vibe-coded. Not everything is tested end to end, and the permissions around the approval workflow have not been fully verified: own against other users, team lead against admin, approve, reject, edit and delete. Test your roles carefully first.</p><p lang="de">Es ist experimentell und komplett vibe-codiert. Nicht alles ist Ende zu Ende getestet, und die Rechte rund um den Freigabe-Workflow sind nicht vollständig geprüft: eigene gegen andere Nutzer, Teamleitung gegen Admin, freigeben, ablehnen, bearbeiten und löschen. Teste deine Rollen zuerst sorgfältig.</p></div></details><details><summary><span lang="en">Which calendars can I subscribe to?</span><span lang="de">Welche Kalender kann ich abonnieren?</span></summary><div><p lang="en">Every user has a personal ICS link on the Absence page with public holidays and approved absences, weekends excluded. It works in Outlook, Google Calendar and Apple Calendar, and you can renew the link at any time.</p><p lang="de">Jeder Nutzer hat auf der Seite Abwesenheit einen persönlichen ICS-Link mit Feiertagen und genehmigten Abwesenheiten, Wochenenden ausgenommen. Er funktioniert in Outlook, Google Kalender und Apple Kalender, und du kannst den Link jederzeit neu erzeugen.</p></div></details><details><summary><span lang="en">Is there an API?</span><span lang="de">Gibt es eine API?</span></summary><div><p lang="en">Yes, a REST API under <code>/api/holiday/…</code> for absences, their approval and public holidays. See the examples above.</p><p lang="de">Ja, eine REST-API unter <code>/api/holiday/…</code> für Abwesenheiten, deren Freigabe und Feiertage. Beispiele stehen oben.</p></div></details></div></section>
+<section class="section" id="changes">
+  <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
+  <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
+  <ol class="changelog">
+    <li class="release" id="v1.0.0">
+      <div class="release-head"><b class="release-version">1.0.0</b><time datetime="2026-08-10"><span lang="en">10 Aug 2026</span><span lang="de">10. Aug. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">The first release of Working Hours &amp; Holidays for Kimai: absences with approval, public holidays from ICS calendars and a vacation account, built into Kimai's own contract and working times pages.</span><span lang="de">Die erste Version von Arbeitszeiten &amp; Feiertage für Kimai: Abwesenheiten mit Genehmigung, Feiertage aus ICS-Kalendern und ein Urlaubskonto, eingebaut in Kimais eigene Seiten für Arbeitsvertrag und Arbeitszeiten.</span></p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+          <li><span lang="en">Absences (vacation, sickness, time off in lieu, other) with an approval workflow; an edited absence needs approval again. Type icons, and only workdays count (weekends are left out).</span><span lang="de">Abwesenheiten (Urlaub, Krankheit, Freizeitausgleich, Sonstiges) mit Genehmigung; eine geänderte Abwesenheit muss neu genehmigt werden. Symbole je Art, und es zählen nur Arbeitstage (Wochenenden nicht).</span></li>
+          <li><span lang="en">Vacation account on the absence page; future absences and public holidays in the working times table.</span><span lang="de">Urlaubskonto auf der Abwesenheitsseite; künftige Abwesenheiten und Feiertage in der Arbeitszeiten-Tabelle.</span></li>
+          <li><span lang="en">Extends Kimai's Profile → Contract and Working times pages (Absence menu) instead of a second contract page.</span><span lang="de">Erweitert Kimais Seiten Profil → Arbeitsvertrag und Arbeitszeiten (Menü Abwesenheit) statt einer zweiten Vertragsseite.</span></li>
+          <li><span lang="en">Public holiday groups, imported and synced from ICS calendars.</span><span lang="de">Feiertagsgruppen, importiert und abgeglichen aus ICS-Kalendern.</span></li>
+          <li><span lang="en">A personal ICS feed per user for calendar apps, in the user's language.</span><span lang="de">Ein persönlicher ICS-Feed je Benutzer für Kalender-Apps, in der Sprache des Benutzers.</span></li>
+          <li><span lang="en">Absence calendar for the whole year, CSV export, system settings for the calculation modes, and an API.</span><span lang="de">Abwesenheitskalender für das ganze Jahr, CSV-Export, Systemeinstellungen für die Berechnungsarten und eine API.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+          <li><span lang="en">Needs Kimai 2.64 or newer. Clone or extract into <code>var/plugins/HolidayBundle</code>, then run <code>bin/console kimai:reload -n</code> and <code>bin/console kimai:bundle:holiday:install</code>.</span><span lang="de">Braucht Kimai 2.64 oder neuer. Nach <code>var/plugins/HolidayBundle</code> klonen oder entpacken, dann <code>bin/console kimai:reload -n</code> und <code>bin/console kimai:bundle:holiday:install</code> ausführen.</span></li>
+          <li><span lang="en">Do not install it alongside the commercial WorkContractBundle.</span><span lang="de">Nicht zusammen mit dem kommerziellen WorkContractBundle installieren.</span></li>
+        </ul></div>
+        <a class="release-notes" href="https://github.com/shrippen/kimai-holiday-bundle/commits/v1.0.0"><span lang="en">All changes in 1.0.0 →</span><span lang="de">Alle Änderungen in 1.0.0 →</span></a>
+      </div>
+    </li>
+  </ol>
+</section>
 </main>
 
 <footer class="foot">
@@ -119,11 +144,11 @@ GET  /api/holiday/public-holidays/calendar</div>
       <div><span class="foot-name">Working Hours &amp; Holidays</span><span class="foot-tag"><span lang="en">Working hours and holidays for Kimai</span><span lang="de">Arbeitszeiten und Feiertage für Kimai</span></span></div>
     </div>
     <nav class="foot-cols" aria-label="Footer">
-      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#hours"><span lang="en">Working times</span><span lang="de">Arbeitszeiten</span></a><a href="#holidays"><span lang="en">Holidays</span><span lang="de">Feiertage</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#permissions"><span lang="en">Permissions</span><span lang="de">Rechte</span></a><a href="#api"><span lang="en">API</span><span lang="de">API</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a></div>
+      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#hours"><span lang="en">Working times</span><span lang="de">Arbeitszeiten</span></a><a href="#holidays"><span lang="en">Holidays</span><span lang="de">Feiertage</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#permissions"><span lang="en">Permissions</span><span lang="de">Rechte</span></a><a href="#api"><span lang="en">API</span><span lang="de">API</span></a><a href="#changes"><span lang="en">Changes</span><span lang="de">Änderungen</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a></div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/kimai-holiday-bundle">GitHub</a><a href="https://github.com/shrippen/kimai-holiday-bundle/issues">Issues</a><a href="https://github.com/shrippen/kimai-holiday-bundle/releases">Releases</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v1.0.0</p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v1.0.0</a></p></div>
 </footer>
 
 </body>

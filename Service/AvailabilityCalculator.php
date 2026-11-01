@@ -6,11 +6,13 @@ use App\Entity\User;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
 use KimaiPlugin\HolidayBundle\Entity\ExtraShift;
 use KimaiPlugin\HolidayBundle\Entity\Location;
+use KimaiPlugin\HolidayBundle\Entity\WorkdayShift;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\PresenceKind;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\ExtraShiftRepository;
 use KimaiPlugin\HolidayBundle\Repository\LocationUserRepository;
+use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 
 /** Who is present, absent or has an open request at a location, per calendar day. */
 final class AvailabilityCalculator
@@ -21,6 +23,7 @@ final class AvailabilityCalculator
         private readonly AbsenceWorkdayHelper $workdays,
         private readonly AbsenceRepository $absences,
         private readonly ExtraShiftRepository $extraShifts,
+        private readonly WorkdayShiftRepository $workdayShifts,
     ) {
     }
 
@@ -39,6 +42,25 @@ final class AvailabilityCalculator
         $shiftIndex = [];
         foreach ($shifts as $shift) {
             $shiftIndex[$shift->getDate()->format('Y-m-d')][spl_object_id($shift->getUser())] ??= $shift;
+        }
+
+        /** @var array<string, array<int, WorkdayShift>> $movedTo day => user object id => approved day shift */
+        $movedTo = [];
+        /** @var array<string, array<int, WorkdayShift>> $requestedOn day (from and to) => user object id => open day shift */
+        $requestedOn = [];
+        foreach ($this->workdayShifts->findVisibleForUsersBetween($users, $from, $to) as $workdayShift) {
+            $user = $workdayShift->getUser();
+            $fromDay = $workdayShift->getFromDate()?->format('Y-m-d');
+            $toDay = $workdayShift->getToDate()?->format('Y-m-d');
+            if ($user === null || $fromDay === null || $toDay === null) {
+                continue;
+            }
+            if ($workdayShift->getStatus() === AbsenceStatus::APPROVED) {
+                $movedTo[$toDay][spl_object_id($user)] ??= $workdayShift;
+            } elseif ($workdayShift->getStatus() === AbsenceStatus::REQUESTED) {
+                $requestedOn[$fromDay][spl_object_id($user)] ??= $workdayShift;
+                $requestedOn[$toDay][spl_object_id($user)] ??= $workdayShift;
+            }
         }
 
         $result = [];
@@ -63,6 +85,7 @@ final class AvailabilityCalculator
                 }
 
                 $shift = $shiftIndex[$key][spl_object_id($user)] ?? null;
+                $moved = $movedTo[$key][spl_object_id($user)] ?? null;
                 $applicable = $this->workdays->isAbsenceApplicableDay($user, $date);
 
                 if ($approved !== null && !$approved->isHalfDay()) {
@@ -71,6 +94,8 @@ final class AvailabilityCalculator
                     $halfDay = $approved !== null;
                     if (!$slot->open) {
                         // closed day: nobody is present, absences stay visible
+                    } elseif ($moved !== null && $applicable) {
+                        $present[] = new PresenceEntry($user, PresenceKind::SHIFTED, $halfDay, null, $moved);
                     } elseif ($applicable) {
                         $present[] = new PresenceEntry($user, PresenceKind::FIXED, $halfDay, null);
                     } elseif ($shift !== null) {
@@ -81,10 +106,20 @@ final class AvailabilityCalculator
                 if ($requested !== null) {
                     $pending[] = ['user' => $user, 'absence' => $requested];
                 }
+
+                $requestedShift = $requestedOn[$key][spl_object_id($user)] ?? null;
+                if ($requestedShift !== null) {
+                    $pending[] = ['user' => $user, 'shift' => $requestedShift];
+                }
             }
 
-            usort($present, static fn (PresenceEntry $a, PresenceEntry $b): int => [$a->kind === PresenceKind::FIXED ? 0 : 1, $a->user->getDisplayName()]
-                <=> [$b->kind === PresenceKind::FIXED ? 0 : 1, $b->user->getDisplayName()]);
+            $rank = static fn (PresenceEntry $e): int => match ($e->kind) {
+                PresenceKind::FIXED => 0,
+                PresenceKind::SHIFTED => 1,
+                PresenceKind::EXTRA_SHIFT => 2,
+            };
+            usort($present, static fn (PresenceEntry $a, PresenceEntry $b): int => [$rank($a), $a->user->getDisplayName()]
+                <=> [$rank($b), $b->user->getDisplayName()]);
             $byName = static fn (array $a, array $b): int => $a['user']->getDisplayName() <=> $b['user']->getDisplayName();
             usort($absent, $byName);
             usort($pending, $byName);

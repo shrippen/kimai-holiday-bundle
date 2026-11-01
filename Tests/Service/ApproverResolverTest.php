@@ -54,6 +54,28 @@ final class ApproverResolverTest extends TestCase
         $this->assertTrue($this->resolver([$admin, $employee], [$admin])->isApproverOf($admin, $employee));
     }
 
+    public function testApproveShiftOnlyCandidateIsApproverForThatPermissionOnly(): void
+    {
+        [$lead, $employee] = $this->users();
+        $resolver = $this->resolver([$lead, $employee], [], [$lead]);
+
+        $this->assertSame([$lead], $resolver->approversFor($employee, 'approve_shift'));
+        $this->assertSame([], $resolver->approversFor($employee));
+        $this->assertTrue($resolver->isApproverOf($lead, $employee, 'approve_shift'));
+        $this->assertFalse($resolver->isApproverOf($lead, $employee));
+        $this->assertSame([$employee], $resolver->subjectsFor($lead, 'approve_shift'));
+        $this->assertSame([], $resolver->subjectsFor($lead));
+    }
+
+    public function testSubjectIsNeverOwnShiftApprover(): void
+    {
+        [$lead] = $this->users();
+        $resolver = $this->resolver([$lead], [], [$lead]);
+
+        $this->assertSame([], $resolver->approversFor($lead, 'approve_shift'));
+        $this->assertFalse($resolver->isApproverOf($lead, $lead, 'approve_shift'));
+    }
+
     public function testIsSameMatchesDistinctObjectsWithSameId(): void
     {
         [$a, $b, $c] = $this->users();
@@ -75,15 +97,20 @@ final class ApproverResolverTest extends TestCase
 
     /**
      * @param list<User> $enabled all users the repository returns
-     * @param list<User> $approvers users with the approval permission (they access everyone)
+     * @param list<User> $approvers users with the absence approval permission (they access everyone)
+     * @param list<User> $shiftApprovers users with the shift approval permission
      */
-    private function resolver(array $enabled, array $approvers): ApproverResolver
+    private function resolver(array $enabled, array $approvers, array $shiftApprovers = []): ApproverResolver
     {
         $repository = $this->createStub(UserRepository::class);
         $repository->method('findBy')->willReturn($enabled);
 
         $access = $this->createStub(ApproverAccess::class);
-        $access->method('mayApprove')->willReturnCallback(static fn (User $u): bool => \in_array($u, $approvers, true));
+        $access->method('mayApprove')->willReturnCallback(static fn (User $u, string $permission = ApproverAccess::PERMISSION): bool => \in_array(
+            $u,
+            $permission === ApproverAccess::PERMISSION ? $approvers : $shiftApprovers,
+            true
+        ));
         $access->method('mayAccess')->willReturn(true);
 
         return new ApproverResolver($repository, $access);

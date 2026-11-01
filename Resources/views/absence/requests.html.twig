@@ -32,10 +32,45 @@
     {% endif %}
 {% endblock %}
 
+{% block status %}
+    {% from "macros/status.html.twig" import status_count %}
+    {{ status_count(dataTable.getPagination().getNbResults() + shiftTable.getPagination().getNbResults()) }}
+{% endblock %}
+
 {% block main %}
-    {% if not dataTable.hasResults() %}
+    {% import "macros/datatables.html.twig" as tables %}
+    {% import 'macros/widgets.html.twig' as widgets %}
+    {% set hasAbsences = dataTable.hasResults() %}
+    {% set hasShifts = shiftTable.hasResults() %}
+    {% if not hasAbsences and not hasShifts %}
         {{ kit.empty_state('holiday.requests.empty'|trans) }}
-    {% else %}
+    {% endif %}
+    {% if hasAbsences %}
+        {% if hasShifts %}<h2 class="h4 mb-2">{{ 'holiday.menu.absence'|trans }}</h2>{% endif %}
         {{ parent() }}
+    {% endif %}
+    {% if hasShifts %}
+        <h2 class="h4 mb-2{% if hasAbsences %} mt-4{% endif %}">{{ 'holiday.shift.requests.title'|trans }}</h2>
+        {{ tables.header(shiftTable) }}
+        {% set shiftColumns = shiftTable.sortedColumnNames %}
+        {% for shift in shiftTable %}
+            <tr>
+                {% for column, data in shiftColumns %}
+                    <td class="{{ tables.class(shiftTable, column) }}">
+                        {% if column == 'user' %}
+                            {{ shift.user.displayName }}
+                        {% elseif column == 'change' %}
+                            <span class="kpu-num">{{ shift.fromDate|date_short }} → {{ shift.toDate|date_short }}</span>
+                        {% elseif column == 'comment' %}
+                            {{ shift.comment }}
+                        {% elseif column == 'actions' %}
+                            {% set event = actions(app.user, 'holiday_workday_shift', 'index', {shift: shift}) %}
+                            {{ widgets.table_actions(event.actions) }}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        {{ tables.footer(shiftTable) }}
     {% endif %}
 {% endblock %}

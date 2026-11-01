@@ -4,6 +4,7 @@ namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
+use KimaiPlugin\HolidayBundle\Entity\WorkdayShift;
 
 /** Presence of a location's members on one calendar day. */
 final class AvailabilityDay
@@ -15,7 +16,7 @@ final class AvailabilityDay
         public readonly array $present,
         /** @var array<array{user: User, absence: Absence}> */
         public readonly array $absent,
-        /** @var array<array{user: User, absence: Absence}> */
+        /** @var array<array{user: User, absence?: Absence, shift?: WorkdayShift}> */
         public readonly array $pending,
     ) {
     }

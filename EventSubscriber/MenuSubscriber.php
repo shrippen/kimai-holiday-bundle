@@ -49,7 +49,7 @@ class MenuSubscriber implements EventSubscriberInterface
                 $contract->addChild($absence);
             }
 
-            if ($this->security->isGranted('approve_other_absence')) {
+            if ($this->security->isGranted('approve_other_absence') || $this->security->isGranted('approve_shift')) {
                 $this->addRequestsItem($contract, $contract->getChild('holiday_absence'));
             }
         }

@@ -16,9 +16,9 @@ class ApproverAccess
     {
     }
 
-    public function mayApprove(User $candidate): bool
+    public function mayApprove(User $candidate, string $permission = self::PERMISSION): bool
     {
-        return $this->permissions->hasRolePermission($candidate, self::PERMISSION);
+        return $this->permissions->hasRolePermission($candidate, $permission);
     }
 
     public function mayAccess(User $subject, User $candidate): bool

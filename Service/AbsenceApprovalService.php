@@ -3,12 +3,10 @@
 namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
-use App\Repository\WorkingTimeRepository;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
-use KimaiPlugin\HolidayBundle\Repository\MonthLockRepository;
 
 class AbsenceApprovalService
 {
@@ -19,11 +17,10 @@ class AbsenceApprovalService
 
     public function __construct(
         private readonly AbsenceRepository $absenceRepository,
-        private readonly MonthLockRepository $monthLockRepository,
         private readonly AbsenceNotifier $notifier,
         private readonly HolidayConfiguration $configuration,
         private readonly AbsenceTimesheetService $timesheetService,
-        private readonly WorkingTimeRepository $workingTimeRepository,
+        private readonly PeriodLockGuard $periodLockGuard,
         private readonly ApproverResolver $approverResolver,
     ) {
     }
@@ -105,7 +102,10 @@ class AbsenceApprovalService
         ?\DateTimeImmutable $previousEnd = null,
     ): Absence {
         if ($previousStart !== null && $previousEnd !== null) {
-            $this->assertRangeNotLocked($absence->getUser(), $previousStart, $previousEnd);
+            $previousUser = $absence->getUser();
+            if ($previousUser !== null) {
+                $this->periodLockGuard->assertOpen($previousUser, $previousStart, $previousEnd);
+            }
         }
         $this->validate($absence);
         $this->assertNotLocked($absence);
@@ -214,36 +214,13 @@ class AbsenceApprovalService
 
     private function assertNotLocked(Absence $absence): void
     {
-        $this->assertRangeNotLocked($absence->getUser(), $absence->getStartDate(), $absence->getEndDate());
-    }
-
-    private function assertRangeNotLocked(?User $user, ?\DateTimeInterface $start, ?\DateTimeInterface $end): void
-    {
+        $user = $absence->getUser();
+        $start = $absence->getStartDate();
+        $end = $absence->getEndDate();
         if ($user === null || $start === null || $end === null) {
             return;
         }
 
-        $cursor = $start instanceof \DateTimeImmutable
-            ? $start
-            : \DateTimeImmutable::createFromInterface($start);
-        $endDay = $end instanceof \DateTimeImmutable
-            ? $end
-            : \DateTimeImmutable::createFromInterface($end);
-
-        // Kimai's own working-time approval (Arbeitszeiten → month approved) locks everything up to that date.
-        // Queried directly: WorkingTimeService::isApproved() may flush the entity manager (caches a user preference).
-        $approvedUntil = $this->workingTimeRepository->getLatestApprovalDate($user);
-        if ($approvedUntil !== null && $cursor->format('Y-m-d') <= $approvedUntil->format('Y-m-d')) {
-            throw new \RuntimeException('holiday.error.month_locked');
-        }
-
-        // Plugin locks are per month: check each touched month once.
-        $cursor = $cursor->modify('first day of this month')->setTime(0, 0);
-        while ($cursor <= $endDay) {
-            if ($this->monthLockRepository->isDateLocked($user, $cursor)) {
-                throw new \RuntimeException('holiday.error.month_locked');
-            }
-            $cursor = $cursor->modify('+1 month');
-        }
+        $this->periodLockGuard->assertOpen($user, $start, $end);
     }
 }

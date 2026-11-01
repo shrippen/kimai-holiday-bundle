@@ -13,7 +13,10 @@ use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
  */
 class AbsenceWorkdayHelper
 {
-    /** @var array<string, array<string, true>> "groupId-year" => full-day public holiday dates */
+    private const HOLIDAY_FULL = 'full';
+    private const HOLIDAY_HALF = 'half';
+
+    /** @var array<string, array<string, string>> "groupId-year" => date => HOLIDAY_FULL|HOLIDAY_HALF */
     private array $publicHolidayCache = [];
 
     public function __construct(
@@ -48,9 +51,20 @@ class AbsenceWorkdayHelper
 
     public function isFullDayPublicHoliday(User $user, \DateTimeInterface $date): bool
     {
+        return $this->holidayKind($user, $date) === self::HOLIDAY_FULL;
+    }
+
+    /** Full or half public holiday. */
+    public function isPublicHoliday(User $user, \DateTimeInterface $date): bool
+    {
+        return $this->holidayKind($user, $date) !== null;
+    }
+
+    private function holidayKind(User $user, \DateTimeInterface $date): ?string
+    {
         $group = $this->userWorkContract->getPublicHolidayGroup($user);
         if ($group === null || $group->getId() === null) {
-            return false;
+            return null;
         }
 
         $year = (int) $date->format('Y');
@@ -59,13 +73,13 @@ class AbsenceWorkdayHelper
             $this->publicHolidayCache[$cacheKey] = [];
             foreach ($this->publicHolidayRepository->findByGroupAndYear($group, $year) as $holiday) {
                 $day = $holiday->getDate()?->format('Y-m-d');
-                if ($day !== null && !$holiday->isHalfDay()) {
-                    $this->publicHolidayCache[$cacheKey][$day] = true;
+                if ($day !== null) {
+                    $this->publicHolidayCache[$cacheKey][$day] = $holiday->isHalfDay() ? self::HOLIDAY_HALF : self::HOLIDAY_FULL;
                 }
             }
         }
 
-        return isset($this->publicHolidayCache[$cacheKey][$date->format('Y-m-d')]);
+        return $this->publicHolidayCache[$cacheKey][$date->format('Y-m-d')] ?? null;
     }
 
     /**

@@ -1051,6 +1051,150 @@ Action: requested</target>
         <source>holiday.location.member_remove_question</source>
         <target>Remove %name% from this location?</target>
       </trans-unit>
+      <trans-unit id="h263" resname="holiday.shift.addon.away">
+        <source>holiday.shift.addon.away</source>
+        <target>Workday moved to %to%</target>
+      </trans-unit>
+      <trans-unit id="h264" resname="holiday.shift.addon.to">
+        <source>holiday.shift.addon.to</source>
+        <target>Workday moved from %from%</target>
+      </trans-unit>
+      <trans-unit id="h265" resname="holiday.mail.shift_requested.subject">
+        <source>holiday.mail.shift_requested.subject</source>
+        <target>Day shift requested</target>
+      </trans-unit>
+      <trans-unit id="h266" resname="holiday.mail.shift_requested.body">
+        <source>holiday.mail.shift_requested.body</source>
+        <target>%user% would like to move the workday %from% to %to%. %comment%</target>
+      </trans-unit>
+      <trans-unit id="h267" resname="holiday.mail.shift_approved.subject">
+        <source>holiday.mail.shift_approved.subject</source>
+        <target>Day shift approved</target>
+      </trans-unit>
+      <trans-unit id="h268" resname="holiday.mail.shift_approved.body">
+        <source>holiday.mail.shift_approved.body</source>
+        <target>%approver% approved the shift of %user% (%from% to %to%).</target>
+      </trans-unit>
+      <trans-unit id="h269" resname="holiday.mail.shift_rejected.subject">
+        <source>holiday.mail.shift_rejected.subject</source>
+        <target>Day shift rejected</target>
+      </trans-unit>
+      <trans-unit id="h270" resname="holiday.mail.shift_rejected.body">
+        <source>holiday.mail.shift_rejected.body</source>
+        <target>%approver% rejected the shift of %user% (%from% to %to%).</target>
+      </trans-unit>
+      <trans-unit id="h271" resname="holiday.shift.create">
+        <source>holiday.shift.create</source>
+        <target>Move a day</target>
+      </trans-unit>
+      <trans-unit id="h272" resname="holiday.shift.user">
+        <source>holiday.shift.user</source>
+        <target>Employee</target>
+      </trans-unit>
+      <trans-unit id="h273" resname="holiday.shift.from_date">
+        <source>holiday.shift.from_date</source>
+        <target>Workday to give up</target>
+      </trans-unit>
+      <trans-unit id="h274" resname="holiday.shift.to_date">
+        <source>holiday.shift.to_date</source>
+        <target>New workday</target>
+      </trans-unit>
+      <trans-unit id="h275" resname="holiday.shift.comment">
+        <source>holiday.shift.comment</source>
+        <target>Comment</target>
+      </trans-unit>
+      <trans-unit id="h277" resname="holiday.shift.deleted">
+        <source>holiday.shift.deleted</source>
+        <target>Day shift removed.</target>
+      </trans-unit>
+      <trans-unit id="h278" resname="holiday.shift.requests.title">
+        <source>holiday.shift.requests.title</source>
+        <target>Day shifts</target>
+      </trans-unit>
+      <trans-unit id="h279" resname="holiday.shift.requests.change">
+        <source>holiday.shift.requests.change</source>
+        <target>Shift</target>
+      </trans-unit>
+      <trans-unit id="h280" resname="holiday.shift.requests.empty">
+        <source>holiday.shift.requests.empty</source>
+        <target>No open day shifts.</target>
+      </trans-unit>
+      <trans-unit id="h281" resname="holiday.shift.bulk.approved">
+        <source>holiday.shift.bulk.approved</source>
+        <target>{0}No day shift approved.|{1}1 day shift approved.|]1,Inf[%count% day shifts approved.</target>
+      </trans-unit>
+      <trans-unit id="h282" resname="holiday.shift.bulk.rejected">
+        <source>holiday.shift.bulk.rejected</source>
+        <target>{0}No day shift rejected.|{1}1 day shift rejected.|]1,Inf[%count% day shifts rejected.</target>
+      </trans-unit>
+      <trans-unit id="h283" resname="holiday.shift.bulk.reopened">
+        <source>holiday.shift.bulk.reopened</source>
+        <target>{0}No day shift changed.|{1}1 day shift is requested again.|]1,Inf[%count% day shifts are requested again.</target>
+      </trans-unit>
+      <trans-unit id="h284" resname="holiday.shift.bulk.skipped">
+        <source>holiday.shift.bulk.skipped</source>
+        <target>%count% skipped: not requested or no longer valid.</target>
+      </trans-unit>
+      <trans-unit id="h285" resname="holiday.shift.bulk.none">
+        <source>holiday.shift.bulk.none</source>
+        <target>Nothing changed. Only requested day shifts that are still valid in open months can be decided.</target>
+      </trans-unit>
+      <trans-unit id="h286" resname="holiday.shift.undo.expired">
+        <source>holiday.shift.undo.expired</source>
+        <target>Undo is no longer possible: it works for 15 minutes, in the same session and only for your own action.</target>
+      </trans-unit>
+      <trans-unit id="h287" resname="holiday.shift.undo.changed">
+        <source>holiday.shift.undo.changed</source>
+        <target>Nothing reset: the day shifts changed since or are no longer valid.</target>
+      </trans-unit>
+      <trans-unit id="h288" resname="holiday.shift.undo.skipped">
+        <source>holiday.shift.undo.skipped</source>
+        <target>%count% not reset: changed since or no longer valid.</target>
+      </trans-unit>
+      <trans-unit id="h289" resname="holiday.mail.shift_withdrawn.subject">
+        <source>holiday.mail.shift_withdrawn.subject</source>
+        <target>Day shift withdrawn</target>
+      </trans-unit>
+      <trans-unit id="h290" resname="holiday.mail.shift_withdrawn.body">
+        <source>holiday.mail.shift_withdrawn.body</source>
+        <target>%approver% withdrew the approved shift of %user% (%from% to %to%).</target>
+      </trans-unit>
+      <trans-unit id="h291" resname="holiday.shift.delete_question">
+        <source>holiday.shift.delete_question</source>
+        <target>Remove this day shift?</target>
+      </trans-unit>
+      <trans-unit id="h292" resname="holiday.availability.kind.shifted">
+        <source>holiday.availability.kind.shifted</source>
+        <target>shifted</target>
+      </trans-unit>
+      <trans-unit id="h293" resname="holiday.availability.shifted_from">
+        <source>holiday.availability.shifted_from</source>
+        <target>shifted from %date%</target>
+      </trans-unit>
+      <trans-unit id="h294" resname="holiday.availability.pending_shift">
+        <source>holiday.availability.pending_shift</source>
+        <target>Shift %from% → %to% (open)</target>
+      </trans-unit>
+      <trans-unit id="h295" resname="holiday.availability.pending_shift_cell">
+        <source>holiday.availability.pending_shift_cell</source>
+        <target>Shift</target>
+      </trans-unit>
+      <trans-unit id="h296" resname="holiday.availability.delete_shift">
+        <source>holiday.availability.delete_shift</source>
+        <target>Remove shift</target>
+      </trans-unit>
+      <trans-unit id="h297" resname="holiday.shift.calendar.away">
+        <source>holiday.shift.calendar.away</source>
+        <target>Workday shifted to %to%</target>
+      </trans-unit>
+      <trans-unit id="h298" resname="holiday.shift.calendar.to">
+        <source>holiday.shift.calendar.to</source>
+        <target>Workday shifted from %from%</target>
+      </trans-unit>
+      <trans-unit id="h299" resname="holiday.shift.calendar.legend">
+        <source>holiday.shift.calendar.legend</source>
+        <target>Day shift</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

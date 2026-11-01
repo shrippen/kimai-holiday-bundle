@@ -15,6 +15,7 @@ use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Form\AbsenceTypeForm;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
+use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceApprovalService;
 use KimaiPlugin\HolidayBundle\Service\AbsenceExcelExporter;
 use KimaiPlugin\HolidayBundle\Service\AbsencePermissions;
@@ -23,6 +24,7 @@ use KimaiPlugin\HolidayBundle\Service\ApproverResolver;
 use KimaiPlugin\HolidayBundle\Service\UserIcsTokenService;
 use KimaiPlugin\HolidayBundle\Service\VacationAccountService;
 use KimaiPlugin\HolidayBundle\Service\VacationYearResolver;
+use KimaiPlugin\HolidayBundle\Service\WorkdayShiftService;
 use KimaiPlugin\HolidayBundle\Service\WorkingTimeCalculator;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -64,6 +66,7 @@ class AbsenceController extends AbstractController
         private readonly VacationYearResolver $yearResolver,
         private readonly VacationAccountService $accountService,
         private readonly ApproverResolver $approverResolver,
+        private readonly WorkdayShiftRepository $shiftRepository,
     ) {
     }
 
@@ -185,9 +188,12 @@ class AbsenceController extends AbstractController
      * Open requests of all users the current user may approve for (second channel next to the mails).
      */
     #[Route(path: '/absence/requests', name: 'holiday_absence_requests', methods: ['GET'])]
-    #[IsGranted('approve_other_absence')]
     public function requests(): Response
     {
+        if (!$this->isGranted('approve_other_absence') && !$this->isGranted(WorkdayShiftService::PERMISSION)) {
+            throw $this->createAccessDeniedException();
+        }
+
         $absences = $this->absenceRepository->findRequestedForUsers($this->approverResolver->subjectsFor($this->getUser()));
 
         $days = [];
@@ -205,6 +211,15 @@ class AbsenceController extends AbstractController
         $table->addColumn('comment', ['class' => 'd-none d-xl-table-cell', 'orderBy' => false, 'title' => 'comment']);
         $table->addColumn('actions', ['class' => 'actions alwaysVisible']);
 
+        $shifts = $this->shiftRepository->findRequestedForUsers($this->approverResolver->subjectsFor($this->getUser(), WorkdayShiftService::PERMISSION));
+        $shiftTable = new DataTable('holiday_shift_requests', new BaseQuery());
+        $shiftTable->setPagination(new Pagination(new ArrayAdapter($shifts)));
+        $shiftTable->setSticky(false);
+        $shiftTable->addColumn('user', ['class' => 'alwaysVisible', 'orderBy' => false, 'title' => 'holiday.requests.user']);
+        $shiftTable->addColumn('change', ['class' => 'alwaysVisible', 'orderBy' => false, 'title' => 'holiday.shift.requests.change']);
+        $shiftTable->addColumn('comment', ['class' => 'd-none d-xl-table-cell', 'orderBy' => false, 'title' => 'comment']);
+        $shiftTable->addColumn('actions', ['class' => 'actions alwaysVisible']);
+
         $page = new PageSetup($this->translator->trans('holiday.requests.title'));
         $page->setActionName('holiday_absences');
         $page->setActionPayload(['user' => $this->getUser(), 'can_create' => false, 'can_ics' => false]);
@@ -214,6 +229,7 @@ class AbsenceController extends AbstractController
             'page_setup' => $page,
             'dataTable' => $table,
             'absence_days' => $days,
+            'shiftTable' => $shiftTable,
         ]);
     }
 

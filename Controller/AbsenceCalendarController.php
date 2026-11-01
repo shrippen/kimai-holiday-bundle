@@ -16,6 +16,7 @@ use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\ExtraShiftRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
+use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -38,6 +39,7 @@ class AbsenceCalendarController extends AbstractController
         private readonly PublicHolidayRepository $publicHolidayRepository,
         private readonly UserWorkContract $userWorkContract,
         private readonly ExtraShiftRepository $extraShiftRepository,
+        private readonly WorkdayShiftRepository $workdayShiftRepository,
     ) {
     }
 
@@ -141,6 +143,33 @@ class AbsenceCalendarController extends AbstractController
                 'label' => 'holiday.extra_shift.label',
                 'requested' => false,
             ];
+        }
+
+        // Day shifts: marked on the day moved away from and on the day moved to
+        foreach ($this->workdayShiftRepository->findVisibleForUsersBetween($users, $from, $to) as $shift) {
+            $uid = $shift->getUser()?->getId();
+            $fromDate = $shift->getFromDate();
+            $toDate = $shift->getToDate();
+            if ($uid === null || $fromDate === null || $toDate === null) {
+                continue;
+            }
+            $requested = $shift->getStatus() === AbsenceStatus::REQUESTED;
+            $marks = [
+                [$fromDate, 'holiday.shift.calendar.away', ['%to%' => $toDate->format('d.m.')]],
+                [$toDate, 'holiday.shift.calendar.to', ['%from%' => $fromDate->format('d.m.')]],
+            ];
+            foreach ($marks as [$date, $label, $params]) {
+                $month = (int) $date->format('n');
+                if ((int) $date->format('Y') !== $year || !isset($months[$month]['grid'][$uid])) {
+                    continue;
+                }
+                $months[$month]['grid'][$uid]['days'][(int) $date->format('j')][] = [
+                    'type' => 'workday_shift',
+                    'icon' => 'repeat',
+                    'label' => $this->translator->trans($label, $params),
+                    'requested' => $requested,
+                ];
+            }
         }
 
         $teams = $this->getSelectableTeams();

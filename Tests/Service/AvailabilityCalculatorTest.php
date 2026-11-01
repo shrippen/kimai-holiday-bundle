@@ -11,6 +11,8 @@ use KimaiPlugin\HolidayBundle\Entity\ExtraShift;
 use KimaiPlugin\HolidayBundle\Entity\Location;
 use KimaiPlugin\HolidayBundle\Entity\PublicHoliday;
 use KimaiPlugin\HolidayBundle\Entity\PublicHolidayGroup;
+use KimaiPlugin\HolidayBundle\Entity\WorkdayShift;
+use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\PresenceKind;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\ExtraShiftRepository;
@@ -18,14 +20,17 @@ use KimaiPlugin\HolidayBundle\Repository\LocationExceptionRepository;
 use KimaiPlugin\HolidayBundle\Repository\LocationUserRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayGroupRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
+use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\AvailabilityCalculator;
 use KimaiPlugin\HolidayBundle\Service\LocationSchedule;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
+use KimaiPlugin\HolidayBundle\Service\WorkdayShiftOverrides;
 use KimaiPlugin\HolidayBundle\Tests\Support\AbsenceBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\ExtraShiftBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\LocationBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\UserBuilder;
+use KimaiPlugin\HolidayBundle\Tests\Support\WorkdayShiftBuilder;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -34,6 +39,9 @@ final class AvailabilityCalculatorTest extends TestCase
     private User $manuel;
     private User $moritz;
     private User $chef;
+    private ?WorkdayShiftOverrides $overrides = null;
+    /** @var WorkdayShift[] */
+    private array $workdayShifts = [];
 
     protected function setUp(): void
     {
@@ -53,6 +61,88 @@ final class AvailabilityCalculatorTest extends TestCase
         self::assertSame(PresenceKind::FIXED, $days['2026-10-28']->present[0]->kind);
         self::assertSame(['Manuel', 'Moritz'], $this->names($days['2026-10-30']->present));
         self::assertCount(7, $days);
+    }
+
+    public function testApprovedShiftMovesPresence(): void
+    {
+        $shiftRepo = $this->createStub(WorkdayShiftRepository::class);
+        $shiftRepo->method('findApprovedForUserBetween')->willReturnCallback(
+            fn ($user) => $user === $this->moritz ? [WorkdayShiftBuilder::approved($user, '2026-10-30', '2026-10-29')] : []
+        );
+        $this->overrides = new WorkdayShiftOverrides($shiftRepo);
+
+        $days = $this->forWeek();
+
+        self::assertSame(['Manuel', 'Moritz'], $this->names($days['2026-10-29']->present)); // T
+        self::assertSame(PresenceKind::FIXED, $days['2026-10-29']->present[1]->kind);
+        self::assertSame(['Manuel'], $this->names($days['2026-10-30']->present)); // F
+    }
+
+    public function testApprovedShiftShowsAsShiftedOnTarget(): void
+    {
+        $shift = WorkdayShiftBuilder::approved($this->moritz, '2026-10-30', '2026-10-29');
+        $this->useShifts([$shift]);
+
+        $days = $this->forWeek();
+
+        self::assertSame(['Manuel', 'Moritz'], $this->names($days['2026-10-29']->present));
+        self::assertSame(PresenceKind::FIXED, $days['2026-10-29']->present[0]->kind);
+        self::assertSame(PresenceKind::SHIFTED, $days['2026-10-29']->present[1]->kind);
+        self::assertSame('2026-10-30', $days['2026-10-29']->present[1]->shift?->getFromDate()?->format('Y-m-d'));
+        self::assertSame(['Manuel'], $this->names($days['2026-10-30']->present));
+        self::assertSame([], $days['2026-10-29']->pending);
+    }
+
+    public function testHalfDayAbsenceOnShiftedTargetStaysShifted(): void
+    {
+        $this->useShifts([WorkdayShiftBuilder::approved($this->moritz, '2026-10-30', '2026-10-29')]);
+        $half = AbsenceBuilder::vacation($this->moritz, '2026-10-29', '2026-10-29')->setHalfDay(true);
+
+        $entry = $this->forWeek([$half])['2026-10-29']->present[1];
+
+        self::assertSame(PresenceKind::SHIFTED, $entry->kind);
+        self::assertTrue($entry->halfDay);
+    }
+
+    public function testRequestedShiftIsPendingOnBothDays(): void
+    {
+        $shift = WorkdayShiftBuilder::requested($this->moritz, '2026-10-30', '2026-10-29');
+        $this->useShifts([$shift]);
+
+        $days = $this->forWeek();
+
+        foreach (['2026-10-29', '2026-10-30'] as $key) {
+            self::assertCount(1, $days[$key]->pending);
+            self::assertSame($this->moritz, $days[$key]->pending[0]['user']);
+            self::assertSame($shift, $days[$key]->pending[0]['shift']);
+        }
+        self::assertSame(['Manuel'], $this->names($days['2026-10-29']->present));
+        self::assertSame(['Manuel', 'Moritz'], $this->names($days['2026-10-30']->present));
+        self::assertSame(PresenceKind::FIXED, $days['2026-10-30']->present[1]->kind);
+    }
+
+    public function testShiftedBeatsExtraShiftOrdering(): void
+    {
+        $this->useShifts([WorkdayShiftBuilder::approved($this->moritz, '2026-10-30', '2026-10-29')]);
+
+        $days = $this->forWeek([], [ExtraShiftBuilder::on($this->chef, '2026-10-29')]);
+
+        self::assertSame(['Manuel', 'Moritz', 'Chef'], $this->names($days['2026-10-29']->present));
+        self::assertSame(
+            [PresenceKind::FIXED, PresenceKind::SHIFTED, PresenceKind::EXTRA_SHIFT],
+            array_map(static fn ($e) => $e->kind, $days['2026-10-29']->present)
+        );
+    }
+
+    /** @param WorkdayShift[] $shifts */
+    private function useShifts(array $shifts): void
+    {
+        $this->workdayShifts = $shifts;
+        $repo = $this->createStub(WorkdayShiftRepository::class);
+        $repo->method('findApprovedForUserBetween')->willReturnCallback(
+            static fn ($user) => array_values(array_filter($shifts, static fn (WorkdayShift $s): bool => $s->getUser() === $user && $s->getStatus() === AbsenceStatus::APPROVED))
+        );
+        $this->overrides = new WorkdayShiftOverrides($repo);
     }
 
     public function testClosedDaysHaveNoPresence(): void
@@ -164,7 +254,8 @@ final class AvailabilityCalculatorTest extends TestCase
             $users,
             $this->helper(),
             $absences,
-            $shifts
+            $shifts,
+            $this->createStub(WorkdayShiftRepository::class)
         );
 
         $days = $calculator->forPeriod($location, new \DateTimeImmutable('2026-10-01 12:00'), new \DateTimeImmutable('2026-10-31'));
@@ -254,7 +345,10 @@ final class AvailabilityCalculatorTest extends TestCase
         $holidays = $this->createStub(PublicHolidayRepository::class);
         $holidays->method('findByGroupBetween')->willReturn($locationHolidays);
 
-        return new AvailabilityCalculator(new LocationSchedule($exceptions, $holidays), $users, $this->helper(), $absenceRepo, $shiftRepo);
+        $workdayShiftRepo = $this->createStub(WorkdayShiftRepository::class);
+        $workdayShiftRepo->method('findVisibleForUsersBetween')->willReturn($this->workdayShifts);
+
+        return new AvailabilityCalculator(new LocationSchedule($exceptions, $holidays), $users, $this->helper(), $absenceRepo, $shiftRepo, $workdayShiftRepo);
     }
 
     private function helper(): AbsenceWorkdayHelper
@@ -272,7 +366,7 @@ final class AvailabilityCalculatorTest extends TestCase
 
         $factory = new WorkingTimeModeFactory([new WorkingTimeModeNone(), new WorkingTimeModeDay()], new NullLogger());
 
-        return new AbsenceWorkdayHelper(new UserWorkContract($factory, $groups), $holidays);
+        return new AbsenceWorkdayHelper(new UserWorkContract($factory, $groups, $this->overrides), $holidays);
     }
 
     /**

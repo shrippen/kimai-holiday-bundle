@@ -23,14 +23,14 @@ class ApproverResolver
     /**
      * @return list<User>
      */
-    public function approversFor(User $subject): array
+    public function approversFor(User $subject, string $permission = ApproverAccess::PERMISSION): array
     {
         $approvers = [];
         foreach ($this->enabledUsers() as $candidate) {
             if ($this->isSame($candidate, $subject)) {
                 continue;
             }
-            if ($this->access->mayApprove($candidate) && $this->access->mayAccess($subject, $candidate)) {
+            if ($this->access->mayApprove($candidate, $permission) && $this->access->mayAccess($subject, $candidate)) {
                 $approvers[] = $candidate;
             }
         }
@@ -41,9 +41,9 @@ class ApproverResolver
     /**
      * @return list<User>
      */
-    public function subjectsFor(User $approver): array
+    public function subjectsFor(User $approver, string $permission = ApproverAccess::PERMISSION): array
     {
-        if (!$this->access->mayApprove($approver)) {
+        if (!$this->access->mayApprove($approver, $permission)) {
             return [];
         }
 
@@ -57,9 +57,9 @@ class ApproverResolver
         return $subjects;
     }
 
-    public function isApproverOf(User $actor, User $subject): bool
+    public function isApproverOf(User $actor, User $subject, string $permission = ApproverAccess::PERMISSION): bool
     {
-        foreach ($this->approversFor($subject) as $approver) {
+        foreach ($this->approversFor($subject, $permission) as $approver) {
             if ($this->isSame($approver, $actor)) {
                 return true;
             }

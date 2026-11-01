@@ -21,6 +21,16 @@ final class WorkdayShiftOverridesTest extends TestCase
         self::assertFalse($overrides->isShiftedAway($user, new \DateTimeImmutable('2026-10-29')));
     }
 
+    public function testYearBoundaryShiftIsFoundFromBothYears(): void
+    {
+        $user = UserBuilder::make()->build();
+        $overrides = $this->overrides([WorkdayShiftBuilder::approved($user, '2026-12-31', '2027-01-02')]);
+
+        self::assertSame('2026-12-31', $overrides->sourceFor($user, new \DateTimeImmutable('2027-01-02'))?->format('Y-m-d'));
+        self::assertTrue($overrides->isShiftedAway($user, new \DateTimeImmutable('2026-12-31')));
+        self::assertSame('2027-01-02', $overrides->targetFor($user, new \DateTimeImmutable('2026-12-31'))?->format('Y-m-d'));
+    }
+
     public function testRejectedShiftHasNoEffect(): void
     {
         $user = UserBuilder::make()->fridaySaturday(8 * 3600)->build();

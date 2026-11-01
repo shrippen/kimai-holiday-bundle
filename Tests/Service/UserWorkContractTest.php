@@ -51,6 +51,13 @@ final class UserWorkContractTest extends TestCase
         self::assertSame(8 * 3600, $contract->getContractSecondsForDate($user, new \DateTimeImmutable('2026-10-30')));
     }
 
+    public function testTargetOutsideContractPeriodIsZero(): void
+    {
+        $user = UserBuilder::make()->fridaySaturday(8 * 3600)->startingOn('2026-10-30')->build();
+
+        self::assertSame(0, $this->shiftedContract($user)->getExpectedSecondsForDate($user, new \DateTimeImmutable('2026-10-29')));
+    }
+
     private function shiftedContract(\App\Entity\User $user): UserWorkContract
     {
         $repo = $this->createStub(WorkdayShiftRepository::class);

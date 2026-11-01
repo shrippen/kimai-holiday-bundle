@@ -12,7 +12,7 @@ use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
  */
 class WorkdayShiftOverrides
 {
-    /** @var array<string, array{from: array<string, true>, to: array<string, \DateTimeImmutable>}> "userKey-year" => index */
+    /** @var array<string, array{from: array<string, \DateTimeImmutable>, to: array<string, \DateTimeImmutable>}> "userKey-year" => index */
     private array $cache = [];
 
     public function __construct(
@@ -36,6 +36,14 @@ class WorkdayShiftOverrides
         return isset($this->index($user, (int) $day->format('Y'))['from'][$day->format('Y-m-d')]);
     }
 
+    /**
+     * For an origin day: the target day its hours moved to.
+     */
+    public function targetFor(User $user, \DateTimeInterface $day): ?\DateTimeImmutable
+    {
+        return $this->index($user, (int) $day->format('Y'))['from'][$day->format('Y-m-d')] ?? null;
+    }
+
     public function reset(?User $user = null): void
     {
         if ($user === null) {
@@ -53,7 +61,7 @@ class WorkdayShiftOverrides
     }
 
     /**
-     * @return array{from: array<string, true>, to: array<string, \DateTimeImmutable>}
+     * @return array{from: array<string, \DateTimeImmutable>, to: array<string, \DateTimeImmutable>}
      */
     private function index(User $user, int $year): array
     {
@@ -74,7 +82,7 @@ class WorkdayShiftOverrides
             if ($shift->getStatus() !== AbsenceStatus::APPROVED || $from === null || $to === null) {
                 continue;
             }
-            $index['from'][$from->format('Y-m-d')] = true;
+            $index['from'][$from->format('Y-m-d')] = \DateTimeImmutable::createFromInterface($to)->setTime(0, 0);
             $index['to'][$to->format('Y-m-d')] = \DateTimeImmutable::createFromInterface($from)->setTime(0, 0);
         }
 
@@ -83,6 +91,6 @@ class WorkdayShiftOverrides
 
     private function userKey(User $user): string
     {
-        return (string) ($user->getId() ?? spl_object_id($user));
+        return $user->getId() !== null ? 'id:' . $user->getId() : 'obj:' . spl_object_id($user);
     }
 }

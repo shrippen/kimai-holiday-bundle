@@ -178,6 +178,14 @@
         <source>holiday.error.shift_has_absence</source>
         <target>An approved absence exists on the target day.</target>
       </trans-unit>
+      <trans-unit id="h123" resname="holiday.error.shift_not_approved">
+        <source>holiday.error.shift_not_approved</source>
+        <target>Only an approved day shift can be set back to requested.</target>
+      </trans-unit>
+      <trans-unit id="h124" resname="holiday.shift.created">
+        <source>holiday.shift.created</source>
+        <target>Day shift saved.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

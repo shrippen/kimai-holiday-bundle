@@ -178,6 +178,14 @@
         <source>holiday.error.shift_has_absence</source>
         <target>Am Zieltag ist eine genehmigte Abwesenheit eingetragen.</target>
       </trans-unit>
+      <trans-unit id="h123" resname="holiday.error.shift_not_approved">
+        <source>holiday.error.shift_not_approved</source>
+        <target>Nur eine genehmigte Verschiebung kann zurück auf beantragt gesetzt werden.</target>
+      </trans-unit>
+      <trans-unit id="h124" resname="holiday.shift.created">
+        <source>holiday.shift.created</source>
+        <target>Verschiebung eingetragen.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

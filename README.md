@@ -153,11 +153,12 @@ day.
 Rules, checked when the shift is requested and again when it is approved:
 
 - both days are in the same ISO week and differ
-- the source day is a contract working day (not a full-day public holiday) and is not part of another open or approved shift
-- the target day is not a contract working day, not a full-day public holiday, inside the contract period, and not part of
+- the source day is a contract working day, not a public holiday (full or half), and is not part of another open or approved shift
+- the target day is not a contract working day, not a public holiday (full or half), inside the contract period, and not part of
   another shift
 - the person belongs to a location, and the location is open on the target day (see opening day rule above)
-- no approved absence on either day, no extra shift on the target day
+- no approved absence on either day (also blocks deleting or taking back an approved shift), no extra shift on the
+  target day
 - no locked period on either day (Kimai approval or plugin month lock)
 
 A shift needs approval by an approver who is not the requester (nobody approves their own shift, admins included).
@@ -171,10 +172,10 @@ workday timesheet restriction and automatic absence timesheets apply to the new 
 expected hours, no vacation deducted there).
 
 **Request:** on **Reports → Availability** use the action **Move a day** (needs `shift_own`; for another person
-`shift_other`). The form takes the person, the day to move, the new day and a comment.
+`shift_own` and `shift_other`). The form takes the person, the day to move, the new day and a comment.
 
 **Decide:** **Open requests** (`holiday_absence_requests`) lists day shifts in a second table below the absences, with
-the row menu and the bulk actions approve / reject. The result toast offers *Undo* (**reopen**, back to *Requested*).
+the row menu: approve / reject per row. The result toast offers *Undo* (**reopen**, back to *Requested*).
 Delete an approved or open shift from the row menu or the availability page (a confirmation mail goes to the requester
 and approvers when an approved shift is withdrawn). The menu badge counts open absences and open shifts that you may approve.
 

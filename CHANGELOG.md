@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
   (`WorkdayShift`, migration `Version20261030100000`); the approved shift moves expected hours, vacation, workday
   timesheet restriction and absence timesheets to the new day
 - Permissions `shift_own`, `shift_other` and `approve_shift`; nobody approves their own shift
-- Day shifts in a second table on the page "Open requests" with row menu, bulk approve/reject and undo; delete with
+- Day shifts in a second table on the page "Open requests" with row menu (approve/reject per row) and undo; delete with
   confirmation
 - Action "Move a day" on the availability page
 - Availability shows the shifted person on the new day ("shifted from") and open requests as *open*; the absence

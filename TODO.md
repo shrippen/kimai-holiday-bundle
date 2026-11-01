@@ -40,12 +40,10 @@ Format und Regeln: `shrippen.github.io/overview/VERSIONS.md`.
 - [ ] 📖 WebTestCase-Abdeckung der Freigabe-Routen (Zeilenaktion, Sammelaktion, API), damit Selbstfreigabe über HTTP getestet statt nur geraucht wird
 
 ## Offen nach Plan 3
-- [ ] Duplikate `absenceSeconds`/Feiertags-Reduce zusammenführen (`AvailabilityCalculator` ↔ `EventSubscriber/WorkingTimeYearSubscriber`)
 - [ ] API für Standorte und Aushilfen (`/api/holiday/…`)
 - [ ] API für Tagesverschiebungen fehlt (`/api/holiday/shifts`, Logik in `Service/WorkdayShiftService`, Routen heute nur in `Controller/WorkdayShiftController.php`)
 - [ ] FullCalendar-Quelle und ICS-Feed kennen keine Verschiebungen (`EventSubscriber/CalendarSourceSubscriber::onCalendarSource`, `Controller/CalendarFeedController::absences`, `Ics/UserIcsController::feed`)
 - [ ] 📖 WebTestCase-Abdeckung der Freigabe-Routen (Zeilenaktion, Sammelaktion, API), damit Selbstfreigabe über HTTP getestet statt nur geraucht wird; gilt auch für `holiday_workday_shift_*`
-- [ ] `dev/ci.sh` hat keinen Rauchtest für Verschiebungen (Routen `holiday_workday_shift_*`)
 
 ## Kleinbefunde Tagesverschiebung
 - [ ] `AvailabilityController::cell()`: Tooltip eines halben Tages nennt die Art (Fest/verschoben/Aushilfe) nicht, und es gibt keinen Unit-Test für `cell()`
@@ -57,7 +55,14 @@ Format und Regeln: `shrippen.github.io/overview/VERSIONS.md`.
 - [ ] Menüeintrag „Offene Anträge" erscheint nur im `absence`-Block (`EventSubscriber/MenuSubscriber.php`)
 - [ ] Spaltenkonfiguration gibt es nur für die Abwesenheits-Tabelle, nicht für die Verschiebungs-Tabelle (`Resources/views/absence/requests.html.twig`)
 - [ ] `reopen`-Tests decken `excludeId` und Periodensperre nicht ab (`Tests/Service/WorkdayShiftServiceTest.php`, `WorkdayShiftService::reopen`)
-- [ ] `EventSubscriber/WorkingTimeYearSubscriber` (Vermerke „verschoben nach/von"): Platzhalter `%from%`/`%to%` der Addons ungeprüft, Tests für T + halber Urlaub und künftiges T fehlen (`Tests/Service/WorkingTimeYearSubscriberTest.php`), Klassenkommentar „markers only" veraltet
+- [ ] `EventSubscriber/WorkingTimeYearSubscriber`: Test für T + halber Urlaub fehlt (`Tests/Service/WorkingTimeYearSubscriberTest.php`)
+- [ ] Antragsteller hat keine eigene Liste seiner Verschiebungen und erfährt eine Ablehnung nur per Mail (`Controller/WorkdayShiftController.php`)
+- [ ] Eine Aushilfe auf einem freigewordenen Herkunftstag bleibt beim Löschen der Verschiebung stehen (`Service/WorkdayShiftService::delete`, `Service/ExtraShiftService`)
+- [ ] Vertragsänderung nach der Genehmigung ist nicht behandelt: wird T später Vertragstag, liefert die Überschreibung weiter die Stunden von F (`Service/WorkdayShiftOverrides`)
+- [ ] Keine DB-Bedingung für höchstens eine aktive Verschiebung je Tag, Rennen möglich (`Migrations/Version20261030100000.php`)
+- [ ] `WorkdayShiftPermissions` vergleicht Benutzer mit `===` statt über die ID (`Service/WorkdayShiftPermissions`)
+- [ ] `reopen` verarbeitet alle IDs des Session-Eintrags, geprüft wird nur die angefragte Teilmenge (`Controller/WorkdayShiftController::reopen`)
+- [ ] Zeitraumprüfung doppelt (`Service/WorkdayShiftService::isOutsideContract` ↔ `Service/UserWorkContract::isInContractPeriod`)
 
 ## Kleinbefunde Plan 2
 - [ ] Woche 53 in Jahren ohne KW 53 rollt über (`Controller/AvailabilityController.php`)

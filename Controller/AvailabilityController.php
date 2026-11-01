@@ -15,6 +15,7 @@ use KimaiPlugin\HolidayBundle\Service\AvailabilityDay;
 use KimaiPlugin\HolidayBundle\Service\AvailabilityPeriod;
 use KimaiPlugin\HolidayBundle\Service\ExtraShiftPermissions;
 use KimaiPlugin\HolidayBundle\Service\LocationPermissions;
+use KimaiPlugin\HolidayBundle\Service\WorkdayShiftPermissions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,6 +28,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class AvailabilityController extends AbstractController
 {
     private const CELL_FIXED = 'fixed';
+    private const CELL_SHIFTED = 'shifted';
     private const CELL_EXTRA = 'extra_shift';
     private const CELL_HALF = 'half_day';
     private const CELL_ABSENT = 'absent';
@@ -36,6 +38,7 @@ class AvailabilityController extends AbstractController
         private readonly AvailabilityCalculator $calculator,
         private readonly LocationPermissions $permissions,
         private readonly ExtraShiftPermissions $extraShiftPermissions,
+        private readonly WorkdayShiftPermissions $shiftPermissions,
         private readonly LocationUserRepository $members,
         private readonly LocaleService $localeService,
         private readonly TranslatorInterface $translator,
@@ -101,7 +104,20 @@ class AvailabilityController extends AbstractController
         }
 
         $deletable = [];
+        $shiftDeletable = [];
         foreach ($days as $day) {
+            foreach ($day->pending as $item) {
+                $shift = $item['shift'] ?? null;
+                if ($shift !== null && $shift->getId() !== null) {
+                    $shiftDeletable[$shift->getId()] = $this->shiftPermissions->canDelete($shift);
+                }
+            }
+            foreach ($day->present as $entry) {
+                $shift = $entry->shift;
+                if ($shift !== null && $shift->getId() !== null) {
+                    $shiftDeletable[$shift->getId()] = $this->shiftPermissions->canDelete($shift);
+                }
+            }
             foreach ($day->present as $entry) {
                 $shift = $entry->extraShift;
                 if ($entry->kind === PresenceKind::EXTRA_SHIFT && $shift !== null && $shift->getId() !== null) {
@@ -121,6 +137,7 @@ class AvailabilityController extends AbstractController
             'open_days' => $openDays,
             'rows' => $rows,
             'deletable' => $deletable,
+            'shift_deletable' => $shiftDeletable,
             'today' => (new \DateTimeImmutable('today'))->format('Y-m-d'),
         ]);
     }
@@ -217,12 +234,15 @@ class AvailabilityController extends AbstractController
         $pending = null;
         foreach ($day->pending as $item) {
             if ($item['user'] === $user) {
-                $pending = $item['absence']->getType()->label();
+                $pending = isset($item['absence']) ? $item['absence']->getType()->label() : 'holiday.availability.pending_shift_cell';
             }
         }
         foreach ($day->present as $entry) {
             if ($entry->user !== $user) {
                 continue;
+            }
+            if ($entry->kind === PresenceKind::SHIFTED) {
+                return ['kind' => self::CELL_SHIFTED, 'icon' => 'repeat', 'label' => $entry->kind->label(), 'pending' => $pending];
             }
             if ($entry->kind === PresenceKind::EXTRA_SHIFT) {
                 return ['kind' => self::CELL_EXTRA, 'icon' => 'create', 'label' => $entry->kind->label(), 'pending' => $pending];
@@ -233,9 +253,14 @@ class AvailabilityController extends AbstractController
                 : ['kind' => self::CELL_FIXED, 'icon' => 'user', 'label' => $entry->kind->label(), 'pending' => $pending];
         }
         foreach ($day->pending as $item) {
-            if ($item['user'] === $user) {
+            if ($item['user'] !== $user) {
+                continue;
+            }
+            if (isset($item['absence'])) {
                 return ['kind' => self::CELL_PENDING, 'icon' => $item['absence']->getType()->icon(), 'label' => $item['absence']->getType()->label(), 'pending' => null];
             }
+
+            return ['kind' => self::CELL_PENDING, 'icon' => 'repeat', 'label' => 'holiday.availability.pending_shift_cell', 'pending' => null];
         }
 
         return null;

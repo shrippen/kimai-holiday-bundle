@@ -30,6 +30,7 @@
                 <span class="text-nowrap"><i class="{{ item.icon|icon }} fa-fw" aria-hidden="true"></i> {{ item.label|trans }}</span>
             {% endfor %}
             <span class="text-nowrap"><i class="{{ 'create'|icon }} fa-fw" aria-hidden="true"></i> {{ 'holiday.extra_shift.label'|trans }}</span>
+            <span class="text-nowrap"><i class="{{ 'repeat'|icon }} fa-fw" aria-hidden="true"></i> {{ 'holiday.shift.calendar.legend'|trans }}</span>
             <div class="d-flex align-items-center gap-1 text-nowrap">{{ kit.calendar_day('01', {absence: true}) }} {{ kit.status_badge('approved') }}</div>
             <div class="d-flex align-items-center gap-1 text-nowrap"><span class="opacity-50"><i class="{{ 'holiday'|icon }} fa-fw" aria-hidden="true"></i></span> {{ kit.status_badge('requested') }}</div>
             <div class="d-flex align-items-center gap-1 text-nowrap">{{ kit.calendar_day('01', {holiday: true}) }} {{ 'kpu.day.holiday'|trans({}, 'kpu') }}</div>
@@ -72,7 +73,7 @@
                                         {# Bar for approved absences and the user's public holidays; requested absences only as faded icon #}
                                         {% set entries = row.days[day] ?? [] %}
                                         {% set holiday = row.holidays[day] ?? null %}
-                                        {% set labels = entries|map(e => e.type == 'extra_shift' ? e.label|trans : e.label|trans ~ ' · ' ~ (e.requested ? 'kpu.status.requested' : 'kpu.status.approved')|trans({}, 'kpu')) %}
+                                        {% set labels = entries|map(e => e.type == 'workday_shift' ? e.label ~ (e.requested ? ' · ' ~ 'kpu.status.requested'|trans({}, 'kpu') : '') : (e.type == 'extra_shift' ? e.label|trans : e.label|trans ~ ' · ' ~ (e.requested ? 'kpu.status.requested' : 'kpu.status.approved')|trans({}, 'kpu'))) %}
                                         {% set icons %}
                                             {%- for entry in entries -%}
                                                 <i class="{{ entry.icon|icon }} fa-xs{{ entry.requested ? ' opacity-50' : '' }}" aria-hidden="true"></i>
@@ -83,7 +84,7 @@
                                             today: day == m.today,
                                             weekend: row.off[day],
                                             holiday: holiday is not null,
-                                            absence: entries|filter(e => not e.requested and e.type != 'extra_shift') is not empty,
+                                            absence: entries|filter(e => not e.requested and e.type not in ['extra_shift', 'workday_shift']) is not empty,
                                             label: (holiday is not null ? [holiday] : [])|merge(labels)|join(', ') ?: null,
                                             content: entries is empty ? null : icons,
                                         }) }}

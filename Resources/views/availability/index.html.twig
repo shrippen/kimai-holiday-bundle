@@ -28,15 +28,26 @@
     {% endif %}
 {% endblock %}
 
+{# Small delete action of a day shift (same pattern as for extra shifts) #}
+{% macro shift_delete(shift, name) %}
+    <a href="#" class="ms-1" data-kpu-post="{{ path('holiday_workday_shift_delete', {id: shift.id}) }}"
+       data-kpu-token="{{ csrf_token('holiday_workday_shift_action') }}"
+       data-kpu-question="{{ 'holiday.shift.delete_question'|trans }}"
+       title="{{ 'holiday.availability.delete_shift'|trans }}" aria-label="{{ 'holiday.availability.delete_shift'|trans }}: {{ name }}"><i class="{{ 'trash'|icon }}" aria-hidden="true"></i></a>
+{% endmacro %}
+
 {# People of one day: present (name, kind, half day), open requests, absent #}
-{% macro day_body(day, deletable) %}
+{% macro day_body(day, deletable, shift_deletable) %}
     {% if day.present is not empty %}
         <div class="fw-bold">{{ 'holiday.availability.present'|trans }}</div>
         <ul class="list-unstyled mb-1">
             {% for entry in day.present %}
                 <li>
                     {{ entry.user.displayName }}
-                    <span class="text-body-secondary">· {{ entry.kind.label|trans }}{% if entry.halfDay %} · {{ 'holiday.availability.half_day'|trans }}{% endif %}</span>
+                    <span class="text-body-secondary">· {% if entry.shift is not null %}{{ 'holiday.availability.shifted_from'|trans({'%date%': entry.shift.fromDate|date('d.m.')}) }}{% else %}{{ entry.kind.label|trans }}{% endif %}{% if entry.halfDay %} · {{ 'holiday.availability.half_day'|trans }}{% endif %}</span>
+                    {% if entry.shift is not null and (shift_deletable[entry.shift.id] ?? false) %}
+                        {{ _self.shift_delete(entry.shift, entry.user.displayName) }}
+                    {% endif %}
                     {% if entry.extraShift is not null and (deletable[entry.extraShift.id] ?? false) %}
                         <a href="#" class="ms-1" data-kpu-post="{{ path('holiday_extra_shift_delete', {id: entry.extraShift.id}) }}"
                            data-kpu-token="{{ csrf_token('holiday_extra_shift') }}"
@@ -51,7 +62,15 @@
         <div class="fw-bold">{{ 'holiday.availability.pending'|trans }}</div>
         <ul class="list-unstyled mb-1">
             {% for item in day.pending %}
-                <li>{{ item.user.displayName }} <span class="text-body-secondary">· {{ item.absence.type.label|trans }}</span></li>
+                <li>
+                    {{ item.user.displayName }}
+                    {% if item.shift is defined %}
+                        <span class="text-body-secondary">· {{ 'holiday.availability.pending_shift'|trans({'%from%': item.shift.fromDate|date('d.m.'), '%to%': item.shift.toDate|date('d.m.')}) }}</span>
+                        {% if shift_deletable[item.shift.id] ?? false %}{{ _self.shift_delete(item.shift, item.user.displayName) }}{% endif %}
+                    {% else %}
+                        <span class="text-body-secondary">· {{ item.absence.type.label|trans }}</span>
+                    {% endif %}
+                </li>
             {% endfor %}
         </ul>
     {% endif %}
@@ -91,7 +110,7 @@
                             {% if day.unstaffed %}
                                 <div class="mb-1 text-red" title="{{ 'holiday.availability.unstaffed_hint'|trans }}">{{ icon('warning') }} <strong>{{ 'holiday.availability.unstaffed'|trans }}</strong></div>
                             {% endif %}
-                            {{ _self.day_body(day, deletable) }}
+                            {{ _self.day_body(day, deletable, shift_deletable) }}
                         </div>
                     {% endset %}
                     {{ kit.hint_card(title, {type: type, due: key == today ? ('kpu.day.today'|trans({}, 'kpu')) : null, actions: body}) }}
@@ -151,6 +170,7 @@
             <div class="card mb-3">
                 <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3 text-body-secondary">
                     <span class="text-nowrap"><i class="{{ 'user'|icon }} fa-fw" aria-hidden="true"></i> {{ 'holiday.availability.kind.fixed'|trans }}</span>
+                    <span class="text-nowrap"><i class="{{ 'repeat'|icon }} fa-fw" aria-hidden="true"></i> {{ 'holiday.availability.kind.shifted'|trans }}</span>
                     <span class="text-nowrap"><i class="{{ 'create'|icon }} fa-fw" aria-hidden="true"></i> {{ 'holiday.availability.kind.extra_shift'|trans }}</span>
                     <span class="text-nowrap"><span class="opacity-50"><i class="{{ 'user'|icon }} fa-fw" aria-hidden="true"></i>½</span> {{ 'holiday.availability.half_day'|trans }}</span>
                     <div class="d-flex align-items-center gap-1 text-nowrap">{{ kit.calendar_day('01', {absence: true}) }} {{ 'holiday.availability.absent'|trans }}</div>

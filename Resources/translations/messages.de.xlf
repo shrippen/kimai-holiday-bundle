@@ -1163,6 +1163,38 @@ Aktion: beantragt</target>
         <source>holiday.shift.delete_question</source>
         <target>Verschiebung entfernen?</target>
       </trans-unit>
+      <trans-unit id="h292" resname="holiday.availability.kind.shifted">
+        <source>holiday.availability.kind.shifted</source>
+        <target>verschoben</target>
+      </trans-unit>
+      <trans-unit id="h293" resname="holiday.availability.shifted_from">
+        <source>holiday.availability.shifted_from</source>
+        <target>verschoben von %date%</target>
+      </trans-unit>
+      <trans-unit id="h294" resname="holiday.availability.pending_shift">
+        <source>holiday.availability.pending_shift</source>
+        <target>Verschiebung %from% → %to% (offen)</target>
+      </trans-unit>
+      <trans-unit id="h295" resname="holiday.availability.pending_shift_cell">
+        <source>holiday.availability.pending_shift_cell</source>
+        <target>Verschiebung</target>
+      </trans-unit>
+      <trans-unit id="h296" resname="holiday.availability.delete_shift">
+        <source>holiday.availability.delete_shift</source>
+        <target>Verschiebung entfernen</target>
+      </trans-unit>
+      <trans-unit id="h297" resname="holiday.shift.calendar.away">
+        <source>holiday.shift.calendar.away</source>
+        <target>Arbeitstag verschoben nach %to%</target>
+      </trans-unit>
+      <trans-unit id="h298" resname="holiday.shift.calendar.to">
+        <source>holiday.shift.calendar.to</source>
+        <target>Arbeitstag verschoben von %from%</target>
+      </trans-unit>
+      <trans-unit id="h299" resname="holiday.shift.calendar.legend">
+        <source>holiday.shift.calendar.legend</source>
+        <target>Tagesverschiebung</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -2,14 +2,13 @@
 
 namespace KimaiPlugin\HolidayBundle\Tests\Service;
 
-use App\Repository\WorkingTimeRepository;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
-use KimaiPlugin\HolidayBundle\Repository\MonthLockRepository;
+use KimaiPlugin\HolidayBundle\Service\PeriodLockGuard;
 use KimaiPlugin\HolidayBundle\Service\AbsenceApprovalService;
 use KimaiPlugin\HolidayBundle\Service\AbsenceNotifier;
 use KimaiPlugin\HolidayBundle\Service\AbsenceTimesheetService;
@@ -144,11 +143,10 @@ final class AbsenceApprovalServiceTest extends TestCase
 
         return new AbsenceApprovalService(
             $this->createStub(AbsenceRepository::class),
-            $this->createStub(MonthLockRepository::class),
             $this->createStub(AbsenceNotifier::class),
             $config,
             $this->createStub(AbsenceTimesheetService::class),
-            $this->createStub(WorkingTimeRepository::class),
+            $this->createStub(PeriodLockGuard::class),
             $resolver,
         );
     }

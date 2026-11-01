@@ -143,9 +143,10 @@
                                         {% if cell is null %}
                                             {{ kit.calendar_day('', {tag: 'td', today: key == today}) }}
                                         {% else %}
-                                            {% set cell_label = cell.label|trans ~ (cell.kind == 'pending' ? ' · ' ~ 'holiday.availability.pending'|trans : '') ~ (cell.pending ? ' · ' ~ 'holiday.availability.pending'|trans ~ ': ' ~ cell.pending|trans : '') %}
+                                            {% set open_labels = cell.pending ? cell.pending|map(k => k|trans)|join(', ') : '' %}
+                                            {% set cell_label = cell.kind == 'pending' ? open_labels ~ ' · ' ~ 'holiday.availability.pending'|trans : cell.label|trans ~ (open_labels ? ' · ' ~ 'holiday.availability.pending'|trans ~ ': ' ~ open_labels : '') %}
                                             {% set icon_html %}
-                                                <i class="{{ cell.icon|icon }} fa-xs{{ cell.kind in ['pending', 'half_day'] ? ' opacity-50' : '' }}" aria-hidden="true"></i>{% if cell.kind == 'half_day' %}<span aria-hidden="true">½</span>{% endif %}{% if cell.pending %}<i class="{{ 'holiday'|icon }} fa-xs opacity-50" aria-hidden="true"></i>{% endif %}
+                                                <i class="{{ cell.icon|icon }} fa-xs{{ cell.kind in ['pending', 'half_day'] ? ' opacity-50' : '' }}" aria-hidden="true"></i>{% if cell.kind == 'half_day' %}<span aria-hidden="true">½</span>{% endif %}{% if cell.pending and cell.kind != 'pending' %}<i class="{{ cell.pending_icon|icon }} fa-xs opacity-50" aria-hidden="true"></i>{% endif %}
                                             {% endset %}
                                             {{ kit.calendar_day('', {tag: 'td', today: key == today, absence: cell.kind == 'absent', label: cell_label, content: icon_html}) }}
                                         {% endif %}

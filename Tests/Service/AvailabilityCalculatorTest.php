@@ -12,6 +12,7 @@ use KimaiPlugin\HolidayBundle\Entity\Location;
 use KimaiPlugin\HolidayBundle\Entity\PublicHoliday;
 use KimaiPlugin\HolidayBundle\Entity\PublicHolidayGroup;
 use KimaiPlugin\HolidayBundle\Entity\WorkdayShift;
+use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Enum\PresenceKind;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\ExtraShiftRepository;
@@ -92,6 +93,17 @@ final class AvailabilityCalculatorTest extends TestCase
         self::assertSame([], $days['2026-10-29']->pending);
     }
 
+    public function testHalfDayAbsenceOnShiftedTargetStaysShifted(): void
+    {
+        $this->useShifts([WorkdayShiftBuilder::approved($this->moritz, '2026-10-30', '2026-10-29')]);
+        $half = AbsenceBuilder::vacation($this->moritz, '2026-10-29', '2026-10-29')->setHalfDay(true);
+
+        $entry = $this->forWeek([$half])['2026-10-29']->present[1];
+
+        self::assertSame(PresenceKind::SHIFTED, $entry->kind);
+        self::assertTrue($entry->halfDay);
+    }
+
     public function testRequestedShiftIsPendingOnBothDays(): void
     {
         $shift = WorkdayShiftBuilder::requested($this->moritz, '2026-10-30', '2026-10-29');
@@ -128,7 +140,7 @@ final class AvailabilityCalculatorTest extends TestCase
         $this->workdayShifts = $shifts;
         $repo = $this->createStub(WorkdayShiftRepository::class);
         $repo->method('findApprovedForUserBetween')->willReturnCallback(
-            static fn ($user) => array_values(array_filter($shifts, static fn (WorkdayShift $s): bool => $s->getUser() === $user && $s->getStatus() === \KimaiPlugin\HolidayBundle\Enum\AbsenceStatus::APPROVED))
+            static fn ($user) => array_values(array_filter($shifts, static fn (WorkdayShift $s): bool => $s->getUser() === $user && $s->getStatus() === AbsenceStatus::APPROVED))
         );
         $this->overrides = new WorkdayShiftOverrides($repo);
     }

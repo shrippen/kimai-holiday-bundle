@@ -202,7 +202,7 @@ class AvailabilityController extends AbstractController
      *
      * @param User[] $users
      * @param array<string, AvailabilityDay> $openDays
-     * @return array<int, array{user: User, cells: array<string, ?array{kind: string, icon: string, label: string, pending: ?string}>}>
+     * @return array<int, array{user: User, cells: array<string, ?array{kind: string, icon: string, label: string, pending: ?string[], pending_icon?: ?string}>}>
      */
     private function memberRows(array $users, array $openDays): array
     {
@@ -222,45 +222,52 @@ class AvailabilityController extends AbstractController
     /**
      * 'pending' carries the type label of an open request on a day the person is present anyway.
      *
-     * @return array{kind: string, icon: string, label: string, pending: ?string}|null
+     * @return array{kind: string, icon: string, label: string, pending: ?string[], pending_icon?: ?string}|null
      */
     private function cell(User $user, AvailabilityDay $day): ?array
     {
         foreach ($day->absent as $item) {
             if ($item['user'] === $user) {
-                return ['kind' => self::CELL_ABSENT, 'icon' => $item['absence']->getType()->icon(), 'label' => $item['absence']->getType()->label(), 'pending' => null];
+                return ['kind' => self::CELL_ABSENT, 'icon' => $item['absence']->getType()->icon(), 'label' => $item['absence']->getType()->label(), 'pending' => null, 'pending_icon' => null];
             }
         }
-        $pending = null;
-        foreach ($day->pending as $item) {
-            if ($item['user'] === $user) {
-                $pending = isset($item['absence']) ? $item['absence']->getType()->label() : 'holiday.availability.pending_shift_cell';
-            }
-        }
-        foreach ($day->present as $entry) {
-            if ($entry->user !== $user) {
-                continue;
-            }
-            if ($entry->kind === PresenceKind::SHIFTED) {
-                return ['kind' => self::CELL_SHIFTED, 'icon' => 'repeat', 'label' => $entry->kind->label(), 'pending' => $pending];
-            }
-            if ($entry->kind === PresenceKind::EXTRA_SHIFT) {
-                return ['kind' => self::CELL_EXTRA, 'icon' => 'create', 'label' => $entry->kind->label(), 'pending' => $pending];
-            }
-
-            return $entry->halfDay
-                ? ['kind' => self::CELL_HALF, 'icon' => 'user', 'label' => 'holiday.availability.half_day', 'pending' => $pending]
-                : ['kind' => self::CELL_FIXED, 'icon' => 'user', 'label' => $entry->kind->label(), 'pending' => $pending];
-        }
+        // open items of this person (absence first); labels are translation keys
+        $open = [];
         foreach ($day->pending as $item) {
             if ($item['user'] !== $user) {
                 continue;
             }
-            if (isset($item['absence'])) {
-                return ['kind' => self::CELL_PENDING, 'icon' => $item['absence']->getType()->icon(), 'label' => $item['absence']->getType()->label(), 'pending' => null];
+            $open[isset($item['absence']) ? 'absence' : 'shift'] = isset($item['absence'])
+                ? ['label' => $item['absence']->getType()->label(), 'icon' => $item['absence']->getType()->icon()]
+                : ['label' => 'holiday.availability.pending_shift_cell', 'icon' => 'repeat'];
+        }
+        $open = array_merge(['absence' => null, 'shift' => null], $open);
+        $open = array_values(array_filter($open));
+        $pending = $open === [] ? null : array_column($open, 'label');
+        $pendingIcon = $open[0]['icon'] ?? null;
+
+        foreach ($day->present as $entry) {
+            if ($entry->user !== $user) {
+                continue;
+            }
+            $icon = match ($entry->kind) {
+                PresenceKind::SHIFTED => 'repeat',
+                PresenceKind::EXTRA_SHIFT => 'create',
+                PresenceKind::FIXED => 'user',
+            };
+            $kind = match ($entry->kind) {
+                PresenceKind::SHIFTED => self::CELL_SHIFTED,
+                PresenceKind::EXTRA_SHIFT => self::CELL_EXTRA,
+                PresenceKind::FIXED => self::CELL_FIXED,
+            };
+            if ($entry->halfDay) {
+                return ['kind' => self::CELL_HALF, 'icon' => $icon, 'label' => 'holiday.availability.half_day', 'pending' => $pending, 'pending_icon' => $pendingIcon];
             }
 
-            return ['kind' => self::CELL_PENDING, 'icon' => 'repeat', 'label' => 'holiday.availability.pending_shift_cell', 'pending' => null];
+            return ['kind' => $kind, 'icon' => $icon, 'label' => $entry->kind->label(), 'pending' => $pending, 'pending_icon' => $pendingIcon];
+        }
+        if ($open !== []) {
+            return ['kind' => self::CELL_PENDING, 'icon' => $pendingIcon, 'label' => $open[0]['label'], 'pending' => $pending, 'pending_icon' => null];
         }
 
         return null;

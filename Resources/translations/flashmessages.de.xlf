@@ -122,6 +122,62 @@
         <source>holiday.extra_shift.created</source>
         <target>Aushilfe eingetragen.</target>
       </trans-unit>
+      <trans-unit id="h109" resname="holiday.error.shift_same_day">
+        <source>holiday.error.shift_same_day</source>
+        <target>Ursprungs- und Zieltag müssen verschieden sein.</target>
+      </trans-unit>
+      <trans-unit id="h110" resname="holiday.error.shift_not_same_week">
+        <source>holiday.error.shift_not_same_week</source>
+        <target>Der Zieltag muss in derselben Woche liegen.</target>
+      </trans-unit>
+      <trans-unit id="h111" resname="holiday.error.shift_from_not_workday">
+        <source>holiday.error.shift_from_not_workday</source>
+        <target>Der Ursprungstag ist kein Arbeitstag.</target>
+      </trans-unit>
+      <trans-unit id="h112" resname="holiday.error.shift_from_taken">
+        <source>holiday.error.shift_from_taken</source>
+        <target>Für den Ursprungstag gibt es schon eine Verschiebung.</target>
+      </trans-unit>
+      <trans-unit id="h113" resname="holiday.error.shift_to_workday">
+        <source>holiday.error.shift_to_workday</source>
+        <target>Der Zieltag ist schon ein Arbeitstag.</target>
+      </trans-unit>
+      <trans-unit id="h114" resname="holiday.error.shift_to_holiday">
+        <source>holiday.error.shift_to_holiday</source>
+        <target>Der Zieltag ist ein Feiertag.</target>
+      </trans-unit>
+      <trans-unit id="h115" resname="holiday.error.shift_to_outside_contract">
+        <source>holiday.error.shift_to_outside_contract</source>
+        <target>Der Zieltag liegt außerhalb des Arbeitsvertrags.</target>
+      </trans-unit>
+      <trans-unit id="h116" resname="holiday.error.shift_to_taken">
+        <source>holiday.error.shift_to_taken</source>
+        <target>Für den Zieltag gibt es schon eine Verschiebung.</target>
+      </trans-unit>
+      <trans-unit id="h117" resname="holiday.error.shift_no_location">
+        <source>holiday.error.shift_no_location</source>
+        <target>Du bist keinem Standort zugeordnet.</target>
+      </trans-unit>
+      <trans-unit id="h118" resname="holiday.error.shift_to_closed">
+        <source>holiday.error.shift_to_closed</source>
+        <target>Der Standort hat am Zieltag geschlossen.</target>
+      </trans-unit>
+      <trans-unit id="h119" resname="holiday.error.shift_absent">
+        <source>holiday.error.shift_absent</source>
+        <target>An einem der Tage ist eine genehmigte Abwesenheit eingetragen.</target>
+      </trans-unit>
+      <trans-unit id="h120" resname="holiday.error.shift_target_extra">
+        <source>holiday.error.shift_target_extra</source>
+        <target>Am Zieltag ist eine Aushilfe eingetragen.</target>
+      </trans-unit>
+      <trans-unit id="h121" resname="holiday.error.shift_locked">
+        <source>holiday.error.shift_locked</source>
+        <target>Der Zeitraum ist gesperrt.</target>
+      </trans-unit>
+      <trans-unit id="h122" resname="holiday.error.shift_has_absence">
+        <source>holiday.error.shift_has_absence</source>
+        <target>Am Zieltag ist eine genehmigte Abwesenheit eingetragen.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

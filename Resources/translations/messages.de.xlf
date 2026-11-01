@@ -1059,6 +1059,30 @@ Aktion: beantragt</target>
         <source>holiday.shift.addon.to</source>
         <target>Arbeitstag verschoben von %from%</target>
       </trans-unit>
+      <trans-unit id="h265" resname="holiday.mail.shift_requested.subject">
+        <source>holiday.mail.shift_requested.subject</source>
+        <target>Verschiebung beantragt</target>
+      </trans-unit>
+      <trans-unit id="h266" resname="holiday.mail.shift_requested.body">
+        <source>holiday.mail.shift_requested.body</source>
+        <target>%user% möchte den Arbeitstag %from% auf den %to% verschieben. %comment%</target>
+      </trans-unit>
+      <trans-unit id="h267" resname="holiday.mail.shift_approved.subject">
+        <source>holiday.mail.shift_approved.subject</source>
+        <target>Verschiebung genehmigt</target>
+      </trans-unit>
+      <trans-unit id="h268" resname="holiday.mail.shift_approved.body">
+        <source>holiday.mail.shift_approved.body</source>
+        <target>%approver% hat die Verschiebung von %user% (%from% auf %to%) genehmigt.</target>
+      </trans-unit>
+      <trans-unit id="h269" resname="holiday.mail.shift_rejected.subject">
+        <source>holiday.mail.shift_rejected.subject</source>
+        <target>Verschiebung abgelehnt</target>
+      </trans-unit>
+      <trans-unit id="h270" resname="holiday.mail.shift_rejected.body">
+        <source>holiday.mail.shift_rejected.body</source>
+        <target>%approver% hat die Verschiebung von %user% (%from% auf %to%) abgelehnt.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

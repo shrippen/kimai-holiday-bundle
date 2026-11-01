@@ -4,6 +4,7 @@ namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
+use KimaiPlugin\HolidayBundle\Entity\WorkdayShift;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -79,16 +80,51 @@ class AbsenceNotifier
         );
     }
 
+    public function notifyShiftRequested(WorkdayShift $shift): void
+    {
+        $this->notifyShift($shift, 'requested');
+    }
+
+    public function notifyShiftApproved(WorkdayShift $shift): void
+    {
+        $this->notifyShift($shift, 'approved');
+    }
+
+    public function notifyShiftRejected(WorkdayShift $shift): void
+    {
+        $this->notifyShift($shift, 'rejected');
+    }
+
+    private function notifyShift(WorkdayShift $shift, string $event): void
+    {
+        $user = $shift->getUser();
+        if ($user === null) {
+            return;
+        }
+
+        $this->send(
+            $this->recipients($user, WorkdayShiftService::PERMISSION),
+            $this->translator->trans('holiday.mail.shift_' . $event . '.subject'),
+            $this->translator->trans('holiday.mail.shift_' . $event . '.body', [
+                '%user%' => $user->getDisplayName(),
+                '%from%' => $shift->getFromDate()?->format('Y-m-d') ?? '',
+                '%to%' => $shift->getToDate()?->format('Y-m-d') ?? '',
+                '%comment%' => $shift->getComment() ?? '',
+                '%approver%' => $shift->getApprovedBy()?->getDisplayName() ?? '',
+            ])
+        );
+    }
+
     /**
      * The requester and every account that could approve the request.
      *
      * @return list<string|null>
      */
-    private function recipients(User $user): array
+    private function recipients(User $user, string $permission = ApproverAccess::PERMISSION): array
     {
         return [
             $user->getEmail(),
-            ...array_map(static fn (User $approver): ?string => $approver->getEmail(), $this->approverResolver->approversFor($user)),
+            ...array_map(static fn (User $approver): ?string => $approver->getEmail(), $this->approverResolver->approversFor($user, $permission)),
         ];
     }
 

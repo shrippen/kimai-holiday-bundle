@@ -1059,6 +1059,30 @@ Action: requested</target>
         <source>holiday.shift.addon.to</source>
         <target>Workday moved from %from%</target>
       </trans-unit>
+      <trans-unit id="h265" resname="holiday.mail.shift_requested.subject">
+        <source>holiday.mail.shift_requested.subject</source>
+        <target>Day shift requested</target>
+      </trans-unit>
+      <trans-unit id="h266" resname="holiday.mail.shift_requested.body">
+        <source>holiday.mail.shift_requested.body</source>
+        <target>%user% would like to move the workday %from% to %to%. %comment%</target>
+      </trans-unit>
+      <trans-unit id="h267" resname="holiday.mail.shift_approved.subject">
+        <source>holiday.mail.shift_approved.subject</source>
+        <target>Day shift approved</target>
+      </trans-unit>
+      <trans-unit id="h268" resname="holiday.mail.shift_approved.body">
+        <source>holiday.mail.shift_approved.body</source>
+        <target>%approver% approved the shift of %user% (%from% to %to%).</target>
+      </trans-unit>
+      <trans-unit id="h269" resname="holiday.mail.shift_rejected.subject">
+        <source>holiday.mail.shift_rejected.subject</source>
+        <target>Day shift rejected</target>
+      </trans-unit>
+      <trans-unit id="h270" resname="holiday.mail.shift_rejected.body">
+        <source>holiday.mail.shift_rejected.body</source>
+        <target>%approver% rejected the shift of %user% (%from% to %to%).</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

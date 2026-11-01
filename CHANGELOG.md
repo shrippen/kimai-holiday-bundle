@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.2.0 (2026-11-01)
+
+### Added
+
+- Day shifts (Tagesverschiebung): move a contract working day to another day of the same week, with request and approval
+  (`WorkdayShift`, migration `Version20261030100000`); the approved shift moves expected hours, vacation, workday
+  timesheet restriction and absence timesheets to the new day
+- Permissions `shift_own`, `shift_other` and `approve_shift`; nobody approves their own shift
+- Day shifts in a second table on the page "Open requests" with row menu, bulk approve/reject and undo; delete with
+  confirmation
+- Action "Move a day" on the availability page
+- Availability shows the shifted person on the new day ("shifted from") and open requests as *open*; the absence
+  calendar shows entries of type `workday_shift`; the working-time year view marks both days
+- Mails for requested, approved, rejected and withdrawn shifts (requester and approvers)
+- The menu badge and the count of open requests include day shifts
+
+### Changed
+
+- `UserWorkContract::getExpectedSecondsForDate` respects approved shifts; the raw contract value is
+  `getContractSecondsForDate`
+- The working-time year view marks shifted days with an addon
+- `AbsenceApprovalService` checks locked periods with the shared `PeriodLockGuard`
+- Approver resolution (`ApproverResolver`, `ApproverAccess`) takes the permission as a parameter (default
+  `approve_other_absence`), so day shifts use `approve_shift`
+- Soll and absence per day come from one calculation (`DayExpectation`), used by `WorkingTimeCalculator` and the
+  working-time year view; with a half public holiday plus a half absence both now follow the calculator rule
+
+### Development
+
+- Unit tests for shifts, overrides, permissions, the day calculation and the year view subscriber
+- Update note: run `kimai:reload` as the web user (`-u www-data`)
+
 ## 2.1.0 (2026-10-28)
 
 ### Added

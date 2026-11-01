@@ -25,6 +25,7 @@ Open-source Kimai plugin for working hours, overtime, absences, and public holid
 - Per-user ICS calendar feed (public holidays + approved absences) for Outlook / Google / Apple
 - Public holiday groups, manual entry, ICS import (curated calendars + custom ICS URL) and sync
 - Absences & public holidays on the Kimai calendar
+- Day shifts (Tagesverschiebung): move a contract working day to another day of the same week, with approval
 - Absence calendar team report (year or month, requested vs. approved) + CSV export
 - System settings: calculation modes (compensate vs reduce), comment required, workday timesheet restriction, auto absence timesheets
 - REST API under `/api/holiday/...`
@@ -59,6 +60,11 @@ Kimai’s app root in the official image is `/opt/kimai/`. Use the full console 
 docker exec -it CONTAINER /opt/kimai/bin/console kimai:reload -n
 docker exec -it CONTAINER /opt/kimai/bin/console kimai:bundle:holiday:install
 ```
+
+**Updating:** run the reload as the web server user, e.g.
+`docker exec -u www-data kimai bin/console kimai:reload -n`, then `kimai:bundle:holiday:install` (migrations). Running
+the reload as root leaves `var/cache` owned by root and breaks pages that need an un-warmed translation catalogue
+(HTTP 500). `chown -R www-data:www-data var/cache` heals it.
 
 Public-holiday **Import** fetches an ICS calendar over HTTPS (Germany: [ics.tools](https://ics.tools/); other countries: Google holiday calendars or a custom URL). Stored feeds can be refreshed with:
 
@@ -138,6 +144,55 @@ contract working day, no approved absence, an opening day of the person's own lo
 Create it with the button on the availability page; delete it from the day card (creator, or
 `extra_shift_own` / `extra_shift_other` for the person). The absence calendar shows extra shifts with a plus icon.
 
+### Day shifts
+
+A **day shift** (Tagesverschiebung) moves one contract working day to another day of the same week, for example
+Friday to Thursday. It is hours-neutral: the old day becomes a free day, the expected hours of the old day move to the new
+day.
+
+Rules, checked when the shift is requested and again when it is approved:
+
+- both days are in the same ISO week and differ
+- the source day is a contract working day (not a full-day public holiday) and is not part of another open or approved shift
+- the target day is not a contract working day, not a full-day public holiday, inside the contract period, and not part of
+  another shift
+- the person belongs to a location, and the location is open on the target day (see opening day rule above)
+- no approved absence on either day, no extra shift on the target day
+- no locked period on either day (Kimai approval or plugin month lock)
+
+A shift needs approval by an approver who is not the requester (nobody approves their own shift, admins included).
+Approvers are resolved with the permission `approve_shift`, in the same scope as for absences. An approver who creates a
+shift for someone else gets it approved directly. Status flow: *Requested* → *Approved* / *Rejected*. After approval the
+shift is not edited: delete it and request again.
+
+**What approval does:** the expected hours (`UserWorkContract::getExpectedSecondsForDate`) follow the shift. Vacation and
+sickness are counted on the new day, the working-time balance and the working-time year view use the new day, and the
+workday timesheet restriction and automatic absence timesheets apply to the new day. The old day counts as free (no
+expected hours, no vacation deducted there).
+
+**Request:** on **Reports → Availability** use the action **Move a day** (needs `shift_own`; for another person
+`shift_other`). The form takes the person, the day to move, the new day and a comment.
+
+**Decide:** **Open requests** (`holiday_absence_requests`) lists day shifts in a second table below the absences, with
+the row menu and the bulk actions approve / reject. The result toast offers *Undo* (**reopen**, back to *Requested*).
+Delete an approved or open shift from the row menu or the availability page (a confirmation mail goes to the requester
+and approvers when an approved shift is withdrawn). The menu badge counts open absences and open shifts that you may approve.
+
+**Mails:** request, approval, rejection and withdrawal go to the requester and all approvers of the shift.
+
+**Where it shows:**
+
+- Availability (week and month): the person is present on the new day, marked "shifted from dd.mm."; open requests are
+  listed as *open* on both days
+- Absence calendar: entries of type `workday_shift` (repeat icon, faded while requested)
+- Working-time year view: addons "shifted to" / "shifted from" on the two days
+
+Pages: `/holiday/workday-shifts/create` (`holiday_workday_shift_create`), `/holiday/workday-shifts/approve` and
+`/reject` (`holiday_workday_shift_bulk_approve`, `holiday_workday_shift_bulk_reject`, POST),
+`/holiday/workday-shifts/reopen/{action}` (`holiday_workday_shift_reopen`, POST),
+`/holiday/workday-shifts/{id}/delete` (`holiday_workday_shift_delete`, POST). All POST routes need a CSRF token. There is no
+API and no ICS/FullCalendar export for shifts yet.
+
 ## User interface
 
 The plugin pages follow the shared UI guidelines and kit for Kimai plugins
@@ -164,16 +219,18 @@ Translation keys of this plugin all start with `holiday.`.
 | `view_location` / `edit_location` | See / edit locations |
 | `view_availability` | Availability view |
 | `extra_shift_own` / `extra_shift_other` | Create extra shifts for yourself / others (others: `access_user` scope) |
+| `shift_own` / `shift_other` | Request day shifts for yourself / others (others: `access_user` scope) |
+| `approve_shift` | Approve or reject day shifts (not your own; `access_user` scope) |
 
-Defaults: `ROLE_USER` gets `view_availability` and `extra_shift_own`; `ROLE_TEAMLEAD` additionally `view_location` and
-`extra_shift_other`; `ROLE_ADMIN` and `ROLE_SUPER_ADMIN` all five.
+Defaults: `ROLE_USER` gets `view_availability`, `extra_shift_own` and `shift_own`; `ROLE_TEAMLEAD` additionally
+`view_location`, `extra_shift_other`, `shift_other` and `approve_shift`; `ROLE_ADMIN` and `ROLE_SUPER_ADMIN` all of them.
 
 Pages: `/holiday/locations`, `/holiday/availability`, `/holiday/availability/{year}/week/{week}`,
 `/holiday/availability/{year}/month/{month}`, `/holiday/extra-shifts/create`, `/holiday/extra-shifts/{id}/delete`.
 
 ### Scope of the `*_other_*` permissions
 
-Permissions for other users (`view_other_absence`, `edit_other_absence`, `approve_other_absence`, `delete_other_absence`, `hours_other_profile`, …) only apply to users you may access by Kimai's own rule (`access_user`):
+Permissions for other users (`shift_other`, `approve_shift`, `view_other_absence`, `edit_other_absence`, `approve_other_absence`, `delete_other_absence`, `hours_other_profile`, …) only apply to users you may access by Kimai's own rule (`access_user`):
 
 - users with Kimai's **`view_all_data`** permission (by default `ROLE_ADMIN` / `ROLE_SUPER_ADMIN`) — all users,
 - **team leads** — only members of the teams they lead (plus users that are in no team at all, same as Kimai core).

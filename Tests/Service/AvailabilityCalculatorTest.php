@@ -18,14 +18,17 @@ use KimaiPlugin\HolidayBundle\Repository\LocationExceptionRepository;
 use KimaiPlugin\HolidayBundle\Repository\LocationUserRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayGroupRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
+use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\AvailabilityCalculator;
 use KimaiPlugin\HolidayBundle\Service\LocationSchedule;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
+use KimaiPlugin\HolidayBundle\Service\WorkdayShiftOverrides;
 use KimaiPlugin\HolidayBundle\Tests\Support\AbsenceBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\ExtraShiftBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\LocationBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\UserBuilder;
+use KimaiPlugin\HolidayBundle\Tests\Support\WorkdayShiftBuilder;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -34,6 +37,7 @@ final class AvailabilityCalculatorTest extends TestCase
     private User $manuel;
     private User $moritz;
     private User $chef;
+    private ?WorkdayShiftOverrides $overrides = null;
 
     protected function setUp(): void
     {
@@ -53,6 +57,21 @@ final class AvailabilityCalculatorTest extends TestCase
         self::assertSame(PresenceKind::FIXED, $days['2026-10-28']->present[0]->kind);
         self::assertSame(['Manuel', 'Moritz'], $this->names($days['2026-10-30']->present));
         self::assertCount(7, $days);
+    }
+
+    public function testApprovedShiftMovesPresence(): void
+    {
+        $shiftRepo = $this->createStub(WorkdayShiftRepository::class);
+        $shiftRepo->method('findApprovedForUserBetween')->willReturnCallback(
+            fn ($user) => $user === $this->moritz ? [WorkdayShiftBuilder::approved($user, '2026-10-30', '2026-10-29')] : []
+        );
+        $this->overrides = new WorkdayShiftOverrides($shiftRepo);
+
+        $days = $this->forWeek();
+
+        self::assertSame(['Manuel', 'Moritz'], $this->names($days['2026-10-29']->present)); // T
+        self::assertSame(PresenceKind::FIXED, $days['2026-10-29']->present[1]->kind);
+        self::assertSame(['Manuel'], $this->names($days['2026-10-30']->present)); // F
     }
 
     public function testClosedDaysHaveNoPresence(): void
@@ -272,7 +291,7 @@ final class AvailabilityCalculatorTest extends TestCase
 
         $factory = new WorkingTimeModeFactory([new WorkingTimeModeNone(), new WorkingTimeModeDay()], new NullLogger());
 
-        return new AbsenceWorkdayHelper(new UserWorkContract($factory, $groups), $holidays);
+        return new AbsenceWorkdayHelper(new UserWorkContract($factory, $groups, $this->overrides), $holidays);
     }
 
     /**

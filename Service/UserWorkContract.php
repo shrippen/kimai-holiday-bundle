@@ -16,10 +16,40 @@ class UserWorkContract
     public function __construct(
         private readonly WorkingTimeModeFactory $modeFactory,
         private readonly PublicHolidayGroupRepository $groupRepository,
+        private readonly ?WorkdayShiftOverrides $overrides = null,
     ) {
     }
 
+    /**
+     * Expected seconds incl. approved workday shifts: origin day 0, target day takes the origin's hours.
+     */
     public function getExpectedSecondsForDate(User $user, \DateTimeInterface $date): int
+    {
+        if ($this->overrides === null) {
+            return $this->getContractSecondsForDate($user, $date);
+        }
+
+        if ($this->overrides->isShiftedAway($user, $date)) {
+            return 0;
+        }
+
+        $source = $this->overrides->sourceFor($user, $date);
+        if ($source === null) {
+            return $this->getContractSecondsForDate($user, $date);
+        }
+
+        // A target outside the contract period gets nothing (the validation forbids it).
+        if (!$this->isInContractPeriod($user, $date)) {
+            return 0;
+        }
+
+        return $this->getContractSecondsForDate($user, $source);
+    }
+
+    /**
+     * Raw contract hours of the day (weekday, contract start/end), ignoring shifts.
+     */
+    public function getContractSecondsForDate(User $user, \DateTimeInterface $date): int
     {
         $day = $date instanceof \DateTimeImmutable
             ? $date
@@ -44,6 +74,15 @@ class UserWorkContract
         $mode = $this->modeFactory->getMode($user->getWorkContractMode());
 
         return $mode->getCalculator($user)->getWorkHoursForDay($day);
+    }
+
+    private function isInContractPeriod(User $user, \DateTimeInterface $date): bool
+    {
+        $ymd = $date->format('Y-m-d');
+        $start = $user->getWorkStartingDay()?->format('Y-m-d');
+        $end = $user->getLastWorkingDay()?->format('Y-m-d');
+
+        return !(($start !== null && $ymd < $start) || ($end !== null && $ymd > $end));
     }
 
     /**

@@ -9,10 +9,13 @@ use KimaiPlugin\HolidayBundle\Entity\PublicHoliday;
 use KimaiPlugin\HolidayBundle\Entity\PublicHolidayGroup;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayGroupRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
+use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
+use KimaiPlugin\HolidayBundle\Service\WorkdayShiftOverrides;
 use KimaiPlugin\HolidayBundle\Tests\Support\AbsenceBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\UserBuilder;
+use KimaiPlugin\HolidayBundle\Tests\Support\WorkdayShiftBuilder;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -53,6 +56,19 @@ final class AbsenceWorkdayHelperTest extends TestCase
             2.0,
             $this->helper()->countDaysBetween($absence, new \DateTimeImmutable('2026-10-23'), new \DateTimeImmutable('2026-10-31'))
         );
+    }
+
+    public function testShiftedTargetIsApplicableDay(): void
+    {
+        $user = UserBuilder::make()->fridaySaturday(8 * 3600)->build();
+        $repo = $this->createStub(WorkdayShiftRepository::class);
+        $repo->method('findApprovedForUserBetween')->willReturn([WorkdayShiftBuilder::approved($user, '2026-10-30', '2026-10-29')]);
+        $factory = new WorkingTimeModeFactory([new WorkingTimeModeNone(), new WorkingTimeModeDay()], new NullLogger());
+        $contract = new UserWorkContract($factory, $this->createStub(PublicHolidayGroupRepository::class), new WorkdayShiftOverrides($repo));
+        $helper = new AbsenceWorkdayHelper($contract, $this->createStub(PublicHolidayRepository::class));
+
+        self::assertSame(1.0, $helper->countDaysBetween(AbsenceBuilder::vacation($user, '2026-10-29', '2026-10-29'), null, null));
+        self::assertSame(0.0, $helper->countDaysBetween(AbsenceBuilder::vacation($user, '2026-10-30', '2026-10-30'), null, null));
     }
 
     private function helper(): AbsenceWorkdayHelper

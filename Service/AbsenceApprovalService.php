@@ -102,7 +102,10 @@ class AbsenceApprovalService
         ?\DateTimeImmutable $previousEnd = null,
     ): Absence {
         if ($previousStart !== null && $previousEnd !== null) {
-            $this->assertRangeNotLocked($absence->getUser(), $previousStart, $previousEnd);
+            $previousUser = $absence->getUser();
+            if ($previousUser !== null) {
+                $this->periodLockGuard->assertOpen($previousUser, $previousStart, $previousEnd);
+            }
         }
         $this->validate($absence);
         $this->assertNotLocked($absence);

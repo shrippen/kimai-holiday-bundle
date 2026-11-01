@@ -116,6 +116,69 @@ final class AbsenceApprovalServiceTest extends TestCase
         $this->assertNull($absence->getApprovedBy());
     }
 
+    public function testCreateChecksLockForAbsenceRange(): void
+    {
+        $user = UserBuilder::make()->build();
+        $absence = AbsenceBuilder::vacation($user, '2026-10-21', '2026-10-23')->setStatus(AbsenceStatus::NEW);
+        $guard = $this->createMock(PeriodLockGuard::class);
+        $guard->expects($this->once())->method('assertOpen')->with($user, $absence->getStartDate(), $absence->getEndDate());
+
+        $this->service(true, [], [], $guard)->create($absence, $user);
+    }
+
+    public function testUpdateChecksPreviousAndNewRange(): void
+    {
+        $user = UserBuilder::make()->build();
+        $absence = AbsenceBuilder::vacation($user, '2026-10-21', '2026-10-23');
+        $previousStart = new \DateTimeImmutable('2026-09-01');
+        $previousEnd = new \DateTimeImmutable('2026-09-02');
+        $calls = [];
+        $guard = $this->createMock(PeriodLockGuard::class);
+        $guard->expects($this->exactly(2))->method('assertOpen')->willReturnCallback(
+            static function (User $u, \DateTimeInterface $from, \DateTimeInterface $to) use (&$calls): void {
+                $calls[] = [$from->format('Y-m-d'), $to->format('Y-m-d')];
+            }
+        );
+
+        $this->service(true, [], [], $guard)->update($absence, $user, $previousStart, $previousEnd);
+
+        $this->assertSame([['2026-09-01', '2026-09-02'], ['2026-10-21', '2026-10-23']], $calls);
+    }
+
+    public function testRequestApproveRejectAndDeleteCheckLock(): void
+    {
+        $employee = UserBuilder::make()->build();
+        $boss = UserBuilder::make()->build();
+        $absence = AbsenceBuilder::requested($employee, '2026-10-21', '2026-10-22');
+        $guard = $this->createMock(PeriodLockGuard::class);
+        $guard->expects($this->exactly(4))->method('assertOpen')
+            ->with($employee, $absence->getStartDate(), $absence->getEndDate());
+        $service = $this->service(true, [], [], $guard);
+
+        $service->approve($absence, $boss);
+        $service->request($absence, false);
+        $service->reject($absence, $boss);
+        $service->delete($absence);
+    }
+
+    public function testApproveStopsWhenPeriodIsLocked(): void
+    {
+        $employee = UserBuilder::make()->build();
+        $boss = UserBuilder::make()->build();
+        $absence = AbsenceBuilder::requested($employee, '2026-10-21', '2026-10-22');
+        $guard = $this->createStub(PeriodLockGuard::class);
+        $guard->method('assertOpen')->willThrowException(new \RuntimeException('holiday.error.month_locked'));
+
+        try {
+            $this->service(true, [], [], $guard)->approve($absence, $boss);
+            $this->fail('locked period must throw');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('holiday.error.month_locked', $e->getMessage());
+        }
+        $this->assertSame(AbsenceStatus::REQUESTED, $absence->getStatus());
+        $this->assertNull($absence->getApprovedBy());
+    }
+
     private function absence(AbsenceType $type, bool $half): Absence
     {
         $user = UserBuilder::make()->build();
@@ -129,7 +192,7 @@ final class AbsenceApprovalServiceTest extends TestCase
      * @param list<User> $approvers users holding the approval permission (they access everyone)
      * @param list<User> $users     all enabled users
      */
-    private function service(bool $allowHalfDay, array $approvers = [], array $users = []): AbsenceApprovalService
+    private function service(bool $allowHalfDay, array $approvers = [], array $users = [], ?PeriodLockGuard $guard = null): AbsenceApprovalService
     {
         $repository = $this->createStub(UserRepository::class);
         $repository->method('findBy')->willReturn($users);
@@ -146,7 +209,7 @@ final class AbsenceApprovalServiceTest extends TestCase
             $this->createStub(AbsenceNotifier::class),
             $config,
             $this->createStub(AbsenceTimesheetService::class),
-            $this->createStub(PeriodLockGuard::class),
+            $guard ?? $this->createStub(PeriodLockGuard::class),
             $resolver,
         );
     }

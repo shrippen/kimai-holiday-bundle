@@ -2,6 +2,7 @@
 
 namespace KimaiPlugin\HolidayBundle\Tests\Entity;
 
+use KimaiPlugin\HolidayBundle\Entity\WorkdayShift;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
 use KimaiPlugin\HolidayBundle\Tests\Support\UserBuilder;
 use KimaiPlugin\HolidayBundle\Tests\Support\WorkdayShiftBuilder;
@@ -29,6 +30,6 @@ final class WorkdayShiftTest extends TestCase
 
     public function testStatusDefaultsToRequested(): void
     {
-        $this->assertSame(AbsenceStatus::REQUESTED, (new \KimaiPlugin\HolidayBundle\Entity\WorkdayShift())->getStatus());
+        $this->assertSame(AbsenceStatus::REQUESTED, (new WorkdayShift())->getStatus());
     }
 }

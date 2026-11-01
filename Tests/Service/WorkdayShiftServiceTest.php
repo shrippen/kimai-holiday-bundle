@@ -213,7 +213,7 @@ final class WorkdayShiftServiceTest extends TestCase
         $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-29', '2026-10-29')];
 
         try {
-            $this->service()->delete($shift);
+            $this->service()->delete($shift, $moritz);
             self::fail('delete must throw');
         } catch (\InvalidArgumentException $e) {
             self::assertSame('holiday.error.shift_has_absence', $e->getMessage());
@@ -227,7 +227,7 @@ final class WorkdayShiftServiceTest extends TestCase
         $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-28', '2026-10-30')];
 
         $this->expectExceptionMessage('holiday.error.shift_has_absence');
-        $this->service()->delete($shift);
+        $this->service()->delete($shift, $moritz);
     }
 
     public function testDeleteRequestedIgnoresAbsence(): void
@@ -237,7 +237,7 @@ final class WorkdayShiftServiceTest extends TestCase
         $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-29', '2026-10-29')];
         $this->overrides->expects(self::once())->method('reset')->with($moritz);
 
-        $this->service()->delete($shift);
+        $this->service()->delete($shift, $moritz);
         $this->addToAssertionCount(1);
     }
 
@@ -298,7 +298,7 @@ final class WorkdayShiftServiceTest extends TestCase
         self::assertSame(AbsenceStatus::REQUESTED, $shift->getStatus());
         self::assertNull($shift->getApprovedBy());
 
-        $service->delete($shift);
+        $service->delete($shift, $moritz);
     }
 
     public function testRejectSetsStatusAndNotifies(): void
@@ -312,6 +312,107 @@ final class WorkdayShiftServiceTest extends TestCase
 
         self::assertSame(AbsenceStatus::REJECTED, $shift->getStatus());
         self::assertSame($boss, $shift->getApprovedBy());
+    }
+
+    public function testExcludeIdLetsShiftIgnoreItself(): void
+    {
+        $moritz = $this->moritz();
+        $boss = UserBuilder::make()->build();
+        $shift = WorkdayShiftBuilder::id(WorkdayShiftBuilder::requested($moritz, '2026-10-30', '2026-10-29'), 5);
+        $this->touching['2026-10-30'] = [$shift];
+        $this->touching['2026-10-29'] = [$shift];
+
+        $this->service()->approve($shift, $boss);
+
+        self::assertSame(AbsenceStatus::APPROVED, $shift->getStatus());
+    }
+
+    public function testAbsenceOnlyOnOriginDay(): void
+    {
+        $moritz = $this->moritz();
+        $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-30', '2026-10-30')];
+
+        $this->assertInvalid('shift_absent', $this->shift('2026-10-30', '2026-10-29'), $moritz);
+    }
+
+    public function testAbsenceOnlyOnTargetDay(): void
+    {
+        $moritz = $this->moritz();
+        $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-29', '2026-10-29')];
+
+        $this->assertInvalid('shift_absent', $this->shift('2026-10-30', '2026-10-29'), $moritz);
+    }
+
+    public function testAbsenceOnOtherDayDoesNotBlock(): void
+    {
+        $moritz = $this->moritz();
+        $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-31', '2026-10-31')];
+
+        $this->service()->validate($this->shift('2026-10-30', '2026-10-29'));
+        $this->addToAssertionCount(1);
+    }
+
+    public function testApproverCreatingOwnShiftStaysRequested(): void
+    {
+        $boss = $this->moritz();
+        $this->approvers = [$boss];
+        $this->users = [$boss];
+        $shift = WorkdayShiftBuilder::requested($boss, '2026-10-30', '2026-10-29')->setStatus(AbsenceStatus::NEW);
+        $this->notifier->expects(self::once())->method('notifyShiftRequested');
+        $this->notifier->expects(self::never())->method('notifyShiftApproved');
+
+        $this->service()->create($shift, $boss);
+
+        self::assertSame(AbsenceStatus::REQUESTED, $shift->getStatus());
+    }
+
+    public function testDeleteApprovedNotifiesWithdrawn(): void
+    {
+        $moritz = $this->moritz();
+        $boss = UserBuilder::make()->build();
+        $shift = WorkdayShiftBuilder::approved($moritz, '2026-10-30', '2026-10-29');
+        $this->notifier->expects(self::once())->method('notifyShiftWithdrawn')->with($shift, $boss);
+
+        $this->service()->delete($shift, $boss);
+    }
+
+    public function testDeleteRequestedDoesNotNotify(): void
+    {
+        $moritz = $this->moritz();
+        $this->notifier->expects(self::never())->method('notifyShiftWithdrawn');
+
+        $this->service()->delete(WorkdayShiftBuilder::requested($moritz, '2026-10-30', '2026-10-29'), $moritz);
+    }
+
+    public function testRequestFromRejectedIsRefused(): void
+    {
+        $moritz = $this->moritz();
+
+        $this->expectExceptionMessage('holiday.error.shift_not_approved');
+        $this->service()->request(WorkdayShiftBuilder::rejected($moritz, '2026-10-30', '2026-10-29'), true);
+    }
+
+    public function testReopenRejectedGoesBackToRequested(): void
+    {
+        $moritz = $this->moritz();
+        $boss = UserBuilder::make()->build();
+        $shift = WorkdayShiftBuilder::rejected($moritz, '2026-10-30', '2026-10-29')->setApprovedBy($boss);
+
+        $this->service()->reopen($shift);
+
+        self::assertSame(AbsenceStatus::REQUESTED, $shift->getStatus());
+        self::assertNull($shift->getApprovedBy());
+    }
+
+    public function testLockGuardForeignErrorIsRethrown(): void
+    {
+        $moritz = $this->moritz();
+        $guard = $this->createStub(PeriodLockGuard::class);
+        $guard->method('assertOpen')->willThrowException(new \RuntimeException('boom'));
+        $this->guard = $guard;
+
+        $this->expectExceptionMessage('boom');
+        $this->service()->create($this->shift('2026-10-30', '2026-10-29'), $moritz);
     }
 
     private function moritz(): User
@@ -379,11 +480,21 @@ final class WorkdayShiftServiceTest extends TestCase
         $touching = $this->touching;
         $shifts = $this->createStub(WorkdayShiftRepository::class);
         $shifts->method('findActiveTouching')->willReturnCallback(
-            static fn (User $u, \DateTimeInterface $day): array => $touching[$day->format('Y-m-d')] ?? []
+            static fn (User $u, \DateTimeInterface $day, ?int $excludeId = null): array => array_values(array_filter(
+                $touching[$day->format('Y-m-d')] ?? [],
+                static fn (WorkdayShift $s): bool => $excludeId === null || $s->getId() !== $excludeId
+            ))
         );
 
         $absences = $this->createStub(AbsenceRepository::class);
-        $absences->method('findApprovedBetween')->willReturn($this->absences);
+        $absenceList = $this->absences;
+        $absences->method('findApprovedBetween')->willReturnCallback(
+            static fn (User $u, \DateTimeInterface $from, \DateTimeInterface $to): array => array_values(array_filter(
+                $absenceList,
+                static fn (\KimaiPlugin\HolidayBundle\Entity\Absence $a): bool => $a->getStartDate()->format('Y-m-d') <= $to->format('Y-m-d')
+                    && $a->getEndDate()->format('Y-m-d') >= $from->format('Y-m-d')
+            ))
+        );
 
         $extras = $this->createStub(ExtraShiftRepository::class);
         $extras->method('findOneByUserAndDate')->willReturnCallback(fn (): ?\KimaiPlugin\HolidayBundle\Entity\ExtraShift => $this->extra);

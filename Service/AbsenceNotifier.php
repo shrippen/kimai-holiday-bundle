@@ -95,7 +95,13 @@ class AbsenceNotifier
         $this->notifyShift($shift, 'rejected');
     }
 
-    private function notifyShift(WorkdayShift $shift, string $event): void
+    /** An approved shift was deleted: requester and approvers learn who took it back. */
+    public function notifyShiftWithdrawn(WorkdayShift $shift, User $actor): void
+    {
+        $this->notifyShift($shift, 'withdrawn', $actor);
+    }
+
+    private function notifyShift(WorkdayShift $shift, string $event, ?User $actor = null): void
     {
         $user = $shift->getUser();
         if ($user === null) {
@@ -110,7 +116,7 @@ class AbsenceNotifier
                 '%from%' => $shift->getFromDate()?->format('Y-m-d') ?? '',
                 '%to%' => $shift->getToDate()?->format('Y-m-d') ?? '',
                 '%comment%' => $shift->getComment() ?? '',
-                '%approver%' => $shift->getApprovedBy()?->getDisplayName() ?? '',
+                '%approver%' => ($actor ?? $shift->getApprovedBy())?->getDisplayName() ?? '',
             ])
         );
     }

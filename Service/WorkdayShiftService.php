@@ -142,20 +142,19 @@ class WorkdayShiftService
     }
 
     /**
-     * Back to REQUESTED (an approver undoes a decision).
+     * Back to REQUESTED (an approver undoes an approval). Only approved shifts.
      *
      * @param bool $notify false when an approver only undoes their own decision
      */
     public function request(WorkdayShift $shift, bool $notify = true): WorkdayShift
     {
+        if ($shift->getStatus() !== AbsenceStatus::APPROVED) {
+            throw $this->error('shift_not_approved');
+        }
         $this->assertNoAbsenceOnTarget($shift);
         $this->assertNotLocked($shift);
 
-        $shift->setStatus(AbsenceStatus::REQUESTED);
-        $shift->setApprovedBy(null);
-        $shift->setApprovedAt(null);
-        $this->repository->save($shift);
-        $this->overrides->reset($shift->getUser());
+        $this->backToRequested($shift);
         if ($notify) {
             $this->notifier->notifyShiftRequested($shift);
         }
@@ -163,12 +162,46 @@ class WorkdayShiftService
         return $shift;
     }
 
-    public function delete(WorkdayShift $shift): void
+    /**
+     * Undo of a decision: approved or rejected back to REQUESTED. A rejected shift is validated again,
+     * its days may have been taken in the meantime.
+     */
+    public function reopen(WorkdayShift $shift): WorkdayShift
+    {
+        if ($shift->getStatus() === AbsenceStatus::APPROVED) {
+            return $this->request($shift, true);
+        }
+        if ($shift->getStatus() !== AbsenceStatus::REJECTED) {
+            throw $this->error('not_requested');
+        }
+
+        $this->validate($shift);
+        $this->assertNotLocked($shift);
+        $this->backToRequested($shift);
+        $this->notifier->notifyShiftRequested($shift);
+
+        return $shift;
+    }
+
+    public function delete(WorkdayShift $shift, User $actor): void
     {
         $this->assertNoAbsenceOnTarget($shift);
         $this->assertNotLocked($shift);
 
+        $wasApproved = $shift->getStatus() === AbsenceStatus::APPROVED;
         $this->repository->remove($shift);
+        $this->overrides->reset($shift->getUser());
+        if ($wasApproved) {
+            $this->notifier->notifyShiftWithdrawn($shift, $actor);
+        }
+    }
+
+    private function backToRequested(WorkdayShift $shift): void
+    {
+        $shift->setStatus(AbsenceStatus::REQUESTED);
+        $shift->setApprovedBy(null);
+        $shift->setApprovedAt(null);
+        $this->repository->save($shift);
         $this->overrides->reset($shift->getUser());
     }
 
@@ -225,7 +258,10 @@ class WorkdayShiftService
             }
             try {
                 $this->periodLockGuard->assertOpen($user, $day, $day);
-            } catch (\RuntimeException) {
+            } catch (\RuntimeException $e) {
+                if ($e->getMessage() !== 'holiday.error.month_locked') {
+                    throw $e;
+                }
                 throw $this->error('shift_locked');
             }
         }

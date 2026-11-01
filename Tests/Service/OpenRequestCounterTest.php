@@ -40,4 +40,29 @@ final class OpenRequestCounterTest extends TestCase
 
         self::assertSame(3, $counter->countFor($boss));
     }
+
+    public function testBossWithOnlyShiftRightCountsShiftsOnly(): void
+    {
+        $boss = UserBuilder::make()->build();
+        $employee = UserBuilder::make()->build();
+
+        $users = $this->createStub(UserRepository::class);
+        $users->method('findBy')->willReturn([$boss, $employee]);
+        $access = $this->createStub(ApproverAccess::class);
+        $access->method('mayApprove')->willReturnCallback(
+            static fn (User $u, string $permission = ''): bool => $permission === 'approve_shift'
+        );
+        $access->method('mayAccess')->willReturn(true);
+
+        $absences = $this->createMock(AbsenceRepository::class);
+        $absences->expects(self::once())->method('findRequestedForUsers')->with([])->willReturn([]);
+        $shifts = $this->createMock(WorkdayShiftRepository::class);
+        $shifts->expects(self::once())->method('findRequestedForUsers')->with([$employee])->willReturn([
+            WorkdayShiftBuilder::requested($employee, '2026-10-30', '2026-10-29'),
+        ]);
+
+        $counter = new OpenRequestCounter(new ApproverResolver($users, $access), $absences, $shifts);
+
+        self::assertSame(1, $counter->countFor($boss));
+    }
 }

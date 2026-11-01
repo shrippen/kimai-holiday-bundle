@@ -132,7 +132,7 @@
       </trans-unit>
       <trans-unit id="h111" resname="holiday.error.shift_from_not_workday">
         <source>holiday.error.shift_from_not_workday</source>
-        <target>The source day is not a workday.</target>
+        <target>The source day is not a workday or is a public holiday.</target>
       </trans-unit>
       <trans-unit id="h112" resname="holiday.error.shift_from_taken">
         <source>holiday.error.shift_from_taken</source>
@@ -176,7 +176,7 @@
       </trans-unit>
       <trans-unit id="h122" resname="holiday.error.shift_has_absence">
         <source>holiday.error.shift_has_absence</source>
-        <target>An approved absence exists on the target day.</target>
+        <target>An approved absence exists on the source or target day.</target>
       </trans-unit>
       <trans-unit id="h123" resname="holiday.error.shift_not_approved">
         <source>holiday.error.shift_not_approved</source>

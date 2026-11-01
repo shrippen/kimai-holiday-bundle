@@ -132,7 +132,7 @@
       </trans-unit>
       <trans-unit id="h111" resname="holiday.error.shift_from_not_workday">
         <source>holiday.error.shift_from_not_workday</source>
-        <target>Der Ursprungstag ist kein Arbeitstag.</target>
+        <target>Der Ursprungstag ist kein Arbeitstag oder ein Feiertag.</target>
       </trans-unit>
       <trans-unit id="h112" resname="holiday.error.shift_from_taken">
         <source>holiday.error.shift_from_taken</source>
@@ -176,7 +176,7 @@
       </trans-unit>
       <trans-unit id="h122" resname="holiday.error.shift_has_absence">
         <source>holiday.error.shift_has_absence</source>
-        <target>Am Zieltag ist eine genehmigte Abwesenheit eingetragen.</target>
+        <target>Am Ursprungs- oder Zieltag ist eine genehmigte Abwesenheit eingetragen.</target>
       </trans-unit>
       <trans-unit id="h123" resname="holiday.error.shift_not_approved">
         <source>holiday.error.shift_not_approved</source>

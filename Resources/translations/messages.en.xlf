@@ -1051,6 +1051,14 @@ Action: requested</target>
         <source>holiday.location.member_remove_question</source>
         <target>Remove %name% from this location?</target>
       </trans-unit>
+      <trans-unit id="h263" resname="holiday.shift.addon.away">
+        <source>holiday.shift.addon.away</source>
+        <target>Workday moved to %to%</target>
+      </trans-unit>
+      <trans-unit id="h264" resname="holiday.shift.addon.to">
+        <source>holiday.shift.addon.to</source>
+        <target>Workday moved from %from%</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

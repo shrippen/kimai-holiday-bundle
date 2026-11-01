@@ -6,7 +6,6 @@ use App\Entity\User;
 use App\Repository\TimesheetRepository;
 use KimaiPlugin\HolidayBundle\Entity\Absence;
 use KimaiPlugin\HolidayBundle\Entity\PublicHoliday;
-use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Enum\CalculationMode;
 use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\ManualBookingRepository;
@@ -27,6 +26,7 @@ class WorkingTimeCalculator
         private readonly HolidayConfiguration $configuration,
         private readonly AbsenceWorkdayHelper $workdayHelper,
         private readonly AbsenceTimesheetService $absenceTimesheetService,
+        private readonly DayExpectation $dayExpectation,
     ) {
     }
 
@@ -162,7 +162,8 @@ class WorkingTimeCalculator
         array $absenceTimesheetDays = [],
     ): array {
         $baseExpected = $this->userWorkContract->getExpectedSecondsForDate($user, $date);
-        $expected = $baseExpected;
+        $absenceMode = fn (Absence $absence) => $this->configuration->getCalculationMode($absence->getType());
+        $reduced = 0;
         $absenceSeconds = 0;
         $dayAbsences = [];
         $key = $date->format('Y-m-d');
@@ -177,25 +178,31 @@ class WorkingTimeCalculator
                 'halfDay' => $absence->isHalfDay(),
             ];
 
-            // Auto-created absence timesheet already counts as worked time for this day.
-            if (isset($absenceTimesheetDays[$absence->getId()][$key])) {
-                continue;
-            }
-
-            $absenceSeconds += $this->absenceContribution($absence, $baseExpected, $timesheetSeconds);
-            $expected = $this->applyAbsenceToExpected($absence, $baseExpected, $expected, $timesheetSeconds);
+            $balance = $this->dayExpectation->evaluate(
+                $baseExpected,
+                $timesheetSeconds,
+                $absence,
+                isset($absenceTimesheetDays[$absence->getId()][$key]),
+                null,
+                $absenceMode($absence),
+                CalculationMode::COMPENSATE
+            );
+            $absenceSeconds += $balance->credit;
+            $reduced += $baseExpected - $balance->expected;
         }
 
-        if ($publicHoliday !== null && $baseExpected > 0) {
-            $mode = $this->configuration->getPublicHolidayCalculationMode();
-            $phSeconds = $publicHoliday->isHalfDay() ? (int) floor($baseExpected / 2) : $baseExpected;
-
-            if ($mode === CalculationMode::COMPENSATE) {
-                $absenceSeconds += $phSeconds;
-            } else {
-                $expected = max(0, $expected - $phSeconds);
-            }
-        }
+        $holidayBalance = $this->dayExpectation->evaluate(
+            $baseExpected,
+            $timesheetSeconds,
+            null,
+            false,
+            $publicHoliday,
+            CalculationMode::COMPENSATE,
+            $this->configuration->getPublicHolidayCalculationMode()
+        );
+        $absenceSeconds += $holidayBalance->credit;
+        $reduced += $baseExpected - $holidayBalance->expected;
+        $expected = max(0, $baseExpected - $reduced);
 
         if (!$includeInBalance) {
             $expected = 0;
@@ -217,62 +224,6 @@ class WorkingTimeCalculator
             'absences' => $dayAbsences,
             'marker' => $publicHoliday !== null || $dayAbsences !== [],
         ];
-    }
-
-    private function absenceContribution(
-        Absence $absence,
-        int $baseExpected,
-        int $timesheetSeconds,
-    ): int {
-        if ($absence->getType() === AbsenceType::TIME_OFF) {
-            return 0;
-        }
-
-        $mode = $this->configuration->getCalculationMode($absence->getType());
-        if ($mode !== CalculationMode::COMPENSATE) {
-            return 0;
-        }
-
-        return $this->absenceDurationSeconds($absence, $baseExpected, $timesheetSeconds);
-    }
-
-    private function applyAbsenceToExpected(
-        Absence $absence,
-        int $baseExpected,
-        int $currentExpected,
-        int $timesheetSeconds,
-    ): int {
-        if ($absence->getType() === AbsenceType::TIME_OFF) {
-            return $currentExpected;
-        }
-
-        $mode = $this->configuration->getCalculationMode($absence->getType());
-        if ($mode !== CalculationMode::REDUCE) {
-            return $currentExpected;
-        }
-
-        $reduceBy = $this->absenceDurationSeconds($absence, $baseExpected, $timesheetSeconds);
-
-        return max(0, $currentExpected - $reduceBy);
-    }
-
-    private function absenceDurationSeconds(Absence $absence, int $baseExpected, int $timesheetSeconds): int
-    {
-        if ($absence->getType() === AbsenceType::OTHER && $absence->getDuration() !== null) {
-            return $absence->getDuration();
-        }
-
-        if (\in_array($absence->getType(), [AbsenceType::SICKNESS, AbsenceType::SICKNESS_RELATIVE], true)) {
-            $target = $absence->isHalfDay() ? (int) floor($baseExpected / 2) : $baseExpected;
-
-            return max(0, $target - $timesheetSeconds);
-        }
-
-        if ($absence->isHalfDay()) {
-            return (int) floor($baseExpected / 2);
-        }
-
-        return $baseExpected;
     }
 
     /**

@@ -82,6 +82,7 @@ check "/en/holiday/public-holidays" 200 "public-holidays/group/create"
 check "/en/holiday/locations" 200 "locations/create"
 check "/en/holiday/availability" 200 "holiday-availability"
 check "/en/holiday/working-times" 200
+check "/en/holiday/working-times/2026/10/pdf" 200
 check "/en/holiday/absence/ics" 200
 
 # Without the session: the API wants a token, an unknown ICS token finds nothing.

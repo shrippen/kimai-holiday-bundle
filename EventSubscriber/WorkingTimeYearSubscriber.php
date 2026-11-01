@@ -2,7 +2,10 @@
 
 namespace KimaiPlugin\HolidayBundle\EventSubscriber;
 
+use App\Entity\User;
+use App\Entity\WorkingTime;
 use App\Event\WorkingTimeYearEvent;
+use App\WorkingTime\Model\Day;
 use App\WorkingTime\Model\DayAddon;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Enum\CalculationMode;
@@ -10,8 +13,10 @@ use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceTimesheetService;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
+use KimaiPlugin\HolidayBundle\Service\DayExpectation;
 use KimaiPlugin\HolidayBundle\Service\HolidayConfiguration;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
+use KimaiPlugin\HolidayBundle\Service\WorkdayShiftOverrides;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -22,6 +27,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class WorkingTimeYearSubscriber implements EventSubscriberInterface
 {
     public const PUBLIC_HOLIDAY_ICON = 'public-holiday';
+    private const SHIFT_ICON = 'repeat';
+    private const SHIFT_AWAY = 'holiday.shift.addon.away';
+    private const SHIFT_TO = 'holiday.shift.addon.to';
 
     public function __construct(
         private readonly AbsenceRepository $absenceRepository,
@@ -31,6 +39,8 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
         private readonly TranslatorInterface $translator,
         private readonly AbsenceWorkdayHelper $workdayHelper,
         private readonly AbsenceTimesheetService $absenceTimesheetService,
+        private readonly DayExpectation $dayExpectation,
+        private readonly WorkdayShiftOverrides $shiftOverrides,
     ) {
     }
 
@@ -76,6 +86,7 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                 $dayDate = $day->getDay();
                 $isFuture = $dayDate > $until;
                 $key = $dayDate->format('Y-m-d');
+                $base = $this->userWorkContract->getExpectedSecondsForDate($user, $dayDate);
 
                 $dayAbsences = [];
                 foreach ($absences as $absence) {
@@ -84,19 +95,18 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                     }
                 }
                 $hasPublicHoliday = isset($publicHolidays[$key]);
+                $hasShift = $this->applyShift($day, $workingTime, $user, $dayDate, $base);
 
                 if ($dayAbsences === [] && !$hasPublicHoliday) {
                     continue;
                 }
 
-                $expected = $workingTime->getExpectedTime();
+                $expected = $hasShift ? $base : $workingTime->getExpectedTime();
 
                 // Kimai leaves expected=0 for days after "now"; restore contract hours for future markers.
-                if ($isFuture && $expected <= 0) {
-                    $expected = $this->userWorkContract->getExpectedSecondsForDate($user, $dayDate);
-                    if ($expected > 0) {
-                        $workingTime->setExpectedTime($expected);
-                    }
+                if ($isFuture && $expected <= 0 && $base > 0) {
+                    $expected = $base;
+                    $workingTime->setExpectedTime($expected);
                 }
 
                 foreach ($dayAbsences as $absence) {
@@ -118,12 +128,19 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                         continue;
                     }
 
-                    $seconds = $this->absenceSeconds($absence, $expected, $workingTime->getActualTime());
+                    $mode = $this->configuration->getCalculationMode($type);
+                    $seconds = $this->dayExpectation->evaluate(
+                        $base,
+                        $workingTime->getActualTime(),
+                        $absence,
+                        false,
+                        null,
+                        $mode,
+                        CalculationMode::COMPENSATE
+                    )->absenceSeconds;
                     if ($seconds <= 0) {
                         continue;
                     }
-
-                    $mode = $this->configuration->getCalculationMode($type);
 
                     if ($isFuture) {
                         // Preview only: never inflate Ist (addon duration is added to actualTime).
@@ -144,59 +161,60 @@ class WorkingTimeYearSubscriber implements EventSubscriberInterface
                     }
                 }
 
-                if ($hasPublicHoliday && $expected > 0) {
-                    $ph = $publicHolidays[$key];
-                    $phSeconds = $ph->isHalfDay() ? (int) floor($expected / 2) : $expected;
-                    $title = $ph->getName() ?? $this->translator->trans('holiday.menu.public_holidays', [], 'messages');
-                    $mode = $this->configuration->getPublicHolidayCalculationMode();
-
-                    if ($isFuture) {
-                        if ($mode === CalculationMode::REDUCE) {
-                            if ($ph->isHalfDay() && method_exists($workingTime, 'halveExpectedTime')) {
-                                $workingTime->halveExpectedTime();
-                            } elseif (method_exists($workingTime, 'emptyExpectedTime') && !$ph->isHalfDay()) {
-                                $workingTime->emptyExpectedTime();
-                            } else {
-                                $workingTime->setExpectedTime(max(0, $expected - $phSeconds));
-                            }
-                        }
-                        $day->addAddon(new DayAddon($title, 0, $phSeconds, self::PUBLIC_HOLIDAY_ICON));
-                        continue;
-                    }
-
-                    if ($mode === CalculationMode::COMPENSATE) {
-                        $day->addAddon(new DayAddon($title, $phSeconds, $phSeconds, self::PUBLIC_HOLIDAY_ICON));
-                    } else {
-                        if ($ph->isHalfDay() && method_exists($workingTime, 'halveExpectedTime')) {
-                            $workingTime->halveExpectedTime();
-                        } elseif (method_exists($workingTime, 'emptyExpectedTime')) {
-                            $workingTime->emptyExpectedTime();
-                        } else {
-                            $workingTime->setExpectedTime(max(0, $expected - $phSeconds));
-                        }
-                        $day->addAddon(new DayAddon($title, 0, $phSeconds, self::PUBLIC_HOLIDAY_ICON));
-                    }
+                if (!$hasPublicHoliday) {
+                    continue;
                 }
+
+                $ph = $publicHolidays[$key];
+                $mode = $this->configuration->getPublicHolidayCalculationMode();
+                $phSeconds = $this->dayExpectation->evaluate($base, 0, null, false, $ph, CalculationMode::COMPENSATE, $mode)->holidaySeconds;
+                if ($phSeconds <= 0) {
+                    continue;
+                }
+
+                $title = $ph->getName() ?? $this->translator->trans('holiday.menu.public_holidays', [], 'messages');
+
+                if ($isFuture) {
+                    if ($mode === CalculationMode::REDUCE) {
+                        $workingTime->setExpectedTime(max(0, $expected - $phSeconds));
+                    }
+                    $day->addAddon(new DayAddon($title, 0, $phSeconds, self::PUBLIC_HOLIDAY_ICON));
+                    continue;
+                }
+
+                if ($mode === CalculationMode::COMPENSATE) {
+                    $day->addAddon(new DayAddon($title, $phSeconds, $phSeconds, self::PUBLIC_HOLIDAY_ICON));
+                    continue;
+                }
+
+                $workingTime->setExpectedTime(max(0, $expected - $phSeconds));
+                $day->addAddon(new DayAddon($title, 0, $phSeconds, self::PUBLIC_HOLIDAY_ICON));
             }
         }
     }
 
-    private function absenceSeconds(object $absence, int $baseExpected, int $timesheetSeconds): int
+    /**
+     * Kimai computes past days itself; shifted days need the contract value
+     * and a visible note. Returns whether the day carries a shift.
+     */
+    private function applyShift(Day $day, WorkingTime $workingTime, User $user, \DateTimeImmutable $date, int $base): bool
     {
-        if ($absence->getType() === AbsenceType::OTHER && $absence->getDuration() !== null) {
-            return $absence->getDuration();
+        $source = $this->shiftOverrides->sourceFor($user, $date);
+        $away = $this->shiftOverrides->isShiftedAway($user, $date);
+        if ($source === null && !$away) {
+            return false;
         }
 
-        if (\in_array($absence->getType(), [AbsenceType::SICKNESS, AbsenceType::SICKNESS_RELATIVE], true)) {
-            $target = $absence->isHalfDay() ? (int) floor($baseExpected / 2) : $baseExpected;
+        $workingTime->setExpectedTime($base);
 
-            return max(0, $target - $timesheetSeconds);
-        }
+        $other = $away ? $this->shiftOverrides->targetFor($user, $date) : $source;
+        $title = $this->translator->trans(
+            $away ? self::SHIFT_AWAY : self::SHIFT_TO,
+            [$away ? '%to%' : '%from%' => $other?->format('d.m.Y') ?? ''],
+            'messages'
+        );
+        $day->addAddon(new DayAddon($title, 0, 0, self::SHIFT_ICON));
 
-        if ($absence->isHalfDay()) {
-            return (int) floor($baseExpected / 2);
-        }
-
-        return $baseExpected;
+        return true;
     }
 }

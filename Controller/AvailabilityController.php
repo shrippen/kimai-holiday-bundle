@@ -220,7 +220,7 @@ class AvailabilityController extends AbstractController
     }
 
     /**
-     * 'pending' carries the type label of an open request on a day the person is present anyway.
+     * 'pending' carries the type labels of the open requests on a day the person is present anyway.
      *
      * @return array{kind: string, icon: string, label: string, pending: ?string[], pending_icon?: ?string}|null
      */

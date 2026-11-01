@@ -54,6 +54,27 @@ final class WorkingTimeYearSubscriberTest extends TestCase
         self::assertSame([], $sat->getAddons());
     }
 
+    public function testFutureShiftIsShownWithPlaceholders(): void
+    {
+        $user = UserBuilder::make()->fridaySaturday(8 * 3600)->build();
+        $year = new Year(new \DateTimeImmutable('2026-01-01'), $user);
+        $this->setExpected($year, self::FRI, 0);
+        $this->setExpected($year, self::THU, 0);
+        $calls = [];
+
+        // until lies before both days: Kimai left expected=0, the contract value is restored
+        $this->subscriber($user, $calls)->onWorkingTimeYear(new WorkingTimeYearEvent($year, new \DateTimeImmutable('2026-10-01')));
+
+        $fri = $year->getDay(new \DateTimeImmutable(self::FRI));
+        self::assertSame(0, $fri->getWorkingTime()->getExpectedTime());
+        self::assertSame(['holiday.shift.addon.away'], array_map(static fn ($a) => $a->getTitle(), $fri->getAddons()));
+        $thu = $year->getDay(new \DateTimeImmutable(self::THU));
+        self::assertSame(8 * 3600, $thu->getWorkingTime()->getExpectedTime());
+        self::assertSame(['holiday.shift.addon.to'], array_map(static fn ($a) => $a->getTitle(), $thu->getAddons()));
+        self::assertContains(['holiday.shift.addon.away', ['%to%' => '29.10.2026']], $calls);
+        self::assertContains(['holiday.shift.addon.to', ['%from%' => '30.10.2026']], $calls);
+    }
+
     public function testLockedDayIsUntouched(): void
     {
         $user = UserBuilder::make()->fridaySaturday(8 * 3600)->build();
@@ -79,7 +100,8 @@ final class WorkingTimeYearSubscriberTest extends TestCase
         $day->setWorkingTime($workingTime);
     }
 
-    private function subscriber($user): WorkingTimeYearSubscriber
+    /** @param list<array{string, array<string, string>}> $calls */
+    private function subscriber($user, array &$calls = []): WorkingTimeYearSubscriber
     {
         $shifts = $this->createStub(WorkdayShiftRepository::class);
         $shifts->method('findApprovedForUserBetween')->willReturn([WorkdayShiftBuilder::approved($user, self::FRI, self::THU)]);
@@ -88,7 +110,11 @@ final class WorkingTimeYearSubscriberTest extends TestCase
         $contract = new UserWorkContract($factory, $this->createStub(PublicHolidayGroupRepository::class), $overrides);
 
         $translator = $this->createStub(TranslatorInterface::class);
-        $translator->method('trans')->willReturnCallback(static fn (string $id) => $id);
+        $translator->method('trans')->willReturnCallback(static function (string $id, array $params = []) use (&$calls): string {
+            $calls[] = [$id, $params];
+
+            return $id;
+        });
 
         return new WorkingTimeYearSubscriber(
             $this->createStub(AbsenceRepository::class),

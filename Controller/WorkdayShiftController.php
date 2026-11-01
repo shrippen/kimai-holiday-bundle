@@ -133,6 +133,10 @@ class WorkdayShiftController extends AbstractController
             throw $this->createAccessDeniedException('Undo is limited to the shifts of the action');
         }
 
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
         $shifts = $this->repository->findBy(['id' => array_keys($before)]);
         $this->assertCanApproveAll($shifts);
         $done = 0;
@@ -147,7 +151,7 @@ class WorkdayShiftController extends AbstractController
                 continue;
             }
             try {
-                $this->service->reopen($shift);
+                $this->service->reopen($shift, $user);
                 ++$done;
             } catch (\InvalidArgumentException|\RuntimeException) {
                 ++$changed;

@@ -22,7 +22,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Injects approved absences and public holidays into Kimai's built-in Arbeitszeiten year view.
- * Past/today days affect Soll/Ist; future days are shown as markers only (icons) so month totals stay correct.
+ * Past/today days affect Soll/Ist; future days only carry markers (icons) so month totals stay correct; shifted days always carry their contract value and a note.
  */
 class WorkingTimeYearSubscriber implements EventSubscriberInterface
 {

@@ -55,6 +55,8 @@ final class WorkdayShiftServiceTest extends TestCase
     private array $approvers = [];
     /** @var list<User> */
     private array $users = [];
+    /** @var list<string> */
+    private array $halfHolidays = [];
 
     protected function setUp(): void
     {
@@ -65,6 +67,7 @@ final class WorkdayShiftServiceTest extends TestCase
         $this->guard = null;
         $this->approvers = [];
         $this->users = [];
+        $this->halfHolidays = [];
         $this->overrides = $this->createMock(WorkdayShiftOverrides::class);
         $this->notifier = $this->createMock(AbsenceNotifier::class);
     }
@@ -206,6 +209,69 @@ final class WorkdayShiftServiceTest extends TestCase
         $this->assertCreateInvalid('shift_locked', $this->shift('2026-10-30', '2026-10-29'), $moritz);
     }
 
+    public function testFromHalfDayHolidayRejected(): void
+    {
+        // Fr 30.10. ist Vertragstag, aber halber Feiertag
+        $this->halfHolidays = ['2026-10-30'];
+        $this->assertInvalid('shift_from_not_workday', $this->shift('2026-10-30', '2026-10-29'));
+    }
+
+    public function testToHalfDayHolidayRejected(): void
+    {
+        // Do 29.10. ist frei, aber halber Feiertag
+        $this->halfHolidays = ['2026-10-29'];
+        $this->assertInvalid('shift_to_holiday', $this->shift('2026-10-30', '2026-10-29'));
+    }
+
+    public function testLockOnTargetInOtherMonthRejects(): void
+    {
+        $user = UserBuilder::make()->fridaySaturday(8 * 3600)->startingOn('2026-09-25')->holidayGroup('1')->build();
+        $guard = $this->createStub(PeriodLockGuard::class);
+        $guard->method('assertOpen')->willReturnCallback(static function (User $u, \DateTimeInterface $from): void {
+            if ($from->format('Y-m') === '2026-11') {
+                throw new \RuntimeException('holiday.error.month_locked');
+            }
+        });
+        $this->guard = $guard;
+
+        // Fr 30.10. -> So 01.11. (Sonntag ist geschlossen, daher Löschen ohne Neuprüfung): nur der November ist gesperrt
+        $shift = WorkdayShiftBuilder::approved($user, '2026-10-30', '2026-11-01');
+        $this->expectExceptionMessage('holiday.error.shift_locked');
+        $this->service()->delete($shift, $user);
+    }
+
+    public function testDeleteApprovedBlockedByAbsenceOnOrigin(): void
+    {
+        $moritz = $this->moritz();
+        $shift = WorkdayShiftBuilder::approved($moritz, '2026-10-30', '2026-10-29');
+        $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-30', '2026-10-30')];
+
+        $this->expectExceptionMessage('holiday.error.shift_has_absence');
+        $this->service()->delete($shift, $moritz);
+    }
+
+    public function testRequestApprovedBlockedByAbsenceOnOrigin(): void
+    {
+        $moritz = $this->moritz();
+        $shift = WorkdayShiftBuilder::approved($moritz, '2026-10-30', '2026-10-29');
+        $this->absences = [AbsenceBuilder::vacation($moritz, '2026-10-30', '2026-10-30')];
+
+        $this->expectExceptionMessage('holiday.error.shift_has_absence');
+        $this->service()->request($shift, $moritz);
+    }
+
+    public function testRequestApprovedNotifiesWithdrawnNotRequested(): void
+    {
+        $moritz = $this->moritz();
+        $shift = WorkdayShiftBuilder::approved($moritz, '2026-10-30', '2026-10-29');
+        $this->notifier->expects(self::once())->method('notifyShiftWithdrawn')->with($shift, $moritz);
+        $this->notifier->expects(self::never())->method('notifyShiftRequested');
+
+        $this->service()->request($shift, $moritz);
+
+        self::assertSame(AbsenceStatus::REQUESTED, $shift->getStatus());
+    }
+
     public function testHasAbsenceBlocksDelete(): void
     {
         $moritz = $this->moritz();
@@ -287,14 +353,14 @@ final class WorkdayShiftServiceTest extends TestCase
         $shift = WorkdayShiftBuilder::requested($moritz, '2026-10-30', '2026-10-29');
         $this->overrides->expects(self::exactly(3))->method('reset')->with($moritz);
         $this->notifier->expects(self::once())->method('notifyShiftApproved');
-        $this->notifier->expects(self::once())->method('notifyShiftRequested');
+        $this->notifier->expects(self::once())->method('notifyShiftWithdrawn');
         $service = $this->service();
 
         $service->approve($shift, $boss);
         self::assertSame(AbsenceStatus::APPROVED, $shift->getStatus());
         self::assertSame($boss, $shift->getApprovedBy());
 
-        $service->request($shift, true);
+        $service->request($shift, $boss);
         self::assertSame(AbsenceStatus::REQUESTED, $shift->getStatus());
         self::assertNull($shift->getApprovedBy());
 
@@ -389,7 +455,7 @@ final class WorkdayShiftServiceTest extends TestCase
         $moritz = $this->moritz();
 
         $this->expectExceptionMessage('holiday.error.shift_not_approved');
-        $this->service()->request(WorkdayShiftBuilder::rejected($moritz, '2026-10-30', '2026-10-29'), true);
+        $this->service()->request(WorkdayShiftBuilder::rejected($moritz, '2026-10-30', '2026-10-29'), $moritz);
     }
 
     public function testReopenRejectedGoesBackToRequested(): void
@@ -398,7 +464,7 @@ final class WorkdayShiftServiceTest extends TestCase
         $boss = UserBuilder::make()->build();
         $shift = WorkdayShiftBuilder::rejected($moritz, '2026-10-30', '2026-10-29')->setApprovedBy($boss);
 
-        $this->service()->reopen($shift);
+        $this->service()->reopen($shift, $boss);
 
         self::assertSame(AbsenceStatus::REQUESTED, $shift->getStatus());
         self::assertNull($shift->getApprovedBy());
@@ -461,6 +527,9 @@ final class WorkdayShiftServiceTest extends TestCase
         $holidays = [];
         foreach (['2026-05-01', ...$extraHolidays] as $ymd) {
             $holidays[] = (new PublicHoliday())->setDate(new \DateTimeImmutable($ymd))->setHalfDay(false);
+        }
+        foreach ($this->halfHolidays as $ymd) {
+            $holidays[] = (new PublicHoliday())->setDate(new \DateTimeImmutable($ymd))->setHalfDay(true);
         }
         $holidayRepo = $this->createStub(PublicHolidayRepository::class);
         $holidayRepo->method('findByGroupAndYear')->willReturn($holidays);

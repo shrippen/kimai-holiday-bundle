@@ -52,7 +52,7 @@ class WorkdayShiftService
         }
 
         $id = $shift->getId();
-        if ($this->contract->getContractSecondsForDate($user, $from) === 0 || $this->workdayHelper->isFullDayPublicHoliday($user, $from)) {
+        if ($this->contract->getContractSecondsForDate($user, $from) === 0 || $this->workdayHelper->isPublicHoliday($user, $from)) {
             throw $this->error('shift_from_not_workday');
         }
         if ($this->repository->findActiveTouching($user, $from, $id) !== []) {
@@ -61,7 +61,7 @@ class WorkdayShiftService
         if ($this->contract->getContractSecondsForDate($user, $to) > 0) {
             throw $this->error('shift_to_workday');
         }
-        if ($this->workdayHelper->isFullDayPublicHoliday($user, $to)) {
+        if ($this->workdayHelper->isPublicHoliday($user, $to)) {
             throw $this->error('shift_to_holiday');
         }
         if ($this->isOutsideContract($user, $toYmd)) {
@@ -142,22 +142,18 @@ class WorkdayShiftService
     }
 
     /**
-     * Back to REQUESTED (an approver undoes an approval). Only approved shifts.
-     *
-     * @param bool $notify false when an approver only undoes their own decision
+     * Back to REQUESTED (an approver takes an approval back). Only approved shifts.
      */
-    public function request(WorkdayShift $shift, bool $notify = true): WorkdayShift
+    public function request(WorkdayShift $shift, User $actor): WorkdayShift
     {
         if ($shift->getStatus() !== AbsenceStatus::APPROVED) {
             throw $this->error('shift_not_approved');
         }
-        $this->assertNoAbsenceOnTarget($shift);
+        $this->assertNoApprovedAbsenceOnEitherDay($shift);
         $this->assertNotLocked($shift);
 
         $this->backToRequested($shift);
-        if ($notify) {
-            $this->notifier->notifyShiftRequested($shift);
-        }
+        $this->notifier->notifyShiftWithdrawn($shift, $actor);
 
         return $shift;
     }
@@ -166,10 +162,10 @@ class WorkdayShiftService
      * Undo of a decision: approved or rejected back to REQUESTED. A rejected shift is validated again,
      * its days may have been taken in the meantime.
      */
-    public function reopen(WorkdayShift $shift): WorkdayShift
+    public function reopen(WorkdayShift $shift, User $actor): WorkdayShift
     {
         if ($shift->getStatus() === AbsenceStatus::APPROVED) {
-            return $this->request($shift, true);
+            return $this->request($shift, $actor);
         }
         if ($shift->getStatus() !== AbsenceStatus::REJECTED) {
             throw $this->error('not_requested');
@@ -185,7 +181,7 @@ class WorkdayShiftService
 
     public function delete(WorkdayShift $shift, User $actor): void
     {
-        $this->assertNoAbsenceOnTarget($shift);
+        $this->assertNoApprovedAbsenceOnEitherDay($shift);
         $this->assertNotLocked($shift);
 
         $wasApproved = $shift->getStatus() === AbsenceStatus::APPROVED;
@@ -230,16 +226,20 @@ class WorkdayShiftService
         return $this->absenceRepository->findApprovedBetween($user, $day, $day) !== [];
     }
 
-    /** An approved shift cannot go while an approved absence sits on its target day. */
-    private function assertNoAbsenceOnTarget(WorkdayShift $shift): void
+    /**
+     * An approved shift cannot go while an approved absence sits on its origin or target day:
+     * the absence would count other days once the shift is gone.
+     */
+    private function assertNoApprovedAbsenceOnEitherDay(WorkdayShift $shift): void
     {
         $user = $shift->getUser();
+        $from = $shift->getFromDate();
         $to = $shift->getToDate();
-        if ($shift->getStatus() !== AbsenceStatus::APPROVED || $user === null || $to === null) {
+        if ($shift->getStatus() !== AbsenceStatus::APPROVED || $user === null || $from === null || $to === null) {
             return;
         }
 
-        if ($this->hasApprovedAbsence($user, $to)) {
+        if ($this->hasApprovedAbsence($user, $from) || $this->hasApprovedAbsence($user, $to)) {
             throw $this->error('shift_has_absence');
         }
     }

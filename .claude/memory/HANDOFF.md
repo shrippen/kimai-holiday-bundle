@@ -1,10 +1,10 @@
 # HANDOFF — WIP
 
-> Stand 2026-10-29 (Plan 2 ausgerollt).
+> Stand 2026-11-05 (Plan 3 ausgerollt).
 
 ## Current goal
-Plan 3 (Tagesverschiebung, Spec 4.4) schreiben und umsetzen; Plan 1 und 2 sind live auf
-`zeiterfassung.zafe.at` (Plugin 2.1.0, Kimai 2.70.2).
+Alle drei Pläne sind live auf `zeiterfassung.zafe.at` (Plugin 2.2.0, Kimai 2.70.2). Offen: Probe der
+Tagesverschiebung durch den Betreiber, Issues #2/#3, Kleinbefunde in `TODO.md`.
 
 ## Done
 - Spec freigegeben (`docs/superpowers/specs/2026-10-23-kimai-dienstplan-design.md`).
@@ -24,10 +24,10 @@ Plan 3 (Tagesverschiebung, Spec 4.4) schreiben und umsetzen; Plan 1 und 2 sind l
   29.10.):** Standort Wien mit Öffnungszeiten und vier Mitgliedern, Aushilfe, Verfügbarkeitsansicht;
   Protokoll `docs/rollout/2026-10-29-plugin-2.1.0.md`. Issues #2 (Urlaubs-Nachtrag) und #3
   (Gmail-Zustellung) beim Betreiber offen.
-- Nächstes: Plan 3 — Tagesverschiebung (`WorkdayShift`, Antrag/Genehmigung, Chokepoint
-  `UserWorkContract::getExpectedSecondsForDate`, `PresenceKind::SHIFTED`, Zähler „offene Anträge"),
-  dazu Zusammenführung der Duplikate `absenceSeconds`/Feiertags-Reduce; Kleinbefunde in `TODO.md`.
-- Dann Plan 2 und Plan 3 schreiben; offene Punkte in `TODO.md`.
+- **Plan 3 live (2.2.0, 05.11.):** Tagesverschiebung (Antrag, Genehmigung durch den anderen Chef, Chokepoint,
+  Verfügbarkeit, Teamkalender, Mails); PR #5, Final-Review mit Fix-Welle (Abwesenheit auf beiden Tagen,
+  Feiertage auch halb gesperrt); Protokoll `docs/rollout/2026-11-05-plugin-2.2.0.md`. Probe durch den
+  Betreiber offen. Ledger `.superpowers/sdd/2026-10-29-plan-3-tagesverschiebung/progress.md` (lokal).
 
 ## Settled decisions
 - Fork statt WorkContractBundle: `decisions/0001-fork-statt-workcontractbundle.md`.

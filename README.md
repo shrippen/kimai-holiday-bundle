@@ -62,7 +62,7 @@ docker exec -it CONTAINER /opt/kimai/bin/console kimai:bundle:holiday:install
 ```
 
 **Updating:** run the reload as the web server user, e.g.
-`docker exec -u www-data kimai bin/console kimai:reload -n`, then `kimai:bundle:holiday:install` (migrations). Running
+`docker exec -u www-data -w /opt/kimai kimai bin/console kimai:reload -n`, then `kimai:bundle:holiday:install` (migrations). Running
 the reload as root leaves `var/cache` owned by root and breaks pages that need an un-warmed translation catalogue
 (HTTP 500). `chown -R www-data:www-data var/cache` heals it.
 

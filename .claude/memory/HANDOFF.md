@@ -28,6 +28,8 @@ Tagesverschiebung durch den Betreiber, Issues #2/#3, Kleinbefunde in `TODO.md`.
   Verfügbarkeit, Teamkalender, Mails); PR #5, Final-Review mit Fix-Welle (Abwesenheit auf beiden Tagen,
   Feiertage auch halb gesperrt); Protokoll `docs/rollout/2026-11-05-plugin-2.2.0.md`. Probe durch den
   Betreiber offen. Ledger `.superpowers/sdd/2026-10-29-plan-3-tagesverschiebung/progress.md` (lokal).
+- **2.2.1 live (07.11.):** Wochentagszeile im Abwesenheitskalender (PR #6, Bump PR #7); Rollout komplett aus der
+  Sitzung, Protokoll `docs/rollout/2026-11-07-plugin-2.2.1.md`. Sichtprüfung in Prod beim Betreiber offen.
 
 ## Settled decisions
 - Fork statt WorkContractBundle: `decisions/0001-fork-statt-workcontractbundle.md`.

@@ -61,7 +61,16 @@
                                 <th class="text-nowrap">{{ 'user'|trans }}</th>
                                 {# Two-digit days (as Kimai's working times) keep the columns equally wide #}
                                 {% for day in 1..m.daysInMonth %}
-                                    {{ kit.calendar_day('%02d'|format(day), {tag: 'td', today: day == m.today}) }}
+                                    {% set date = m.date|date_modify('+' ~ (day - 1) ~ ' days') %}
+                                    {{ kit.calendar_day('%02d'|format(day), {tag: 'td', today: day == m.today, label: ('holiday.weekday.' ~ date|date('N'))|trans ~ ' ' ~ date|date('d.m.')}) }}
+                                {% endfor %}
+                            </tr>
+                            {# Weekday row as in the availability view #}
+                            <tr>
+                                <td></td>
+                                {% for day in 1..m.daysInMonth %}
+                                    {% set date = m.date|date_modify('+' ~ (day - 1) ~ ' days') %}
+                                    <td class="text-center text-body-secondary">{{ ('holiday.weekday.short.' ~ date|date('N'))|trans }}</td>
                                 {% endfor %}
                             </tr>
                         </thead>

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- The absence calendar shows the weekday under each day number (as the availability view)
+
 ## 2.2.0 (2026-11-01)
 
 ### Added

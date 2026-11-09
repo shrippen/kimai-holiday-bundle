@@ -34,3 +34,8 @@ services:
     KimaiPlugin\HolidayBundle\Form\Extension\UserContractTypeExtension:
         tags:
             - { name: form.type_extension }
+
+    # Kimai's mailer adds the From address (MAILER_FROM); Symfony's own mailer rejects mails without one
+    KimaiPlugin\HolidayBundle\Service\AbsenceNotifier:
+        arguments:
+            $mailer: '@App\Mail\KimaiMailer'

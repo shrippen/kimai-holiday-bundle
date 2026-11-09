@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.2.2 (2026-11-09)
+
+### Fixed
+
+- Mails of the plugin (absence and day shift: requested, approved, rejected, withdrawn) were never sent: they had
+  no From address and Symfony's mailer rejects such mails. The notifier now sends through Kimai's mailer, which
+  adds `MAILER_FROM`. A failed mail is logged as error instead of warning, so it shows in the production log.
+
 ## 2.2.1 (2026-11-07)
 
 ### Added

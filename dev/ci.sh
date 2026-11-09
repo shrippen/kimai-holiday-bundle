@@ -42,6 +42,13 @@ step "Lint"
 console lint:container
 console lint:twig "$PLUGIN/Resources/views"
 console lint:xliff "$PLUGIN/Resources/translations"
+
+step "Mail"
+# Plugin mails carry no From header; only Kimai's mailer adds MAILER_FROM. With Symfony's own mailer every
+# plugin mail fails with "An email must have a From or a Sender header".
+console debug:container 'KimaiPlugin\HolidayBundle\Service\AbsenceNotifier' --show-arguments \
+  | grep -qF 'App\Mail\KimaiMailer' || fail "AbsenceNotifier must send through App\Mail\KimaiMailer"
+echo "ok AbsenceNotifier sends through KimaiMailer"
 test "$(console debug:router | grep -c 'holiday_')" -ge 20 || fail "routes missing"
 
 step "HTTP"

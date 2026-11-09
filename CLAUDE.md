@@ -42,6 +42,8 @@ installieren.
 ## Git
 
 - Branch -> PR auf GitHub (`zafe-apps/kimai-holiday-bundle`) -> Merge nach grünem CI.
+- Jeder Merge in `master` deployt automatisch nach `zafe-server-1` (`docs/deploy.md`); Rollouts von Hand
+  nur noch, wenn der Deploy scheitert.
 - Upstream ist Remote `upstream`; Bugfixes von dort per Cherry-Pick.
 - Nie force-pushen, wenn ein PR von der Branch abhängt.
 - Commits: deutsch, Betreff im Imperativ, höchstens 50 Zeichen, groß, ohne Punkt; Leerzeile; Body

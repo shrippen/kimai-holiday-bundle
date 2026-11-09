@@ -13,3 +13,4 @@
 /.claude        export-ignore
 /.superpowers    export-ignore
 /Tests          export-ignore
+/deploy         export-ignore

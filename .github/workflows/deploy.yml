@@ -1,0 +1,75 @@
+# Every push to master installs the plugin on zafe-server-1 (same pattern as simudrom-website):
+#   lint ──► build zip (as release.yml) ──► scp zip + deploy/deploy-prod.sh ──► ssh: run the script.
+# The script dumps the database, keeps the current plugin, installs, reloads as www-data, checks
+# the pages and rolls back on failure (the job then fails). Secrets: SERVER_HOST, SERVER_USER,
+# SERVER_SSH_KEY (deploy key of SERVER_USER, see docs/deploy.md).
+name: Deploy to Server
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - 'docs/**'
+      - 'dev/**'
+      - 'demo/**'
+      - 'Tests/**'
+      - '.claude/**'
+      - '.superpowers/**'
+      - '**.md'
+  workflow_dispatch:
+
+# Deploys strictly one after another, a running one is never cancelled
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_DIR: /home/felix/deploy/kimai-holiday/incoming
+
+jobs:
+  deploy:
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Lint
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Build plugin zip
+        # Kimai expects the folder name var/plugins/HolidayBundle/
+        run: |
+          mkdir out
+          git archive --format=zip --prefix=HolidayBundle/ -o out/HolidayBundle.zip HEAD
+          if unzip -Z1 out/HolidayBundle.zip | grep -qE "/(demo|deploy|dev)/"; then echo "error: internal files in zip" >&2; exit 1; fi
+          cp deploy/deploy-prod.sh out/
+
+      - name: Copy to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2222
+          source: out/*
+          target: ${{ env.DEPLOY_DIR }}
+          strip_components: 1
+          overwrite: true
+
+      - name: SSH to server and deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2222
+          script: |
+            bash ${{ env.DEPLOY_DIR }}/deploy-prod.sh ${{ env.DEPLOY_DIR }}/HolidayBundle.zip ${{ github.sha }}

@@ -30,6 +30,9 @@ Tagesverschiebung durch den Betreiber, Issues #2/#3, Kleinbefunde in `TODO.md`.
   Betreiber offen. Ledger `.superpowers/sdd/2026-10-29-plan-3-tagesverschiebung/progress.md` (lokal).
 - **2.2.1 live (07.11.):** Wochentagszeile im Abwesenheitskalender (PR #6, Bump PR #7); Rollout komplett aus der
   Sitzung, Protokoll `docs/rollout/2026-11-07-plugin-2.2.1.md`. Sichtprüfung in Prod beim Betreiber offen.
+- **Auto-Deploy (09.11.):** jeder Merge in `master` installiert per GitHub Action auf zafe-server-1 (`docs/deploy.md`,
+  `deploy/deploy-prod.sh` mit Backup und Rückweg, lokal gegen das Prod-Image getestet). Deploy-Schlüssel und Secrets
+  setzt der Betreiber; erster echter Lauf ist der Merge dieses PRs.
 
 ## Settled decisions
 - Fork statt WorkContractBundle: `decisions/0001-fork-statt-workcontractbundle.md`.

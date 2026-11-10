@@ -10,6 +10,7 @@ use App\Utils\PageSetup;
 use KimaiPlugin\HolidayBundle\Entity\Location;
 use KimaiPlugin\HolidayBundle\Enum\PresenceKind;
 use KimaiPlugin\HolidayBundle\Repository\LocationUserRepository;
+use KimaiPlugin\HolidayBundle\Service\AbsenceDisclosure;
 use KimaiPlugin\HolidayBundle\Service\AvailabilityCalculator;
 use KimaiPlugin\HolidayBundle\Service\AvailabilityDay;
 use KimaiPlugin\HolidayBundle\Service\AvailabilityPeriod;
@@ -42,6 +43,7 @@ class AvailabilityController extends AbstractController
         private readonly LocationUserRepository $members,
         private readonly LocaleService $localeService,
         private readonly TranslatorInterface $translator,
+        private readonly AbsenceDisclosure $disclosure,
     ) {
     }
 
@@ -228,7 +230,7 @@ class AvailabilityController extends AbstractController
     {
         foreach ($day->absent as $item) {
             if ($item['user'] === $user) {
-                return ['kind' => self::CELL_ABSENT, 'icon' => $item['absence']->getType()->icon(), 'label' => $item['absence']->getType()->label(), 'pending' => null, 'pending_icon' => null];
+                return ['kind' => self::CELL_ABSENT, 'icon' => $this->disclosure->icon($item['absence'], $this->viewer()), 'label' => $this->disclosure->label($item['absence'], $this->viewer()), 'pending' => null, 'pending_icon' => null];
             }
         }
         // open items of this person (absence first); labels are translation keys
@@ -238,7 +240,7 @@ class AvailabilityController extends AbstractController
                 continue;
             }
             $open[isset($item['absence']) ? 'absence' : 'shift'] = isset($item['absence'])
-                ? ['label' => $item['absence']->getType()->label(), 'icon' => $item['absence']->getType()->icon()]
+                ? ['label' => $this->disclosure->label($item['absence'], $this->viewer()), 'icon' => $this->disclosure->icon($item['absence'], $this->viewer())]
                 : ['label' => 'holiday.availability.pending_shift_cell', 'icon' => 'repeat'];
         }
         $open = array_merge(['absence' => null, 'shift' => null], $open);
@@ -271,5 +273,13 @@ class AvailabilityController extends AbstractController
         }
 
         return null;
+    }
+
+    private function viewer(): User
+    {
+        /** @var User $viewer */
+        $viewer = $this->getUser();
+
+        return $viewer;
     }
 }

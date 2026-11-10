@@ -68,7 +68,7 @@
                         <span class="text-body-secondary">· {{ 'holiday.availability.pending_shift'|trans({'%from%': item.shift.fromDate|date('d.m.'), '%to%': item.shift.toDate|date('d.m.')}) }}</span>
                         {% if shift_deletable[item.shift.id] ?? false %}{{ _self.shift_delete(item.shift, item.user.displayName) }}{% endif %}
                     {% else %}
-                        <span class="text-body-secondary">· {{ item.absence.type.label|trans }}</span>
+                        <span class="text-body-secondary">· {{ holiday_absence_label(item.absence, app.user)|trans }}</span>
                     {% endif %}
                 </li>
             {% endfor %}
@@ -78,7 +78,7 @@
         <div class="fw-bold">{{ 'holiday.availability.absent'|trans }}</div>
         <ul class="list-unstyled mb-1">
             {% for item in day.absent %}
-                <li>{{ item.user.displayName }} <span class="text-body-secondary">· {{ item.absence.type.label|trans }}</span></li>
+                <li>{{ item.user.displayName }} <span class="text-body-secondary">· {{ holiday_absence_label(item.absence, app.user)|trans }}</span></li>
             {% endfor %}
         </ul>
     {% endif %}

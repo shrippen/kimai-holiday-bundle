@@ -14,6 +14,7 @@ use KimaiPlugin\HolidayBundle\Repository\AbsenceRepository;
 use KimaiPlugin\HolidayBundle\Repository\ExtraShiftRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
+use KimaiPlugin\HolidayBundle\Service\AbsenceDisclosure;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
 use KimaiPlugin\HolidayBundle\Service\CalendarMembers;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
@@ -30,6 +31,7 @@ class AbsenceCalendarController extends AbstractController
     public function __construct(
         private readonly AbsenceRepository $absenceRepository,
         private readonly CalendarMembers $calendarMembers,
+        private readonly AbsenceDisclosure $disclosure,
         private readonly AbsenceWorkdayHelper $workdayHelper,
         private readonly LocaleService $localeService,
         private readonly TranslatorInterface $translator,
@@ -96,6 +98,8 @@ class AbsenceCalendarController extends AbstractController
             ];
         }
 
+        /** @var User $viewer */
+        $viewer = $this->getUser();
         foreach ($absences as $absence) {
             $member = $absence->getUser();
             $uid = $member?->getId();
@@ -105,11 +109,11 @@ class AbsenceCalendarController extends AbstractController
                 continue;
             }
 
-            $type = $absence->getType();
+            // sickness of colleagues shows as "absent"
             $entry = [
-                'type' => $type->value,
-                'icon' => $type->icon(),
-                'label' => $type->label(),
+                'type' => $absence->getType()->value,
+                'icon' => $this->disclosure->icon($absence, $viewer),
+                'label' => $this->disclosure->label($absence, $viewer),
                 'requested' => $absence->getStatus() === AbsenceStatus::REQUESTED,
             ];
 
@@ -248,7 +252,7 @@ class AbsenceCalendarController extends AbstractController
                     'label' => $type->label(),
                 ],
                 AbsenceType::cases()
-            ),
+            ) + ['absent' => ['icon' => AbsenceDisclosure::NEUTRAL_ICON, 'label' => 'holiday.absence.type.absent']],
         ]);
     }
 

@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - The absence calendar shows the same for everyone: all active users and every team in the team picker, for
   employees as well as team leads. Before, employees saw only themselves and team leads only their teams.
+- Sickness (own and of a relative) of colleagues shows as *Absent* (*Abwesend*) in the absence calendar and on the
+  availability page. The type stays visible to the owner and to whoever manages them (team lead of their team,
+  admin).
 - Kimai's *Reporting* menu is called *Planning* (*Planung*): it only holds the absence calendar and availability.
 
 ### Added

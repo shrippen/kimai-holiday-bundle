@@ -3,13 +3,20 @@
 namespace KimaiPlugin\HolidayBundle\Service;
 
 use App\Entity\User;
+use KimaiPlugin\HolidayBundle\Enum\ProRata;
+use KimaiPlugin\HolidayBundle\Enum\VacationYearMode;
 
 /**
  * Vacation year = employment year starting on the anniversary of the contract start date
- * (calendar year when the user has no start date).
+ * (calendar year when the user has no start date). With the setting "calendar year" every
+ * vacation year is a calendar year, the entry year pro rata by days.
  */
 class VacationYearResolver
 {
+    public function __construct(private readonly ?HolidayConfiguration $configuration = null)
+    {
+    }
+
     public function isCalendarFallback(User $user): bool
     {
         return $user->getWorkStartingDay() === null;
@@ -77,6 +84,12 @@ class VacationYearResolver
      */
     public function previous(User $user, VacationYear $year): ?VacationYear
     {
+        if ($this->isCalendarMode()) {
+            // chain from the entry year on, no earlier
+            $start = $user->getWorkStartingDay();
+
+            return $start !== null && $year->index <= (int) $start->format('Y') ? null : $this->calendarYear($year->index - 1);
+        }
         if ($this->anchor($user) === null) {
             return $this->calendarYear($year->index - 1);
         }
@@ -89,8 +102,19 @@ class VacationYearResolver
         return $this->forIndex($user, $year->index + 1);
     }
 
+    private function isCalendarMode(): bool
+    {
+        return $this->configuration?->getVacationYearMode() === VacationYearMode::CALENDAR;
+    }
+
+    /**
+     * Start of the employment years; null without start date or in calendar mode.
+     */
     private function anchor(User $user): ?\DateTimeImmutable
     {
+        if ($this->isCalendarMode()) {
+            return null;
+        }
         $start = $user->getWorkStartingDay();
 
         return $start === null ? null : \DateTimeImmutable::createFromInterface($start)->setTime(0, 0);
@@ -114,7 +138,8 @@ class VacationYearResolver
         return new VacationYear(
             new \DateTimeImmutable(sprintf('%d-01-01', $year)),
             new \DateTimeImmutable(sprintf('%d-12-31', $year)),
-            $year
+            $year,
+            $this->isCalendarMode() ? ProRata::DAYS : ProRata::MONTHS
         );
     }
 }

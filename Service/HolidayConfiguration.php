@@ -5,6 +5,7 @@ namespace KimaiPlugin\HolidayBundle\Service;
 use App\Configuration\SystemConfiguration;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceType;
 use KimaiPlugin\HolidayBundle\Enum\CalculationMode;
+use KimaiPlugin\HolidayBundle\Enum\VacationYearMode;
 
 class HolidayConfiguration
 {
@@ -64,5 +65,10 @@ class HolidayConfiguration
         }
 
         return CalculationMode::COMPENSATE;
+    }
+
+    public function getVacationYearMode(): VacationYearMode
+    {
+        return VacationYearMode::tryFrom((string) $this->configuration->find('holiday.vacation_year')) ?? VacationYearMode::EMPLOYMENT;
     }
 }

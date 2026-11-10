@@ -6,6 +6,7 @@ use App\Event\SystemConfigurationEvent;
 use App\Form\Model\Configuration;
 use App\Form\Model\SystemConfiguration as SystemConfigurationModel;
 use KimaiPlugin\HolidayBundle\Enum\CalculationMode;
+use KimaiPlugin\HolidayBundle\Enum\VacationYearMode;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -48,6 +49,20 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setRequired(false)
                         ->setType(CheckboxType::class)
                         ->setValue(true),
+                    (new Configuration('holiday.vacation_year'))
+                        ->setLabel('holiday.vacation_year')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(ChoiceType::class)
+                        ->setValue(VacationYearMode::EMPLOYMENT->value)
+                        ->setOptions([
+                            'choices' => [
+                                'holiday.vacation_year.employment' => VacationYearMode::EMPLOYMENT->value,
+                                'holiday.vacation_year.calendar' => VacationYearMode::CALENDAR->value,
+                            ],
+                            'choice_translation_domain' => 'messages',
+                            'help' => 'holiday.vacation_year.help',
+                        ]),
                     (new Configuration('holiday.restrict_timesheets_to_workdays'))
                         ->setLabel('holiday.restrict_timesheets_to_workdays')
                         ->setTranslationDomain('messages')

@@ -5,6 +5,7 @@ namespace KimaiPlugin\HolidayBundle\Service;
 use App\Entity\User;
 use App\WorkingTime\Mode\WorkingTimeModeFactory;
 use KimaiPlugin\HolidayBundle\Entity\PublicHolidayGroup;
+use KimaiPlugin\HolidayBundle\Enum\ProRata;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayGroupRepository;
 
 /**
@@ -105,6 +106,10 @@ class UserWorkContract
             return $perYear;
         }
 
+        if ($year->proRata === ProRata::DAYS) {
+            return $this->proRataByDays($perYear, $year, $start, $end);
+        }
+
         $months = 0;
         for ($month = 0; $month < 12; ++$month) {
             $first = $this->addMonths($year->start, $month);
@@ -115,6 +120,25 @@ class UserWorkContract
         }
 
         return ceil($perYear * $months / 12 * 2) / 2;
+    }
+
+    /**
+     * Share of the employed days in the year, rounded up to half days.
+     * Example: 20 days, employed 15.07.–31.12.2026 (170 of 365 days) → 9.5.
+     */
+    private function proRataByDays(float $perYear, VacationYear $year, ?\DateTimeInterface $start, ?\DateTimeInterface $end): float
+    {
+        $from = $start !== null && $start > $year->start ? \DateTimeImmutable::createFromInterface($start)->setTime(0, 0) : $year->start;
+        $to = $end !== null && $end < $year->end ? \DateTimeImmutable::createFromInterface($end)->setTime(0, 0) : $year->end;
+        if ($from > $to) {
+            return 0.0;
+        }
+
+        $employed = $from->diff($to)->days + 1;
+        $total = $year->start->diff($year->end)->days + 1;
+
+        // round() first, so 20 × 365 / 365 stays 20 and is not pushed to 20.5 by float noise
+        return ceil(round($perYear * $employed / $total * 2, 6)) / 2;
     }
 
     /**

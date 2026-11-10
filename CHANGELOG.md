@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Setting *Vacation year* (*Urlaubsjahr*): employment year (default, as before) or calendar year. With calendar year
+  the year of entry and of leaving get the vacation entitlement pro rata by employed days, rounded up to half days
+  (start 15 July, 20 days → 9.5 days); the balance carries over from the year of entry on.
+
 - Working times: every day cell shows its weekday, as the column only names the day of the month.
 - Working times: a second total row "Planned incl. time off" shows the balance minus approved time off after today.
   Kimai counts days only up to today, so approved time off reduced the balance only on its day.

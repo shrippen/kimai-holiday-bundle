@@ -87,6 +87,9 @@ users you may access). The tiles at the top show vacation taken, vacation reques
 (entitlement from **Profile → Employment contract**).
 The vacation year runs from the contract start date (anniversary to anniversary) and the balance of the previous year
 carries over automatically; without a start date the calendar year is used and nothing carries over.
+With **System → Settings → Vacation year: Calendar year** every vacation year is a calendar year: the year of entry and
+of leaving get the share of their employed days, rounded up to half days (start 15 July, 20 days → 9.5 days), and the
+balance carries over from the year of entry on.
 
 - **Create** opens the absence form in a modal. Vacation, time off in lieu and "other" absences start as *Requested*;
   sickness is approved immediately.

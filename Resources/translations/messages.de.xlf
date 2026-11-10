@@ -14,6 +14,22 @@
         <source>holiday.absence.type.absent</source>
         <target>Abwesend</target>
       </trans-unit>
+      <trans-unit id="h303" resname="holiday.vacation_year">
+        <source>holiday.vacation_year</source>
+        <target>Urlaubsjahr</target>
+      </trans-unit>
+      <trans-unit id="h304" resname="holiday.vacation_year.employment">
+        <source>holiday.vacation_year.employment</source>
+        <target>Arbeitsjahr (ab Eintrittsdatum)</target>
+      </trans-unit>
+      <trans-unit id="h305" resname="holiday.vacation_year.calendar">
+        <source>holiday.vacation_year.calendar</source>
+        <target>Kalenderjahr (Eintritts- und Austrittsjahr aliquot)</target>
+      </trans-unit>
+      <trans-unit id="h306" resname="holiday.vacation_year.help">
+        <source>holiday.vacation_year.help</source>
+        <target>Kalenderjahr: Der Urlaubsanspruch gilt je Kalenderjahr; im Jahr des Eintritts und des Austritts anteilig nach Tagen, auf halbe Tage aufgerundet (Eintritt 15.07., 20 Tage → 9,5 Tage).</target>
+      </trans-unit>
       <trans-unit id="h000" resname="holiday.menu.absence_calendar">
         <source>holiday.menu.absence_calendar</source>
         <target>Abwesenheitskalender</target>

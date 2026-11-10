@@ -14,6 +14,22 @@
         <source>holiday.absence.type.absent</source>
         <target>Absent</target>
       </trans-unit>
+      <trans-unit id="h303" resname="holiday.vacation_year">
+        <source>holiday.vacation_year</source>
+        <target>Vacation year</target>
+      </trans-unit>
+      <trans-unit id="h304" resname="holiday.vacation_year.employment">
+        <source>holiday.vacation_year.employment</source>
+        <target>Employment year (from the start date)</target>
+      </trans-unit>
+      <trans-unit id="h305" resname="holiday.vacation_year.calendar">
+        <source>holiday.vacation_year.calendar</source>
+        <target>Calendar year (entry and leaving year pro rata)</target>
+      </trans-unit>
+      <trans-unit id="h306" resname="holiday.vacation_year.help">
+        <source>holiday.vacation_year.help</source>
+        <target>Calendar year: the vacation entitlement applies per calendar year; in the year of entry and of leaving pro rata by days, rounded up to half days (start 15 July, 20 days → 9.5 days).</target>
+      </trans-unit>
       <trans-unit id="h000" resname="holiday.menu.absence_calendar">
         <source>holiday.menu.absence_calendar</source>
         <target>Absence calendar</target>

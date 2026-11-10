@@ -2,6 +2,8 @@
 
 namespace KimaiPlugin\HolidayBundle\Service;
 
+use KimaiPlugin\HolidayBundle\Enum\ProRata;
+
 /**
  * One vacation year: the employment year from the contract anniversary, or the calendar year
  * without a contract start date. $index is 0 for the first employment year, the year number
@@ -13,6 +15,7 @@ final class VacationYear
         public readonly \DateTimeImmutable $start,
         public readonly \DateTimeImmutable $end,
         public readonly int $index,
+        public readonly ProRata $proRata = ProRata::MONTHS,
     ) {
     }
 

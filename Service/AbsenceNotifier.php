@@ -151,7 +151,7 @@ class AbsenceNotifier
                 ->text($body);
             $this->mailer->send($email);
         } catch (\Throwable $e) {
-            $this->logger->warning('HolidayBundle: failed to send absence email: ' . $e->getMessage());
+            $this->logger->error('HolidayBundle: failed to send absence email: ' . $e->getMessage());
         }
     }
 }

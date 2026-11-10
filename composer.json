@@ -3,7 +3,7 @@
     "description": "Open-source Kimai plugin: working hours, overtime, vacations, sickness, PTO, public holidays (WorkContractBundle alternative)",
     "homepage": "https://github.com/zafe-apps/kimai-holiday-bundle",
     "type": "kimai-plugin",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "keywords": [
         "kimai",
         "kimai-plugin",

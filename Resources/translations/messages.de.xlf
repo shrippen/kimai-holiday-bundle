@@ -2,6 +2,10 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en" target-language="de" datatype="plaintext" original="HolidayBundle">
     <body>
+      <trans-unit id="h300" resname="holiday.menu.planning">
+        <source>holiday.menu.planning</source>
+        <target>Planung</target>
+      </trans-unit>
       <trans-unit id="h000" resname="holiday.menu.absence_calendar">
         <source>holiday.menu.absence_calendar</source>
         <target>Abwesenheitskalender</target>

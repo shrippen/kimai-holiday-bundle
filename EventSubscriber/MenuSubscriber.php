@@ -72,6 +72,12 @@ class MenuSubscriber implements EventSubscriberInterface
             }
         }
 
+        // Kimai's "Reporting" entry only holds the plugin's pages now, so it is named after them
+        $reporting = $event->getReportingMenu();
+        if ($reporting !== null && $reporting->hasChildren()) {
+            $reporting->setLabel('holiday.menu.planning');
+        }
+
         if ($this->security->isGranted('edit_public_holidays')) {
             $admin = $event->getAdminMenu();
             if ($admin->getChild('public_holidays') === null) {

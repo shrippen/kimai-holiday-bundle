@@ -103,9 +103,11 @@ Outlook, Google Calendar or Apple Calendar. **Regenerate link** makes the old li
 
 ### Absence calendar
 
-**Reporting → Absence calendar** shows the absences of your teams per year or month (`/holiday/absence-calendar/{year}`
-or `/{year}/{month}`). Approved absences and each user's public holidays are shown as bars,
-requested absences as faded icons; today is framed. Filter by team with the team picker.
+**Planning → Absence calendar** shows the absences of all active users per year or month (`/holiday/absence-calendar/{year}`
+or `/{year}/{month}`). Every user with the `absence` permission sees the same calendar, employees as well as team
+leads. Approved absences and each user's public holidays are shown as bars, requested absences as faded icons; today is
+framed. Filter by any team with the team picker. The plugin renames Kimai's *Reporting* menu to *Planning*, since it
+only holds the absence calendar and availability.
 
 ### Public holidays
 

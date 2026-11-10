@@ -4,11 +4,8 @@ namespace KimaiPlugin\HolidayBundle\Controller;
 
 use App\Configuration\LocaleService;
 use App\Controller\AbstractController;
-use App\Entity\Team;
 use App\Entity\User;
 use App\Form\Type\TeamType;
-use App\Repository\TeamRepository;
-use App\Repository\UserRepository;
 use App\Utils\LocaleFormatter;
 use App\Utils\PageSetup;
 use KimaiPlugin\HolidayBundle\Enum\AbsenceStatus;
@@ -18,6 +15,7 @@ use KimaiPlugin\HolidayBundle\Repository\ExtraShiftRepository;
 use KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository;
 use KimaiPlugin\HolidayBundle\Repository\WorkdayShiftRepository;
 use KimaiPlugin\HolidayBundle\Service\AbsenceWorkdayHelper;
+use KimaiPlugin\HolidayBundle\Service\CalendarMembers;
 use KimaiPlugin\HolidayBundle\Service\UserWorkContract;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,8 +29,7 @@ class AbsenceCalendarController extends AbstractController
 {
     public function __construct(
         private readonly AbsenceRepository $absenceRepository,
-        private readonly UserRepository $userRepository,
-        private readonly TeamRepository $teamRepository,
+        private readonly CalendarMembers $calendarMembers,
         private readonly AbsenceWorkdayHelper $workdayHelper,
         private readonly LocaleService $localeService,
         private readonly TranslatorInterface $translator,
@@ -172,7 +169,7 @@ class AbsenceCalendarController extends AbstractController
             }
         }
 
-        $teams = $this->getSelectableTeams();
+        $teams = $this->calendarMembers->teams();
         $selectedTeam = null;
         $teamId = $request->query->getInt('team');
         foreach ($teams as $team) {
@@ -256,80 +253,24 @@ class AbsenceCalendarController extends AbstractController
     }
 
     /**
-     * Teams the current user may pick: all teams with view_all_data (admins), otherwise
-     * teams they lead (view_other_absence) or belong to (view_team_absence).
+     * Users of the picked team, or everyone without a team. Unknown team: 404.
      *
-     * @return Team[]
-     */
-    private function getSelectableTeams(): array
-    {
-        /** @var User $current */
-        $current = $this->getUser();
-        $canOther = $this->isGranted('view_other_absence');
-        $canTeam = $this->isGranted('view_team_absence');
-
-        if (!$canOther && !$canTeam) {
-            return [];
-        }
-
-        if ($canOther && $current->canSeeAllData()) {
-            return $this->teamRepository->findAll();
-        }
-
-        $teams = [];
-        foreach ($current->getTeams() as $team) {
-            if ($canTeam || $current->isTeamleadOf($team)) {
-                $teams[$team->getId()] = $team;
-            }
-        }
-
-        return array_values($teams);
-    }
-
-    /**
      * @return User[]
      */
     private function resolveUsers(Request $request): array
     {
-        /** @var User $current */
-        $current = $this->getUser();
-
-        if (!$this->isGranted('view_other_absence') && !$this->isGranted('view_team_absence')) {
-            return [$current];
-        }
-
-        $teams = $this->getSelectableTeams();
         $teamId = $request->query->getInt('team');
-        if ($teamId > 0) {
-            foreach ($teams as $team) {
-                if ($team->getId() === $teamId) {
-                    return array_values(array_filter(
-                        $team->getUsers(),
-                        static fn (User $u): bool => $u->isEnabled()
-                    ));
-                }
-            }
-
-            throw $this->createAccessDeniedException('You cannot view this team.');
+        if ($teamId <= 0) {
+            return $this->calendarMembers->users(null);
         }
 
-        if ($this->isGranted('view_other_absence')) {
-            return array_values(array_filter(
-                $this->userRepository->findAll(),
-                fn (User $u): bool => $u->isEnabled() && ($u === $current || $this->isGranted('access_user', $u))
-            ));
-        }
-
-        $users = [$current->getId() => $current];
-        foreach ($teams as $team) {
-            foreach ($team->getUsers() as $member) {
-                if ($member->isEnabled()) {
-                    $users[$member->getId()] = $member;
-                }
+        foreach ($this->calendarMembers->teams() as $team) {
+            if ($team->getId() === $teamId) {
+                return $this->calendarMembers->users($team);
             }
         }
 
-        return array_values($users);
+        throw $this->createNotFoundException('Unknown team');
     }
 
     /**

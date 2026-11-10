@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.3.0 (2026-11-10)
+
+### Changed
+
+- Mails (absence and day shift: requested, approved, rejected, withdrawn) go only to the approvers (team leads), no
+  longer to the employee; the employee sees the state in Kimai. Without an approver no mail is sent.
+
 ## 2.2.2 (2026-11-09)
 
 ### Fixed

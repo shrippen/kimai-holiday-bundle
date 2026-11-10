@@ -95,7 +95,7 @@ class AbsenceNotifier
         $this->notifyShift($shift, 'rejected');
     }
 
-    /** An approved shift was deleted: requester and approvers learn who took it back. */
+    /** An approved shift was deleted: the approvers learn who took it back. */
     public function notifyShiftWithdrawn(WorkdayShift $shift, User $actor): void
     {
         $this->notifyShift($shift, 'withdrawn', $actor);
@@ -122,16 +122,14 @@ class AbsenceNotifier
     }
 
     /**
-     * The requester and every account that could approve the request.
+     * Every account that could approve the request (team leads); the employee gets no mail and sees the
+     * state in Kimai.
      *
      * @return list<string|null>
      */
     private function recipients(User $user, string $permission = ApproverAccess::PERMISSION): array
     {
-        return [
-            $user->getEmail(),
-            ...array_map(static fn (User $approver): ?string => $approver->getEmail(), $this->approverResolver->approversFor($user, $permission)),
-        ];
+        return array_map(static fn (User $approver): ?string => $approver->getEmail(), $this->approverResolver->approversFor($user, $permission));
     }
 
     /**

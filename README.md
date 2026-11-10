@@ -176,10 +176,11 @@ expected hours, no vacation deducted there).
 
 **Decide:** **Open requests** (`holiday_absence_requests`) lists day shifts in a second table below the absences, with
 the row menu: approve / reject per row. The result toast offers *Undo* (**reopen**, back to *Requested*).
-Delete an approved or open shift from the row menu or the availability page (a confirmation mail goes to the requester
-and approvers when an approved shift is withdrawn). The menu badge counts open absences and open shifts that you may approve.
+Delete an approved or open shift from the row menu or the availability page (a confirmation mail goes to the approvers when an
+approved shift is withdrawn). The menu badge counts open absences and open shifts that you may approve.
 
-**Mails:** request, approval, rejection and withdrawal go to the requester and all approvers of the shift.
+**Mails:** request, approval, rejection and withdrawal go to all approvers (team leads) of the shift; the employee gets
+no mail and sees the state in Kimai. The same holds for absences.
 
 **Where it shows:**
 

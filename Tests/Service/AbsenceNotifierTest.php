@@ -18,7 +18,7 @@ final class AbsenceNotifierTest extends TestCase
     /** @var list<Email> */
     private array $sent = [];
 
-    public function testRequestedGoesToUserAndAllApprovers(): void
+    public function testRequestedGoesOnlyToApprovers(): void
     {
         $user = $this->user('user@example.test');
         $a = $this->user('a@example.test');
@@ -28,10 +28,19 @@ final class AbsenceNotifierTest extends TestCase
 
         $this->assertCount(1, $this->sent);
         $to = array_map(static fn ($address) => $address->getAddress(), $this->sent[0]->getTo());
-        $this->assertSame(['user@example.test', 'a@example.test', 'b@example.test'], $to);
+        $this->assertSame(['a@example.test', 'b@example.test'], $to);
     }
 
-    public function testDecisionNamesApproverAndGoesToAll(): void
+    public function testNoApproverSendsNothing(): void
+    {
+        $user = $this->user('user@example.test');
+
+        $this->notifier([])->notifyRequested(AbsenceBuilder::requested($user, '2026-10-21', '2026-10-22'));
+
+        $this->assertSame([], $this->sent);
+    }
+
+    public function testDecisionNamesApproverAndGoesOnlyToApprovers(): void
     {
         $user = $this->user('user@example.test');
         $a = $this->user('a@example.test');
@@ -43,7 +52,8 @@ final class AbsenceNotifierTest extends TestCase
 
         $this->assertCount(1, $this->sent);
         $this->assertStringContainsString('Boss B', (string) $this->sent[0]->getTextBody());
-        $this->assertCount(3, $this->sent[0]->getTo());
+        $to = array_map(static fn ($address) => $address->getAddress(), $this->sent[0]->getTo());
+        $this->assertSame(['a@example.test', 'b@example.test'], $to);
     }
 
     private function user(string $email): User

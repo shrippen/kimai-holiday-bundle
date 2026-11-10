@@ -7,7 +7,7 @@ Everything the plugin shows inside Kimai follows the shared UI guidelines for Ki
 Kimai core components and Tabler classes only — no own colours, fonts or CSS; Kante (below) does **not**
 apply to Kimai pages. The shrippen look comes from [Knust](https://github.com/shrippen/Kante/tree/main/kimai/knust) (`kimai/knust/` in Kante, `PLUGINS.md`),
 which styles Tabler, Kimai's classes and the kit's `kpu-*` markers; missing elements go to the kit or Knust first
-(see `agent.md`).
+(see `RULES.md`, GUI rule).
 
 ## Landing page
 

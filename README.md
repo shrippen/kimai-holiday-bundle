@@ -19,6 +19,8 @@ Open-source Kimai plugin for working hours, overtime, absences, and public holid
 - Extends **Profil → Arbeitsvertrag** with vacation days, public-holiday group, and contract start/end
 - Extends **Arbeitsvertrag / Arbeitszeiten** (adds **Abwesenheit** — no duplicate sidebar section)
 - Absences and public holidays in the core Arbeitszeiten year view (including known future days)
+- Weekday in every day cell of the Arbeitszeiten year view, and a "planned" balance that already subtracts approved
+  time off after today (Kimai itself counts only up to today)
 - Absences: vacation (half-day), sickness (+ relative), time off in lieu (Freizeitausgleich), other — approval workflow with bulk approve/reject and undo, email notifications
 - Edit absences (resets approval when the type requires it)
 - Vacation balance (taken, requested, sick days, remaining) on the absence page

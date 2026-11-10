@@ -6,6 +6,10 @@
         <source>holiday.menu.planning</source>
         <target>Planning</target>
       </trans-unit>
+      <trans-unit id="h301" resname="holiday.contract.planned">
+        <source>holiday.contract.planned</source>
+        <target>Planned incl. time off (−%duration%)</target>
+      </trans-unit>
       <trans-unit id="h000" resname="holiday.menu.absence_calendar">
         <source>holiday.menu.absence_calendar</source>
         <target>Absence calendar</target>

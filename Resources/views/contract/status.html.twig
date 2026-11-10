@@ -177,7 +177,9 @@
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}
-                                <td class="kpu-num text-end contractDay text-nowrap{% if style is not null %} bg-{{ style }}{% endif %}"{% if statusTitle is not null %} data-toggle="tooltip" data-placement="top" title="{{ statusTitle }}"{% endif %}>
+                                <td class="kpu-num text-end align-top contractDay text-nowrap{% if style is not null %} bg-{{ style }}{% endif %}"{% if statusTitle is not null %} data-toggle="tooltip" data-placement="top" title="{{ statusTitle }}"{% endif %}>
+                                    {# HolidayBundle: weekday, as the column only names the day of the month #}
+                                    <span class="d-block small text-body-secondary">{{ ('holiday.weekday.short.' ~ day.day|date('N'))|trans }}</span>
                                     {# HolidayBundle: also show future days that have absences / public holidays #}
                                     {% if day.hasAddons() or ((day.workingTime.expectedTime != 0 or day.workingTime.actualTime != 0) and (now > day.day or day.workingTime.actualTime > 0)) %}
                                         {% if style is not null and statusTitle is not null %}
@@ -224,6 +226,25 @@
                             {% endfor %}
                             <td></td>
                         </tr>
+                        {# HolidayBundle: balance after the approved time off still ahead (Kimai counts only up to today) #}
+                        {% set plannedTimeOff = holiday_planned_time_off(year, now) %}
+                        {% if plannedTimeOff > 0 %}
+                        <tr class="summary">
+                            {% if withWorkHourConfiguration %}
+                            <td></td>
+                            {% endif %}
+                            <td>{{ 'holiday.contract.planned'|trans({'%duration%': plannedTimeOff|duration(decimal)}) }}</td>
+                            <td class="kpu-num text-end total">
+                                {{ work_times_result(yearShould + plannedTimeOff, yearIs, decimal) }}
+                            </td>
+                            <td></td>
+                            <td></td>
+                            {% for day in 1..31 %}
+                                <td class="contractDay"></td>
+                            {% endfor %}
+                            <td></td>
+                        </tr>
+                        {% endif %}
                     </tfoot>
                 </table>
             {% endblock %}

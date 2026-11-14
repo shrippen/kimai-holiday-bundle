@@ -21,7 +21,7 @@ exports.
 | `Migrations/` | One version file per schema change; a released one is never edited. |
 | `Service/WorkingTimeCalculator.php`, `AbsenceWorkdayHelper.php`, `UserWorkContract.php` | The calculation: target, actual and balance per day and year, vacation days, what an absence or public holiday credits on a day; which days are workdays; the user's contract data. |
 | `Service/AbsenceApprovalService.php`, `AbsenceTimesheetService.php`, `AbsenceNotifier.php`, `MonthLockService.php` | The use cases on absences: create, change, approve, reject, delete; the compensating timesheet entries; mails; locked months. |
-| `Service/AbsencePermissions.php` | Who may see, edit, approve or delete whose absences. The one place for these rules. |
+| `Service/AbsencePermissions.php` | Who may see, edit, approve or delete whose absences, and who may reach another user's data. The one place for these rules. |
 | `Service/HolidayImporter.php`, `HolidayIcsCatalog.php`, `IcsHolidayParser.php` | Public holidays from calendar feeds; the only code that fetches from another server. |
 | `Service/UserIcsCalendarBuilder.php`, `UserIcsTokenService.php` | The user's own calendar feed and its secret token. |
 | `Service/AbsenceExcelExporter.php`, `WorkingTimePdfExporter.php` | The exports of absences and of the working time report. |
@@ -59,7 +59,8 @@ exports.
   entries, exports and API ask the same function.
 - A right on absences, and on another user's data, is decided once, in
   `AbsencePermissions`. Pages, API, calendar and page actions ask it; none carries
-  its own check. A plain gate by one permission at a route or a page action is fine.
+  its own check. A plain gate by permissions at a route, a page action, a menu entry or a calendar
+  source is fine.
 - "The public holidays of this user in this period" is one service function (group
   first, then its days, with the weekend rule); nobody else puts it together.
 - A use case exists once: creating and changing an absence share what they have in

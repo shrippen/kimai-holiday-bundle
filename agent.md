@@ -18,7 +18,7 @@ names). Never install both.
   `kimai:bundle:holiday:install`; released migrations are never edited.
 - Permissions are declared in `DependencyInjection/HolidayExtension.php` per role.
 - Texts in `Resources/translations/*.{de,en}.xlf`, same keys in both.
-- Checks (CI, `.github/workflows/ci.yml`): PHP syntax 8.1–8.4, `php dev/check-translations.php`,
+- Checks (CI, `.github/workflows/ci.yml`): structure limits (`tools/structure-check.py`), PHP syntax 8.1–8.4, `php dev/check-translations.php`,
   and `dev/ci.sh`, which installs the release zip into Kimai 2.67, runs the migrations and loads
   the pages, API and ICS feed.
 - `demo/` (screenshots) and `dev/` never ship: `.gitattributes` keeps them out of the zip,

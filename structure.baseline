@@ -1,0 +1,14 @@
+# What is over a structure limit today (tools/structure-check.py). An entry may shrink,
+# never grow; a raised or new entry needs its reason in the PR. Rewrite with --update.
+# Lines: exclude<TAB>glob | path<TAB>function or - for the file<TAB>metric=value ...
+exclude	Resources/views/_kit/*
+API/AbsenceApiController.php	AbsenceApiController::create	ccn=17
+Controller/AbsenceCalendarController.php	AbsenceCalendarController::renderCalendar	ccn=24 length=149
+Controller/AbsenceController.php	AbsenceController::index	ccn=18 length=105
+DependencyInjection/HolidayExtension.php	HolidayExtension::prepend	length=90
+EventSubscriber/SystemConfigurationSubscriber.php	SystemConfigurationSubscriber::onSystemConfiguration	length=84
+EventSubscriber/WorkingTimeYearSubscriber.php	WorkingTimeYearSubscriber::onWorkingTimeYear	ccn=38 length=139 nesting=6
+Service/AbsenceTimesheetService.php	AbsenceTimesheetService::findAbsenceTimesheets	ccn=17
+Service/AbsenceTimesheetService.php	AbsenceTimesheetService::syncAbsence	ccn=19 length=83
+Service/HolidayIcsCatalog.php	HolidayIcsCatalog::definitions	length=86
+Service/WorkingTimeCalculator.php	WorkingTimeCalculator::calculateYear	length=83

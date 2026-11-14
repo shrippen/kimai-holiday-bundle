@@ -26,14 +26,14 @@ exports.
 | `Service/UserIcsCalendarBuilder.php`, `UserIcsTokenService.php` | The user's own calendar feed and its secret token. |
 | `Service/AbsenceExcelExporter.php`, `WorkingTimePdfExporter.php` | The exports of absences and of the working time report. |
 | `Service/HolidayConfiguration.php` | The plugin's system settings. |
-| `Controller/` | The pages: absences, absence calendar, contract and working time report, public holidays, calendar feed settings. The two traits hold what pages share. |
+| `Controller/` | The pages: absences (with the settings of the user's calendar feed), absence calendar, contract and working time report, public holidays; the absences as events for Kimai's own calendar (`CalendarFeedController`). The two traits hold what pages share. |
 | `API/`, `Ics/` | The REST API (`/api/holiday/…`); the calendar feed that needs no login, only the token. |
 | `Command/` | Console commands: install, fetch public holidays. |
 | `Form/`, `Validator/` | Symfony forms, the extension of Kimai's contract form; the rule "timesheets on workdays only". |
 | `EventSubscriber/` | Hooks into Kimai: menu, permissions, settings, page actions (`Actions/`), calendar sources, absences and public holidays in Kimai's working time view. |
 | `Resources/views/`, `Resources/translations/` | Templates per page; all texts, German and English, same keys. `_kit/` and `kpu.*.xlf` are the vendored Kimai plugin kit, never edited here. |
 | `HolidayBundle.php`, `DependencyInjection/`, `Resources/config/` | Registration in Kimai; the permissions per role (`HolidayExtension.php`). |
-| `dev/` | Checks: translations, and `ci.sh`, which installs the release zip into Kimai and loads pages, API and feed. |
+| `dev/` | The checks of translations and of the release zip in a real Kimai. |
 | `demo/`, `docs/`, `scripts/`, `tools/` | Not part of the plugin zip: demo data, landing page, release and check scripts. |
 
 ## Layers
@@ -57,8 +57,9 @@ exports.
 - A number is computed once, in the calculation: what a day credits, how many vacation
   days count, target and balance. Pages, Kimai's working time view, the compensating
   entries, exports and API ask the same function.
-- A right is decided once, in `AbsencePermissions`. Pages, API, calendar and page
-  actions ask it; none carries its own check.
+- A right on absences, and on another user's data, is decided once, in
+  `AbsencePermissions`. Pages, API, calendar and page actions ask it; none carries
+  its own check. A plain gate by one permission at a route or a page action is fine.
 - "The public holidays of this user in this period" is one service function (group
   first, then its days, with the weekend rule); nobody else puts it together.
 - A use case exists once: creating and changing an absence share what they have in
@@ -66,14 +67,14 @@ exports.
 - A name says what a thing produces.
 - Nothing is kept that no page, API, feed or command reaches: a setting has an effect,
   a table has a page that uses it, a function has a caller.
-- The calculation has unit tests; `dev/ci.sh` checks every page, the API and the feed.
+- The calculation has unit tests; `dev/ci.sh` loads every page, the API and the feed.
 
 ## Where new things go
 
 | Change | Touch |
 |---|---|
 | A rule of how hours or vacation days are counted | The calculation (`Service/WorkingTimeCalculator.php`, `AbsenceWorkdayHelper.php`), a unit test |
-| A new absence type or status | `Enum/`, the calculation, `Service/AbsenceApprovalService.php`, the forms and templates, texts |
+| A new absence type or status | `Enum/` (a type also says whether it needs approval), the calculation, the calendar feed (`Service/UserIcsCalendarBuilder.php`), the forms and templates, texts; a status also in `Service/AbsenceApprovalService.php` |
 | A rule on who may do what | `Service/AbsencePermissions.php`; a new permission in `DependencyInjection/HolidayExtension.php` and `EventSubscriber/PermissionSectionSubscriber.php` |
 | A step in creating, approving or deleting an absence | `Service/AbsenceApprovalService.php` |
 | Something about public holidays or their import | The repository and service of public holidays, `Service/HolidayImporter.php` |
@@ -88,12 +89,18 @@ exports.
 
 - What an absence or a public holiday credits on a day is built three times, and the
   versions differ (`AUDIT.md`, finding 1).
-- The calculation has no test (`AUDIT.md`, finding 2).
+- The calculation has no test, and `dev/ci.sh` loads only five pages
+  (`AUDIT.md`, finding 2).
+- The absence page counts requested vacation days and sick days itself, and counts
+  sickness differently from the calculation (not in `AUDIT.md`).
 - The rights stand in four places; the API checks differently from the pages
-  (`AUDIT.md`, finding 3).
+  (`AUDIT.md`, finding 3). The absence page and the contract page each decide access
+  to another user themselves (not in `AUDIT.md`).
 - The public holidays of a user are put together in seven places, often straight from
-  the database; pages, API, a subscriber and a form extension use repositories
-  directly (`AUDIT.md`, finding 4).
+  the database (`AUDIT.md`, finding 4).
+- Pages, API, a subscriber and a form extension use repositories directly, also for
+  absences, bookings, public holidays and Kimai's users and teams
+  (not in `AUDIT.md`).
 - Two services build queries themselves: `WorkingTimeCalculator` and
   `AbsenceTimesheetService` (not in `AUDIT.md`).
 - One setting has no effect and some functions nothing calls
